@@ -1,0 +1,77 @@
+<div class="home-container">
+      <div class="home-content">
+        <h1 class="welcome-title">{{ i18n.translate('welcome') }}</h1>
+        
+        <div class="notebooks-section" *ngIf="notebooks.length > 0">
+          <div class="section-header">
+            <button class="create-new-btn" (click)="createNewNotebook()">
+              <span class="plus-icon">+</span>
+              {{ i18n.translate('createNew') }}
+            </button>
+            
+            <div class="view-controls">
+              <button class="view-btn active">
+                <span class="material-icons">grid_view</span>
+              </button>
+              <button class="view-btn">
+                <span class="material-icons">view_list</span>
+              </button>
+              <select class="sort-select">
+                <option>{{ i18n.translate('mostRecent') }}</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="notebooks-grid">
+            <div 
+              class="notebook-card" 
+              *ngFor="let notebook of notebooks"
+              (click)="openNotebook(notebook.id)">
+              <div class="notebook-icon">{{ notebook.icon || '📓' }}</div>
+              <div class="notebook-info">
+                <h3 class="notebook-title">{{ notebook.title }}</h3>
+                <p class="notebook-meta">
+                  {{ formatDate(notebook.updatedAt) }} • {{ notebook.sourceCount }} source{{ notebook.sourceCount !== 1 ? 's' : '' }}
+                </p>
+              </div>
+              <button class="notebook-menu">
+                <span class="material-icons">more_vert</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="empty-state" *ngIf="notebooks.length === 0">
+          <h2 class="empty-title">{{ i18n.translate('createFirstNotebook') }}</h2>
+          <p class="empty-description">{{ i18n.translate('notebookDescription') }}</p>
+          
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">🎧</div>
+              <h3 class="feature-title">{{ i18n.translate('gainNewUnderstandings') }}</h3>
+              <p class="feature-description">{{ i18n.translate('gainNewUnderstandingsDesc') }}</p>
+            </div>
+            
+            <div class="feature-card">
+              <div class="feature-icon">📤</div>
+              <h3 class="feature-title">{{ i18n.translate('chatbotGrounded') }}</h3>
+              <p class="feature-description">{{ i18n.translate('chatbotGroundedDesc') }}</p>
+            </div>
+            
+            <div class="feature-card">
+              <div class="feature-icon">👥</div>
+              <h3 class="feature-title">{{ i18n.translate('shareInsights') }}</h3>
+              <p class="feature-description">{{ i18n.translate('shareInsightsDesc') }}</p>
+            </div>
+          </div>
+          
+          <div class="cta-section">
+            <a href="#" class="try-example-link">{{ i18n.translate('tryExampleNotebook') }}</a>
+            <button class="create-notebook-btn" (click)="createNewNotebook()">
+              <span class="plus-icon">+</span>
+              {{ i18n.translate('createNewNotebook') }}
+            </button>
+          </div>
+        </div>
+    </div>
+</div>
