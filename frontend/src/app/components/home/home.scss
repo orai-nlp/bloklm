@@ -94,13 +94,21 @@
   background: white;
   border: 1px solid #e8eaed;
   border-radius: 8px;
-  cursor: pointer;
   transition: all 0.2s;
+  position: relative;
 
   &:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-color: #dadce0;
   }
+}
+
+.notebook-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  cursor: pointer;
 }
 
 .notebook-icon {
@@ -125,10 +133,32 @@
   margin: 0 0 4px 0;
 }
 
+.notebook-title-input {
+  font-size: 16px;
+  font-weight: 500;
+  color: #202124;
+  margin: 0 0 4px 0;
+  padding: 2px 4px;
+  border: 1px solid #1a73e8;
+  border-radius: 4px;
+  background: white;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+  }
+}
+
 .notebook-meta {
   font-size: 14px;
   color: #5f6368;
   margin: 0;
+}
+
+.notebook-menu-container {
+  position: relative;
 }
 
 .notebook-menu {
@@ -139,12 +169,84 @@
   cursor: pointer;
   transition: background-color 0.2s;
 
-  &:hover {
+  &:hover, &.active {
     background: #f8f9fa;
   }
 
   .material-icons {
     font-size: 20px;
+    color: #5f6368;
+  }
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  min-width: 140px;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: #202124;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s;
+
+  &:first-child {
+    border-radius: 8px 8px 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0 8px 8px;
+  }
+
+  &:only-child {
+    border-radius: 8px;
+  }
+
+  &:hover {
+    background: #f8f9fa;
+  }
+
+  &.delete {
+    color: #d73027;
+
+    .material-icons {
+      color: #d73027;
+    }
+
+    &:hover {
+      background: #fce8e6;
+    }
+  }
+
+  .material-icons {
+    font-size: 18px;
     color: #5f6368;
   }
 }

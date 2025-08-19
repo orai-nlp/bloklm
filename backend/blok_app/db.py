@@ -126,3 +126,9 @@ def delete_bilduma(args):
     id = args["id"]
     q = f"DELETE FROM Bilduma WHERE id = {id};"
     commit_query_db(q)
+
+def rename_bilduma(args):
+    id = args["id"]
+    title = args['title']
+    q = f"UPDATE Bilduma SET name = '{title}', update_date = CURRENT_DATE WHERE id = {id};"
+    commit_query_db(q)

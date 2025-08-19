@@ -171,8 +171,21 @@ export class I18nService {
     loading: {
       eu:"Kargatzen...",
       es:"Cargando..."
-    }
+    },
+    rename: {
+      eu:"Berrizendatu",
+      es:"Renombrar"
+    },
+    delete: {
+      eu:"Ezabatu",
+      es:"Borrar"
+    },
+    confirm_delete: {
+      eu:"Ziur zaude hurrengo bilduma ezabatu nahi duzula: ",
+      es:"Estas seguro que quieres borrar la siguiente colección: "
+    },
   }
+
 
   get language() {
     return this.currentLanguage()

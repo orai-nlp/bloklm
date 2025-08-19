@@ -20,21 +20,52 @@
           <div class="notebooks-grid">
             <div 
               class="notebook-card" 
-              *ngFor="let notebook of notebooks"
-              (click)="openNotebook(notebook.id)">
-              <div class="notebook-icon">{{ notebook.icon || '📓' }}</div>
-              <div class="notebook-info">
-                <h3 class="notebook-title">{{ notebook.title }}</h3>
-                <p class="notebook-meta">
-                  {{ formatDate(notebook.updatedAt) }} • {{ notebook.sourceCount }} source{{ notebook.sourceCount !== 1 ? 's' : '' }}
-                </p>
+              *ngFor="let notebook of notebooks; trackBy: trackByNotebookId">
+              
+              <div class="notebook-content" (click)="openNotebook(notebook.id)">
+                <div class="notebook-icon">{{ notebook.icon || '📓' }}</div>
+                <div class="notebook-info">
+                  <h3 class="notebook-title" *ngIf="!notebook.isRenaming">{{ notebook.title }}</h3>
+                  <input 
+                    *ngIf="notebook.isRenaming"
+                    class="notebook-title-input"
+                    [(ngModel)]="notebook.tempTitle"
+                    (keyup.enter)="confirmRename(notebook)"
+                    (keyup.escape)="cancelRename(notebook)"
+                    (blur)="confirmRename(notebook)"
+                    #renameInput>
+                  <p class="notebook-meta">
+                    {{ formatDate(notebook.updatedAt) }} • {{ notebook.sourceCount }} source{{ notebook.sourceCount !== 1 ? 's' : '' }}
+                  </p>
+                </div>
               </div>
-              <button class="notebook-menu">
-                <span class="material-icons">more_vert</span>
-              </button>
+              
+              <div class="notebook-menu-container">
+                <button 
+                  class="notebook-menu"
+                  (click)="toggleMenu($event, notebook.id)"
+                  [class.active]="activeMenuId === notebook.id">
+                  <span class="material-icons">more_vert</span>
+                </button>
+                
+                <div 
+                  class="dropdown-menu"
+                  *ngIf="activeMenuId === notebook.id"
+                  (click)="$event.stopPropagation()">
+                  <button class="dropdown-item" (click)="startRename(notebook)">
+                    <span class="material-icons">edit</span>
+                    {{ i18n.translate('rename') || 'Rename' }}
+                  </button>
+                  <button class="dropdown-item delete" (click)="deleteNotebook(notebook.id)">
+                    <span class="material-icons">delete</span>
+                    {{ i18n.translate('delete') || 'Delete' }}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+        
         <!-- Show empty state when not loading and no notebooks -->
         <div class="empty-state" *ngIf="notebooks.length === 0">
           <h2 class="empty-title">{{ i18n.translate('createFirstNotebook') }}</h2>
@@ -54,7 +85,7 @@
             </div>
             
             <div class="feature-card">
-              <div class="feature-icon">👥</div>
+              <div class="feature-icon">💥</div>
               <h3 class="feature-title">{{ i18n.translate('shareInsights') }}</h3>
               <p class="feature-description">{{ i18n.translate('shareInsightsDesc') }}</p>
             </div>

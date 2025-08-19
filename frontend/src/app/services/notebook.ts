@@ -154,6 +154,18 @@ export class NotebookService {
     }
   }
 
+  renameBackendNotebook(args: Record<string, string>){
+    this.call_backend('berrizendatu_bilduma', args, 'POST').subscribe(data => {
+      console.log('Backendean berrizendatua notebook-a: ', data.id)
+    })
+  }
+
+  deleteBackendNotebook(id:string){
+    this.call_backend('ezabatu_bilduma', {id: id}, 'POST').subscribe(data => {
+      console.log(`Backendean ${data.id} notebook-a ezabatu da`)
+    })
+  }
+
   private call_backend(
         id: string,
         args: Record<string, string | number | boolean | readonly (string | number | boolean)[]>,

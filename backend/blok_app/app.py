@@ -34,10 +34,7 @@ async def sortu_bilduma(request):
 
     db.create_bilduma(payload)
 
-    try:
-        return json({id:payload.id})
-    except:
-        return json({id:'Errorea eman du backendak bilduma sortzean'})
+    return json({id:payload['id']})
     
 @app.post("/api/ezabatu_bilduma")
 async def ezabatu_bilduma(request):
@@ -46,10 +43,17 @@ async def ezabatu_bilduma(request):
 
     db.delete_bilduma(payload)
 
-    try:
-        return json({id:payload.id})
-    except:
-        return json({id:'Errorea eman du backendak bilduma ezabatzean'})
+    return json({id:payload['id']})
+    
+@app.post("/api/berrizendatu_bilduma")
+async def berrizendatu_bilduma(request):
+    print("Received request to /api/berrizendatu_bilduma:", str(request))
+    payload = request.json
+
+    db.rename_bilduma(payload)
+
+    return json({id:payload['id']})
+
     
 # ------------------------------------------------------------------
 # EXAMPLE ENDPOINT (manual insert)
