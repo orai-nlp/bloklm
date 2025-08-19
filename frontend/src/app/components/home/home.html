@@ -2,6 +2,7 @@
       <div class="home-content">
         <h1 class="welcome-title">{{ i18n.translate('welcome') }}</h1>
         
+        <!-- Show notebooks when not loading and notebooks exist -->
         <div class="notebooks-section" *ngIf="notebooks.length > 0">
           <div class="section-header">
             <button class="create-new-btn" (click)="createNewNotebook()">
@@ -10,12 +11,6 @@
             </button>
             
             <div class="view-controls">
-              <button class="view-btn active">
-                <span class="material-icons">grid_view</span>
-              </button>
-              <button class="view-btn">
-                <span class="material-icons">view_list</span>
-              </button>
               <select class="sort-select">
                 <option>{{ i18n.translate('mostRecent') }}</option>
               </select>
@@ -40,7 +35,7 @@
             </div>
           </div>
         </div>
-        
+        <!-- Show empty state when not loading and no notebooks -->
         <div class="empty-state" *ngIf="notebooks.length === 0">
           <h2 class="empty-title">{{ i18n.translate('createFirstNotebook') }}</h2>
           <p class="empty-description">{{ i18n.translate('notebookDescription') }}</p>

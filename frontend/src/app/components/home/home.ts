@@ -1,8 +1,10 @@
-import { Component, inject, type OnInit } from "@angular/core"
+import { Component, inject, type OnInit, ChangeDetectorRef } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { Router } from "@angular/router"
 import { I18nService } from "../../services/i18n"
-import { NotebookService, type Notebook } from "../../services/notebook"
+import { NotebookService} from "../../services/notebook"
+import{Notebook} from '../../interfaces/notebook.type';
+
 
 @Component({
   selector: "app-home",
@@ -15,11 +17,13 @@ export class HomeComponent implements OnInit {
   i18n = inject(I18nService)
   notebookService = inject(NotebookService)
   router = inject(Router)
+  private cdr = inject(ChangeDetectorRef)
 
   notebooks: Notebook[] = []
 
-  ngOnInit() {
-    this.notebooks = this.notebookService.getNotebooks()
+  async ngOnInit() {
+      this.notebooks = this.notebookService.getNotebooks();
+      this.cdr.detectChanges() // Manually trigger change detection
   }
 
   createNewNotebook() {

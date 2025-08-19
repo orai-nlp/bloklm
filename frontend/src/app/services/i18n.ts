@@ -168,6 +168,10 @@ export class I18nService {
       eu: "Izenburu gabeko koadernoa",
       es: "Cuaderno sin título",
     },
+    loading: {
+      eu:"Kargatzen...",
+      es:"Cargando..."
+    }
   }
 
   get language() {

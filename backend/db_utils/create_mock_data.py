@@ -4,7 +4,7 @@ sys.path.insert(0, "../../../")
 from bloklm.backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
 # Read the SQL schema from file
-with open("create_tables.sql", "r") as f:
+with open("mock_data.sql", "r") as f:
     sql = f.read()
 
 # Connect to the database
@@ -21,4 +21,4 @@ cur.execute(sql)
 conn.commit()
 cur.close()
 conn.close()
-print("✅ Tables created successfully.")
+print("✅ Mock data created successfully.")

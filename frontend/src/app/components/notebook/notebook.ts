@@ -2,7 +2,10 @@ import { Component, inject, type OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { ActivatedRoute } from "@angular/router"
 import { I18nService } from "../../services/i18n"
-import { NotebookService, type Notebook, type Source } from "../../services/notebook"
+import { NotebookService} from "../../services/notebook"
+import{Notebook} from '../../interfaces/notebook.type';
+import{Source} from '../../interfaces/source.type';
+
 import { UploadModalComponent } from "../upload-modal/upload-modal"
 
 @Component({

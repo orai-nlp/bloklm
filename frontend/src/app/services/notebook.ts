@@ -1,25 +1,13 @@
 import { Injectable, signal } from "@angular/core"
 import { HttpClient } from "@angular/common/http"
+import { firstValueFrom } from 'rxjs';
 import { type Observable, of } from "rxjs"
+import { environment } from '../../environments/environment';
+import{Notebook ,BackendNotebook} from '../interfaces/notebook.type';
+import{Source} from '../interfaces/source.type';
+import { I18nService } from "./i18n";
 
-export interface Notebook {
-  id: string
-  title: string
-  description?: string
-  createdAt: Date
-  updatedAt: Date
-  sourceCount: number
-  icon?: string
-}
 
-export interface Source {
-  id: string
-  name: string
-  type: "pdf" | "txt" | "doc" | "docx" | "srt"
-  size: number
-  uploadedAt: Date
-  selected: boolean
-}
 
 @Injectable({
   providedIn: "root",
@@ -28,11 +16,17 @@ export class NotebookService {
   private notebooks = signal<Notebook[]>([])
   private currentNotebook = signal<Notebook | null>(null)
   private sources = signal<Source[]>([])
+  private loadDone?: Promise<void>
 
-  constructor(private http: HttpClient) {
-    this.loadNotebooks()
+
+  constructor(private http: HttpClient, private i18n: I18nService) {
+    this.loadDone = this.loadNotebooks();
   }
 
+  whenReady(): Promise<void> {
+    return this.loadDone!;
+  }
+  
   getNotebooks(): Notebook[] {
     return this.notebooks()
   }
@@ -48,7 +42,7 @@ export class NotebookService {
   createNotebook(): Observable<Notebook> {
     const newNotebook: Notebook = {
       id: Date.now().toString(),
-      title: "Untitled notebook",
+      title: this.i18n.language == 'eu'? "Titulugabedun Bilduma" : "Documento sin título",
       createdAt: new Date(),
       updatedAt: new Date(),
       sourceCount: 0,
@@ -57,6 +51,10 @@ export class NotebookService {
     const currentNotebooks = this.notebooks()
     this.notebooks.set([...currentNotebooks, newNotebook])
     this.currentNotebook.set(newNotebook)
+
+    this.call_backend('sortu_bilduma', 
+                    {id: newNotebook.id, title: newNotebook.title, date: newNotebook.createdAt.toISOString().slice(0, 10)}, 
+                    'POST').subscribe(data => { console.log('Sortu da bilduma, id: ', data.id)})
 
     return of(newNotebook)
   }
@@ -102,21 +100,22 @@ export class NotebookService {
     return of(newSources)
   }
 
-  private loadNotebooks() {
-    // Simulate loading from backend
-    const mockNotebooks: Notebook[] = [
-      {
-        id: "1",
-        title: "Arrasate's Etxe Txikiak: A Century...",
-        createdAt: new Date("2025-01-22"),
-        updatedAt: new Date("2025-01-22"),
-        sourceCount: 1,
-        icon: "⏳",
-      },
-    ]
+  private async loadNotebooks() {
+    const raw$ = this.call_backend('bildumak', {}, 'GET');
+    const raw_notebooks = await firstValueFrom(raw$);
 
-    this.notebooks.set(mockNotebooks)
+    // print(raw$)
+    const converted_notebooks: Notebook[] = (raw_notebooks as BackendNotebook[]).map(b => ({
+      id: String(b.id),
+      title: b.name,
+      createdAt: new Date(b.c_date),
+      updatedAt: new Date(b.u_date),
+      sourceCount: b.fitxategia_count,
+    }));
+
+    this.notebooks.set(converted_notebooks);
   }
+
 
   private loadSourcesForNotebook(notebookId: string) {
     // Simulate loading sources
@@ -152,6 +151,27 @@ export class NotebookService {
         return "srt"
       default:
         return "txt"
+    }
+  }
+
+  private call_backend(
+        id: string,
+        args: Record<string, string | number | boolean | readonly (string | number | boolean)[]>,
+        method: 'GET' | 'POST'
+    ): Observable<any> 
+    {
+
+    const url = `${environment.apiBaseUrl}/${id}`;
+
+    switch (method) {
+      case 'GET':
+        return this.http.get(url, { params: args });
+      case 'POST':
+        return this.http.post(url, args);
+      default:
+        // This line will never be reached if you only call with 'GET' | 'POST',
+        // but it satisfies the compiler.
+        throw new Error(`Unsupported HTTP method: ${method}`);
     }
   }
 }

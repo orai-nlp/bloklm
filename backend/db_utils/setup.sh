@@ -27,35 +27,12 @@ else
 fi
 
 # -------------------------------
-# Configure PostgreSQL to use port 6000
-# -------------------------------
-echo "Configuring PostgreSQL to use port 6000..."
-PG_VERSION=$(sudo -u postgres psql -t -c "SELECT version();" | grep -oP '(\d+)\.\d+' | head -1 | cut -d'.' -f1)
-PG_CONFIG_PATH="/etc/postgresql/${PG_VERSION}/main/postgresql.conf"
-
-# Check if port is already set to 6000
-if grep -q "^port = 6000" "$PG_CONFIG_PATH"; then
-    echo "PostgreSQL is already configured to use port 6000."
-else
-    echo "Setting PostgreSQL port to 6000..."
-    sudo sed -i "s/^#port = 5432/port = 6000/" "$PG_CONFIG_PATH"
-    sudo sed -i "s/^port = 5432/port = 6000/" "$PG_CONFIG_PATH"
-    
-    # Restart PostgreSQL to apply port change
-    echo "Restarting PostgreSQL service to apply port change..."
-    sudo systemctl restart postgresql
-    
-    # Wait a moment for service to restart
-    sleep 3
-fi
-
-# -------------------------------
 # Load environment variables from .env file
 # -------------------------------
 echo "Loading environment variables from .env file..."
-if [ -f ".env" ]; then
+if [ -f "../.env" ]; then
     set -o allexport      # Automatically export all variables loaded from .env
-    source .env           # Load DB_NAME, DB_USER, DB_PASSWORD, etc.
+    source ../.env           # Load DB_NAME, DB_USER, DB_PASSWORD, etc.
     set +o allexport      # Stop auto-exporting after .env is loaded
     echo "Environment variables loaded successfully."
 else
@@ -93,8 +70,8 @@ fi
 # -------------------------------
 echo "Creating PostgreSQL database and user using .env values..."
 
-# Use port 6000 for PostgreSQL connection
-sudo -u postgres psql -p 6000 <<EOF
+# Use port 5432 for PostgreSQL connection
+sudo -u postgres psql -p 5432 <<EOF
 CREATE DATABASE ${DB_NAME};
 CREATE USER ${DB_USER} WITH ENCRYPTED PASSWORD '${DB_PASSWORD}' LOGIN;
 GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
@@ -110,7 +87,8 @@ python create_tables.py
 # -------------------------------
 # Insert mock data
 # -------------------------------
-
+echo "Creating mock data..."
+python create_mock_data.py
 
 # -------------------------------
 # Final message and exit
