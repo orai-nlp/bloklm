@@ -33,6 +33,22 @@
   font-size: 24px;
 }
 
+.notebook-title {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: 400;
+  color: #5f6368;
+  line-height: 1;
+  
+  .separator {
+    margin: 0 12px;
+    font-size: 18px;
+    color: #dadce0;
+    line-height: 1;
+  }
+}
+
 .header-right {
   display: flex;
   align-items: center;

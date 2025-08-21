@@ -1,5 +1,5 @@
 <div class="notebook-container" *ngIf="notebook">
-      <div class="notebook-header">
+      <!-- <div class="notebook-header">
         <h1 class="notebook-title">{{ notebook.title }}</h1>
         <div class="header-actions">
           <button class="header-btn">
@@ -16,20 +16,20 @@
           <div class="user-avatar">
             <img src="/placeholder.svg?height=32&width=32" alt="User" />
           </div>
-        </div>
-      </div>
+        </div> 
+      </div>-->
       
       <div class="notebook-content">
         <!-- Sources Panel -->
         <div class="sources-panel">
           <div class="panel-header">
             <h3 class="panel-title">{{ i18n.translate('sources') }}</h3>
-            <button class="panel-toggle">
-              <span class="material-icons">unfold_less</span>
-            </button>
+            <!-- <button class="panel-toggle">
+              <span class="material-icons">dock_to_right</span>
+            </button> -->
           </div>
           
-          <div class="sources-actions">
+          <!-- <div class="sources-actions">
             <button class="add-btn" (click)="showUploadModal = true">
               <span class="plus-icon">+</span>
               {{ i18n.translate('add') }}
@@ -38,16 +38,10 @@
               <span class="material-icons">explore</span>
               {{ i18n.translate('discover') }}
             </button>
-          </div>
+          </div> -->
           
           <div class="sources-list" *ngIf="sources.length > 0">
-            <div class="source-item select-all">
-              <input type="checkbox" id="select-all" [checked]="allSourcesSelected" (change)="toggleAllSources()">
-              <label for="select-all">Select all sources</label>
-            </div>
-            
             <div class="source-item" *ngFor="let source of sources">
-              <input type="checkbox" [id]="source.id" [checked]="source.selected" (change)="toggleSource(source)">
               <label [for]="source.id" class="source-label">
                 <span class="material-icons source-icon">description</span>
                 <span class="source-name">{{ source.name }}</span>
@@ -59,11 +53,7 @@
             <div class="empty-icon">
               <span class="material-icons">folder_open</span>
             </div>
-            <p class="empty-text">Saved sources will appear here</p>
-            <p class="empty-subtext">
-              Click Add source above to add PDFs, websites, text, videos, or audio files. 
-              Or import a file directly from Google Drive.
-            </p>
+            <p class="empty-text">{{ i18n.translate('sources_list') }}</p>
           </div>
         </div>
         
@@ -79,7 +69,7 @@
               <h2 class="summary-title">{{ notebook.title }}</h2>
               <p class="summary-meta">{{ sources.length }} source{{ sources.length !== 1 ? 's' : '' }}</p>
               <div class="summary-text">
-                <p>Arrasate Zientzia Elkarteak Etxe Txikien ehungarren urteurrenaren dela eta, horien historia bildu nahi du. Union Cerrajera 1924an erakitzeko baimena lortu baitzuen. Elkarteak herritarrei laguntza eskatu die, etxe horiekin lotutako argaski edo dokumentuak baldin badituzte, batez ere hasierako urtetatxoak. Bildutako materialarekin, liburuxka bat edo erakusketa bat egiteko asmoa dute ekarnerak, urteurrenarekin bat eginaz. Jabier Bengoa eta Juan Ramon Garai elkarteko kideek azpimarratu dute etxeak Union Cerrajerako langileentzat eraikitako zirela, eta nahiz eta "Etxe Txikiak" deitu, 72 metro karratukoak zirela, garaiko tamainarekin handiak. Gainera, Union Cerrajarak Arrasaten uzitako ondare aberatsa nabarmentzen da, bulegoak, lantegiak, eskolak eta eliza barne.</p>
+                <p>Example text for showing</p>
               </div>
               <div class="summary-actions">
                 <button class="action-btn save-btn">
@@ -131,7 +121,7 @@
             </div>
           </div>
           
-          <p class="disclaimer">NotebookLM can be inaccurate; please double check its responses.</p>
+          <p class="disclaimer">{{ i18n.translate('disclaimer')}}</p>
         </div>
         
         <!-- Studio Panel -->

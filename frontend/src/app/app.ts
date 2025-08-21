@@ -10,5 +10,5 @@ import { HeaderComponent } from "./components/header/header"
   styleUrls: ["./app.scss"],
 })
 export class App {
-  title = "notebookLM"
+  title = "BlokLM"
 }

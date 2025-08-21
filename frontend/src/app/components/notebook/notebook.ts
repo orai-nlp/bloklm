@@ -1,4 +1,4 @@
-import { Component, inject, type OnInit } from "@angular/core"
+import { ChangeDetectorRef, Component, inject, type OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { ActivatedRoute } from "@angular/router"
 import { I18nService } from "../../services/i18n"
@@ -19,32 +19,20 @@ export class NotebookComponent implements OnInit {
   i18n = inject(I18nService)
   notebookService = inject(NotebookService)
   route = inject(ActivatedRoute)
+  private cdr = inject(ChangeDetectorRef)
+
 
   notebook: Notebook | null = null
   sources: Source[] = []
   showUploadModal = false
 
-  get allSourcesSelected(): boolean {
-    return this.sources.length > 0 && this.sources.every((s) => s.selected)
-  }
+  async ngOnInit() {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) { return; }
 
-  ngOnInit() {
-    const id = this.route.snapshot.paramMap.get("id")
-    if (id) {
-      this.notebookService.loadNotebook(id).subscribe((notebook) => {
-        this.notebook = notebook
-        this.sources = this.notebookService.getSources()
-      })
-    }
-  }
-
-  toggleAllSources() {
-    const newState = !this.allSourcesSelected
-    this.sources.forEach((source) => (source.selected = newState))
-  }
-
-  toggleSource(source: Source) {
-    source.selected = !source.selected
+    this.notebook = await this.notebookService.loadNotebookAsync(id);
+    this.sources = this.notebookService.getSources();
+    this.cdr.markForCheck();   // only needed if OnPush
   }
 
   onFilesUploaded(files: FileList) {

@@ -1,8 +1,13 @@
 export interface Source {
   id: string
   name: string
-  type: "pdf" | "txt" | "doc" | "docx" | "srt"
+  type: "pdf" | "txt" | "doc" | "docx" | "srt" | string
   size: number
-  uploadedAt: Date
-  selected: boolean
+}
+
+export interface BackendSource {
+  id: string
+  name: string
+  format: "PDF" | "TXT" | "DOC" | "DOCX" | "SRT"
+  charNum: number
 }

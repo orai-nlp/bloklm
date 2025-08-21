@@ -25,7 +25,7 @@ export class I18nService {
       es: "Crea tu primer cuaderno",
     },
     notebookDescription: {
-      eu: "BlokLM IA bidezko ikerketa eta idazketa laguntzailea da, zuk kargatutako iturrietan oinarrituta funtzionatzen duena",
+      eu: "BlokLM IA bidezko ikerketa eta idazketa laguntzailea da, zuk kargatutako fitxategietan oinarrituta funtzionatzen duena",
       es: "BlokLM es un asistente de investigación y escritura impulsado por IA que funciona mejor con las fuentes que subes",
     },
     gainNewUnderstandings: {
@@ -37,7 +37,7 @@ export class I18nService {
       es: "Convierte material complejo en formatos fáciles de entender como Resúmenes de Audio, FAQs o Documentos de Briefing",
     },
     chatbotGrounded: {
-      eu: "Zure iturrietan oinarritutako chatbot bat",
+      eu: "Zure fitxategietan oinarritutako chatbot bat",
       es: "Un chatbot basado en tus fuentes",
     },
     chatbotGroundedDesc: {
@@ -73,7 +73,7 @@ export class I18nService {
       es: "Configuración",
     },
     sources: {
-      eu: "Iturburuak",
+      eu: "Fitxategiak",
       es: "Fuentes",
     },
     chat: {
@@ -89,15 +89,15 @@ export class I18nService {
       es: "Añadir",
     },
     discover: {
-      eu: "Aurkitu",
-      es: "Descubrir",
+      eu: "Fitxategi lokalak igo",
+      es: "Subir fuentes locales",
     },
     addSourceToGetStarted: {
-      eu: "Gehitu iturri bat hasteko",
+      eu: "Gehitu fitxategi bat hasteko",
       es: "Añade una fuente para comenzar",
     },
     uploadSource: {
-      eu: "Kargatu iturria",
+      eu: "Kargatu fitxategia",
       es: "Subir fuente",
     },
     audioOverview: {
@@ -129,20 +129,20 @@ export class I18nService {
       es: "Línea de Tiempo",
     },
     addSources: {
-      eu: "Gehitu iturburuak",
+      eu: "Gehitu Fitxategiak",
       es: "Añadir fuentes",
     },
     uploadSources: {
-      eu: "Kargatu iturburuak",
+      eu: "Kargatu Fitxategiak",
       es: "Subir fuentes",
     },
     dragDropOrChoose: {
-      eu: "Arrastatu eta jaregin edo aukeratu fitxategia kargatzeko",
+      eu: "Arrastatu eta askatu edo aukeratu fitxategia kargatzeko",
       es: "Arrastra y suelta o elige archivo para subir",
     },
     supportedFileTypes: {
-      eu: "Onartutako fitxategi motak: PDF, txt, Markdown, Audio (adib. mp3)",
-      es: "Tipos de archivo soportados: PDF, txt, Markdown, Audio (ej. mp3)",
+      eu: "Onartutako fitxategi motak: PDF, txt, Markdown, DOCS, DOC",
+      es: "Tipos de archivo soportados: PDF, txt, Markdown, DOCS, DOC",
     },
     googleDrive: {
       eu: "Google Drive",
@@ -156,8 +156,12 @@ export class I18nService {
       eu: "Itsatsi testua",
       es: "Pegar texto",
     },
+    copyText: {
+      eu: "Kopiatutako testua",
+      es: "Texto kopiado",
+    },
     sourceLimit: {
-      eu: "Iturri muga",
+      eu: "Fitxategi muga",
       es: "Límite de fuentes",
     },
     share: {
@@ -183,6 +187,46 @@ export class I18nService {
     confirm_delete: {
       eu:"Ziur zaude hurrengo bilduma ezabatu nahi duzula: ",
       es:"Estas seguro que quieres borrar la siguiente colección: "
+    },
+    modal_info: {
+      eu:"Igotako fitxategien arabera, BlokLMk gehien axola zaizun informazioan oinarritzen ditu bere erantzunak. (Esaterako: marketin-planak, ikastaroen irakurketa, ikerketa-oharrak, bileren transkripzioak, salmenta-dokumentuak, etab.)",
+      es:"Según los archivos subidos, BlokLM basa sus respuestas en la información que más le importa. (Por ejemplo: planes de marketing, lectura de cursos, notas de investigación, transcripciones de reuniones, documentos de venta, etc.)"
+    },
+    disclaimer: {
+      eu:"BlokLM okertu daiteke; mesedez, berrikusi zure erantzunak.",
+      es:"BlokLM puede ser inexacto; por favor, revise sus respuestas."
+    },
+    sources_list: {
+      eu:"Gordetako fitxategiak hemen agertuko dira",
+      es:"Las fuentes guardadas se mostrarán aquí"
+    },
+    modal_paste_text: {
+      eu:"Itsatsi testua",
+      es:"Pegar texto"
+    },
+    modal_filesToUp: {
+      eu:"Kargatzeko fitxategiak",
+      es:"Archivos para subir"
+    },
+    modal_paste_Clipboard: {
+      eu:"Itsatsi testua arbeletik",
+      es:"Pegar texto de Portapeles"
+    },
+    modal_upload_files: {
+      eu:"Igo Fitxategiak",
+      es:"Subir Archivos"
+    },
+    modal_addText: {
+      eu:"Gehitu testua",
+      es:"Añadir texto"
+    },
+    modal_placeholdertext: {
+      eu:"Idatzi hemen testua...",
+      es:"Escribe aquí el texto..."
+    },
+    modal_placeholdertext_docname: {
+      eu:"Sartu fitxategiaren izena (adib., dokumentua.txt)",
+      es:"Escriba el nombre del archivo (e.g., documento.txt)"
     },
   }
 

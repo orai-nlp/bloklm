@@ -1,11 +1,12 @@
 import { Injectable, signal } from "@angular/core"
-import { HttpClient } from "@angular/common/http"
-import { firstValueFrom } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from "@angular/common/http"
+import { firstValueFrom, map } from 'rxjs';
 import { type Observable, of } from "rxjs"
 import { environment } from '../../environments/environment';
 import{Notebook ,BackendNotebook} from '../interfaces/notebook.type';
-import{Source} from '../interfaces/source.type';
+import{Source, BackendSource} from '../interfaces/source.type';
 import { I18nService } from "./i18n";
+import { Form } from "@angular/forms";
 
 
 
@@ -13,6 +14,7 @@ import { I18nService } from "./i18n";
   providedIn: "root",
 })
 export class NotebookService {
+
   private notebooks = signal<Notebook[]>([])
   private currentNotebook = signal<Notebook | null>(null)
   private sources = signal<Source[]>([])
@@ -39,6 +41,12 @@ export class NotebookService {
     return this.sources()
   }
 
+  // Add method to clear current notebook
+  clearCurrentNotebook(): void {
+    this.currentNotebook.set(null)
+    this.sources.set([])
+  }
+
   createNotebook(): Observable<Notebook> {
     const newNotebook: Notebook = {
       id: Date.now().toString(),
@@ -52,88 +60,88 @@ export class NotebookService {
     this.notebooks.set([...currentNotebooks, newNotebook])
     this.currentNotebook.set(newNotebook)
 
-    this.call_backend('sortu_bilduma', 
+    this.call_backend('sortu_bilduma', 'POST', undefined,
                     {id: newNotebook.id, title: newNotebook.title, date: newNotebook.createdAt.toISOString().slice(0, 10)}, 
-                    'POST').subscribe(data => { console.log('Sortu da bilduma, id: ', data.id)})
+                    ).subscribe(data => { console.log('Sortu da bilduma, id: ', data.id)})
 
     return of(newNotebook)
   }
 
   loadNotebook(id: string): Observable<Notebook | null> {
-    const notebook = this.notebooks().find((n) => n.id === id)
-    this.currentNotebook.set(notebook || null)
+    let notebook = this.notebooks().find((n) => n.id === id)
 
-    // Load sources for this notebook
-    if (notebook) {
-      this.loadSourcesForNotebook(id)
+    // backend-ean bilatu
+    if (!notebook){
+      this.call_backend('bilduma', 'GET', {id: id}, undefined).subscribe({
+        next: (data) => {
+          console.log('Notebook loaded: ', data);
+          notebook = this.convertBackendNotebook(data) 
+        },
+        error: (err: HttpErrorResponse) => { console.error('Notebook loading request failed:', err.message, err.status); },
+      });
     }
+    this.currentNotebook.set(notebook || null)
 
     return of(notebook || null)
   }
 
-  uploadFiles(files: FileList): Observable<Source[]> {
-    const newSources: Source[] = []
+  async loadNotebookAsync(id: string): Promise<Notebook | null> {
+    // sources
+    await this.loadSourcesForNotebook(id);
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
-      const source: Source = {
-        id: Date.now().toString() + i,
-        name: file.name,
-        type: this.getFileType(file.name),
-        size: file.size,
-        uploadedAt: new Date(),
-        selected: true,
-      }
-      newSources.push(source)
+    // if already in memory, return it
+    let notebook = this.notebooks().find(n => n.id === id);
+    if (notebook) {
+      this.currentNotebook.set(notebook);
+      return notebook;
     }
 
-    const currentSources = this.sources()
-    this.sources.set([...currentSources, ...newSources])
+    // otherwise fetch from the backend
+    const raw$ = this.call_backend('bilduma', 'GET', { id }, undefined);
+    const data = await firstValueFrom(raw$);
 
-    // Update notebook source count
-    const currentNotebook = this.currentNotebook()
-    if (currentNotebook) {
-      currentNotebook.sourceCount += newSources.length
-      this.currentNotebook.set({ ...currentNotebook })
-    }
+    notebook = this.convertBackendNotebook(data[0]);
+    this.currentNotebook.set(notebook);
+    return notebook;
+  }
 
-    return of(newSources)
+  private async loadSourcesForNotebook(notebookId: string) {
+    // backend-ean bilatu
+    debugger
+    const raw$ = this.call_backend('fitxategiak', 'GET', {id: notebookId}, undefined);
+    const raw_fitxaegiak = await firstValueFrom(raw$);
+    const fitxategiak: Source[] = (raw_fitxaegiak as BackendSource[]).map(this.convertBackendSource)
+
+    this.sources.set(fitxategiak)
+  }
+
+  private convertBackendSource(b: BackendSource): Source {
+    return {
+        id: String(b.id),
+        name: b.name,
+        type: b.format.toLowerCase(),
+        size: b.charNum  
+    };
   }
 
   private async loadNotebooks() {
-    const raw$ = this.call_backend('bildumak', {}, 'GET');
+    const raw$ = this.call_backend('bildumak', 'GET', {}, undefined);
     const raw_notebooks = await firstValueFrom(raw$);
 
     // print(raw$)
-    const converted_notebooks: Notebook[] = (raw_notebooks as BackendNotebook[]).map(b => ({
+    const converted_notebooks: Notebook[] = (raw_notebooks as BackendNotebook[]).map(this.convertBackendNotebook);
+
+    this.notebooks.set(converted_notebooks);
+  }
+
+  private convertBackendNotebook(b: BackendNotebook): Notebook {
+    return {
       id: String(b.id),
       title: b.name,
       createdAt: new Date(b.c_date),
       updatedAt: new Date(b.u_date),
       sourceCount: b.fitxategia_count,
-    }));
-
-    this.notebooks.set(converted_notebooks);
-  }
-
-
-  private loadSourcesForNotebook(notebookId: string) {
-    // Simulate loading sources
-    if (notebookId === "1") {
-      const mockSources: Source[] = [
-        {
-          id: "1",
-          name: "test.txt",
-          type: "txt",
-          size: 1024,
-          uploadedAt: new Date(),
-          selected: true,
-        },
-      ]
-      this.sources.set(mockSources)
-    } else {
-      this.sources.set([])
-    }
+    };
   }
 
   private getFileType(filename: string): Source["type"] {
@@ -155,31 +163,66 @@ export class NotebookService {
   }
 
   renameBackendNotebook(args: Record<string, string>){
-    this.call_backend('berrizendatu_bilduma', args, 'POST').subscribe(data => {
+    this.call_backend('berrizendatu_bilduma', 'POST', undefined, args).subscribe(data => {
       console.log('Backendean berrizendatua notebook-a: ', data.id)
     })
   }
 
   deleteBackendNotebook(id:string){
-    this.call_backend('ezabatu_bilduma', {id: id}, 'POST').subscribe(data => {
+    this.call_backend('ezabatu_bilduma','POST', undefined, {id: id}).subscribe(data => {
       console.log(`Backendean ${data.id} notebook-a ezabatu da`)
     })
   }
 
+  uploadFiles(files: FileList): Observable<Source[]> {
+    const newSources: Source[] = []
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const source: Source = {
+        id: Date.now().toString() + i,
+        name: file.name,
+        type: this.getFileType(file.name),
+        size: file.size,
+      }
+      newSources.push(source)
+    }
+
+    const currentSources = this.sources()
+    this.sources.set([...currentSources, ...newSources])
+
+    // Update notebook source count
+    const currentNotebook = this.currentNotebook()
+    if (currentNotebook) {
+      currentNotebook.sourceCount += newSources.length
+      this.currentNotebook.set({ ...currentNotebook })
+    }
+
+    return of(newSources)
+  }
+
+  uploadFilesToBackend(notebookId: string, formData: FormData): Observable<void> {
+    // 'upload_files' becomes the <id> segment in the final URL
+    formData.append('nt_id', notebookId);
+    return this.call_backend('igo_fitxategiak', 'POST', undefined, formData);
+  }
+
   private call_backend(
         id: string,
-        args: Record<string, string | number | boolean | readonly (string | number | boolean)[]>,
-        method: 'GET' | 'POST'
+        method: 'GET' | 'POST',
+        args_get?: Record<string, string | number | boolean | readonly (string | number | boolean)[]>,
+        args_post?: Record<string, string | number | boolean | readonly (string | number | boolean)[] | FormDataEntryValue | null> | FormData
     ): Observable<any> 
     {
 
     const url = `${environment.apiBaseUrl}/${id}`;
 
+
     switch (method) {
       case 'GET':
-        return this.http.get(url, { params: args });
+        return this.http.get(url, { params: args_get });
       case 'POST':
-        return this.http.post(url, args);
+        return this.http.post(url, args_post);
       default:
         // This line will never be reached if you only call with 'GET' | 'POST',
         // but it satisfies the compiler.

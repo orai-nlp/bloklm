@@ -6,6 +6,24 @@ sys.path.insert(0, "../")
 from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 import os
 from pdb import set_trace as d
+from document_parser_backend import extract_text_from_document
+
+
+###################################################################################
+    #########################      LAGUNTZAILEAK       ############################
+###################################################################################
+
+"""
+    'PDF', 'TXT', 'DOC', 'DOCX', 'SRT'
+"""
+format_mapping = {
+    "application/pdf":"PDF",
+    "text/plain":"TXT",
+    "application/doc": "DOC",
+    "application/docx": "DOCX",
+    "application/srt": "SRT",
+    }
+
 ###################################################################################
     #########################      GENERIKOAK       ############################
 ###################################################################################
@@ -42,7 +60,7 @@ def commit_query_db(query):
     try:
         conn = get_db()
         cur = conn.cursor()
-        print("Query: ",query)
+        print("Query: ",query[:100])
         presql=datetime.datetime.now()
         cur.execute(query)
         conn.commit()
@@ -112,8 +130,11 @@ def query_db_as_dict(sql, args=(), one=False):
 def get_bildumak():
     from_tables=get_from_table('',select_string='fitxa')
     query = "SELECT  B.id, B.name, B.create_date::TEXT AS c_date, B.update_date::TEXT AS u_date, COUNT(F.id) AS fitxategia_count " + from_tables + " GROUP BY B.id, B.name, B.create_date, B.update_date"
-
     return query_db_as_dict(query)
+
+def get_bilduma(id):
+    bilduma_sql = f"SELECT id, name, create_date::TEXT AS c_date, update_date::TEXT AS u_date FROM Bilduma WHERE id = {id};"
+    return query_db_as_dict(bilduma_sql)
 
 def create_bilduma(args):
     id = args["id"]
@@ -132,3 +153,49 @@ def rename_bilduma(args):
     title = args['title']
     q = f"UPDATE Bilduma SET name = '{title}', update_date = CURRENT_DATE WHERE id = {id};"
     commit_query_db(q)
+
+
+###################################################################################
+  ########################       FITXATEGIAK        #############################
+###################################################################################
+
+def get_fitxategiak(id):
+    notak_sql = f"SELECT id, name, charNum,format FROM Fitxategia WHERE bilduma_key = {id};"
+    return query_db_as_dict(notak_sql)
+
+def get_fitxategia(id):
+    notak_sql = f"SELECT id, name, text, charNum, format, type FROM Fitxategia WHERE id = {id};"
+    return query_db_as_dict(notak_sql)
+
+def upload_fitxategiak(id: str, files):
+    """
+    Save every uploaded file for the given notebook.
+    files: list of Sanic File objects (f.name, f.body, f.type)
+    """
+    try:
+        for f in files:
+            # --- Parse text using the unchanged parser ---
+            parsed = extract_text_from_document(f)
+            
+            if not parsed['success']:
+                # handle / log error
+                raise Exception('The file could not be properly read.')
+            
+            # --- Insert into DB ---
+            q = "INSERT INTO Fitxategia (name, text, charNum, format, bilduma_key) VALUES ('{}', '{}', {}, '{}', {})".format(f.name, parsed['text'], len(parsed['text']), parsed['file_type'], id)
+            commit_query_db(q)
+    
+    except Exception as e:
+        raise f'Error: Saving the files in database; {e}'
+
+###################################################################################
+    ###########################      NOTAK       #############################
+###################################################################################
+
+def get_notak(id):
+    notak_sql = f"SELECT id, name, description, type FROM Nota WHERE bilduma_key = {id};"
+    return query_db_as_dict(notak_sql)
+
+def get_nota(id):
+    notak_sql = f"SELECT id, name, description, type FROM Nota WHERE id = {id};"
+    return query_db_as_dict(notak_sql)

@@ -1,104 +1,128 @@
 <div class="modal-overlay" *ngIf="isOpen" (click)="closeModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <div class="modal-title-section">
-            <span class="modal-icon">📓</span>
-            <h2 class="modal-title">NotebookLM</h2>
-          </div>
-          <button class="close-btn" (click)="closeModal()">
-            <span class="material-icons">close</span>
-          </button>
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-section">
+        <h2 class="section-title">{{ i18n.translate('addSources') }}</h2>
+      </div>
+      <button class="close-btn" (click)="closeModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <p class="sources-description">
+        {{ i18n.translate('modal_info') }}
+      </p>
+      
+      <!-- File Upload Area -->
+      <div class="upload-area" 
+           [class.drag-over]="isDragOver"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)"
+           (drop)="onDrop($event)"
+           (click)="fileInput.click()">
+        <div class="upload-icon">
+          <span class="material-icons">cloud_upload</span>
         </div>
+        <h4 class="upload-title">{{ i18n.translate('uploadSources') }}</h4>
+        <p class="upload-description">
+          {{ i18n.translate('dragDropOrChoose') }}
+        </p>
+        <p class="file-types">Supported: PDF, TXT, MD, DOC, DOCX</p>
         
-        <div class="modal-body">
-          <h3 class="section-title">{{ i18n.translate('addSources') }}</h3>
-          <button class="discover-btn">
-            <span class="material-icons">explore</span>
-            {{ i18n.translate('discover') }} sources
-          </button>
-          
-          <p class="sources-description">
-            Sources let NotebookLM base its responses on the information that matters most to you.
-            (Examples: marketing plans, course reading, research notes, meeting transcripts, sales documents, etc.)
-          </p>
-          
-          <div class="upload-area" 
-               [class.drag-over]="isDragOver"
-               (dragover)="onDragOver($event)"
-               (dragleave)="onDragLeave($event)"
-               (drop)="onDrop($event)"
-               (click)="fileInput.click()">
-            <div class="upload-icon">
-              <span class="material-icons">cloud_upload</span>
-            </div>
-            <h4 class="upload-title">{{ i18n.translate('uploadSources') }}</h4>
-            <p class="upload-description">
-              {{ i18n.translate('dragDropOrChoose') }}
-            </p>
-            <p class="file-types">{{ i18n.translate('supportedFileTypes') }}</p>
-            
-            <input #fileInput 
-                   type="file" 
-                   multiple 
-                   accept=".pdf,.txt,.md,.mp3,.doc,.docx,.srt"
-                   (change)="onFileSelected($event)"
-                   style="display: none;">
+        <input #fileInput 
+               type="file" 
+               multiple 
+               accept=".pdf,.txt,.md,.doc,.docx"
+               (change)="onFileSelected($event)"
+               style="display: none;">
+      </div>
+      
+      <!-- Paste Text Option -->
+      <div class="paste-section" *ngIf="!showPasteArea">
+        <div class="option-section">
+          <div class="option-header">
+            <span class="material-icons">content_paste</span>
+            <span class="option-title">{{ i18n.translate('pasteText') }}</span>
           </div>
-          
-          <div class="source-options">
-            <div class="option-section">
-              <div class="option-header">
-                <span class="material-icons">folder</span>
-                <span class="option-title">{{ i18n.translate('googleDrive') }}</span>
-              </div>
-              <div class="option-buttons">
-                <button class="option-btn">
-                  <span class="material-icons">description</span>
-                  Google Docs
-                </button>
-                <button class="option-btn">
-                  <span class="material-icons">slideshow</span>
-                  Google Slides
-                </button>
-              </div>
-            </div>
-            
-            <div class="option-section">
-              <div class="option-header">
-                <span class="material-icons">link</span>
-                <span class="option-title">{{ i18n.translate('link') }}</span>
-              </div>
-              <div class="option-buttons">
-                <button class="option-btn">
-                  <span class="material-icons">language</span>
-                  Website
-                </button>
-                <button class="option-btn">
-                  <span class="material-icons">play_circle</span>
-                  YouTube
-                </button>
-              </div>
-            </div>
-            
-            <div class="option-section">
-              <div class="option-header">
-                <span class="material-icons">content_paste</span>
-                <span class="option-title">{{ i18n.translate('pasteText') }}</span>
-              </div>
-              <div class="option-buttons">
-                <button class="option-btn">
-                  <span class="material-icons">content_copy</span>
-                  Copied text
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <div class="source-limit">
-            <span class="material-icons">info</span>
-            <span class="limit-text">{{ i18n.translate('sourceLimit') }}</span>
-            <span class="limit-count">{{ sourceCount }} / 50</span>
+          <div class="option-buttons">
+            <button class="option-btn" (click)="showPasteArea = true">
+              <span class="material-icons">content_copy</span>
+              {{ i18n.translate('modal_paste_Clipboard') }}
+            </button>
           </div>
         </div>
       </div>
+
+      <!-- Paste Text Area -->
+      <div class="paste-text-area" *ngIf="showPasteArea">
+        <div class="paste-header">
+          <span class="material-icons">content_paste</span>
+          <span class="paste-title">{{ i18n.translate('modal_paste_text') }}</span>
+          <button class="cancel-paste-btn" (click)="cancelPaste()">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <textarea 
+          class="paste-textarea" 
+          [(ngModel)]="pastedText"
+          [placeholder]="placeholderText"
+          rows="6">
+        </textarea>
+        <div class="paste-actions">
+          <input 
+            type="text" 
+            class="filename-input" 
+            [(ngModel)]="pastedFileName"
+            [placeholder]="placeholderText_docname">
+          <button class="add-paste-btn" 
+                  [disabled]="!pastedText || !pastedFileName"
+                  (click)="addPastedText()">
+            {{ i18n.translate('modal_addText') }}
+          </button>
+        </div>
+      </div>
+      
+      <!-- Uploaded Files List -->
+      <div class="uploaded-files" *ngIf="uploadedFiles.length > 0">
+        <h4 class="files-title">{{ i18n.translate('modal_filesToUp') }} ({{ uploadedFiles.length }})</h4>
+        <div class="file-list">
+          <div class="file-item" *ngFor="let file of uploadedFiles; let i = index">
+            <div class="file-info">
+              <span class="material-icons file-icon">
+                {{ getFileIcon(file.type) }}
+              </span>
+              <div class="file-details">
+                <span class="file-name">{{ file.name }}</span>
+                <span class="file-size">{{ formatFileSize(file.size) }}</span>
+              </div>
+            </div>
+            <button class="remove-file-btn" (click)="removeFile(i)">
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Source Limit Info -->
+      <div class="source-limit">
+        <span class="material-icons">info</span>
+        <span class="limit-text">{{ i18n.translate('sourceLimit') }}</span>
+        <span class="limit-count">{{ uploadedFiles.length }} / 50</span>
+      </div>
+
+      <!-- Upload Button -->
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeModal()">
+          Cancel
+        </button>
+        <button class="upload-btn" 
+                [disabled]="uploadedFiles.length === 0"
+                (click)="uploadFiles()">
+          <span class="material-icons">upload</span>
+          {{ i18n.translate('modal_upload_files') }} ({{ uploadedFiles.length }})
+        </button>
+      </div>
     </div>
+  </div>
+</div>

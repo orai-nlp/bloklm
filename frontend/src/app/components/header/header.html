@@ -4,6 +4,10 @@
             <span class="logo-icon">📓</span>
             <span class="logo-text">BlokLM</span>
         </div>
+        <span class="notebook-title" *ngIf="currentNotebook">
+                <span class="separator">›</span>
+                {{ currentNotebook.title }}
+        </span> 
     </div>
     
     <div class="header-right">

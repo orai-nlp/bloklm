@@ -6,7 +6,37 @@ import docx
 import chardet
 import textract
 
+class SanicFileAdapter:
+    """
+    Adapts a Sanic File object so it can be consumed by
+    extract_text_from_document which expects a Flask-style FileStorage.
+    """
+    def __init__(self, sanic_file):
+        # sanic_file: File(type='...', body=b'...', name='...')
+        self.stream = io.BytesIO(sanic_file.body)   # readable file-like
+        self.filename = sanic_file.name
+        self.content_type = sanic_file.type
 
+    # The parser only needs .read(), .seek(), .filename and the extension
+    def read(self, *args, **kwargs):
+        return self.stream.read(*args, **kwargs)
+
+    def seek(self, pos, whence=io.SEEK_SET):
+        return self.stream.seek(pos, whence)
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @filename.setter
+    def filename(self, value):
+        self._filename = value
+
+    # Helpers the original parser uses
+    @property
+    def name(self):
+        return self.filename
+    
 def extract_text_from_document(file) -> dict:
     """
     Extract text from various document types (PDF, DOC/DOCX, TXT, SRT)
@@ -23,6 +53,8 @@ def extract_text_from_document(file) -> dict:
             'error': str (if success=False)
         }
     """
+    # --- 1. Adapt the Sanic file ---
+    file = SanicFileAdapter(file)
     
     # ERROR
     if not file or not file.filename:

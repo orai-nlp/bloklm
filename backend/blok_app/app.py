@@ -1,13 +1,20 @@
+import logging
 import os
 import db
 import sys
 from sanic import Sanic, json
+from sanic.exceptions import BadRequest, ServerError
 from sanic_cors import CORS
 sys.path.insert(0, "../")
 from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
 app = Sanic("backend")
 CORS(app, origins=[f"http://{DB_HOST}:4200"])
+log = logging.getLogger(__name__)   # <-- use this logger
+
+# ------------------------------------------------------------------
+# PostgreSQL Connection
+# ------------------------------------------------------------------
 
 # load DB settings into Sanic config
 app.config.update({
@@ -19,12 +26,20 @@ app.config.update({
 })
 
 # ------------------------------------------------------------------
-# EXAMPLE ENDPOINT (raw SQL)
+# BILDUMAK
 # ------------------------------------------------------------------
 @app.get("/api/bildumak")
 async def get_bildumak(request):
     print("Received request to /api/bildumak:", str(request))
     results = db.get_bildumak()
+    return json(results)
+
+@app.get("/api/bilduma")
+async def get_bilduma(request):
+    print("Received request to /api/bilduma:", str(request))
+    id = request.args.get("id") 
+
+    results = db.get_bilduma(id)
     return json(results)
 
 @app.post("/api/sortu_bilduma")
@@ -54,32 +69,60 @@ async def berrizendatu_bilduma(request):
 
     return json({id:payload['id']})
 
-    
-# ------------------------------------------------------------------
-# EXAMPLE ENDPOINT (manual insert)
-# ------------------------------------------------------------------
-@app.post("/api/items")
-async def add_item(request):
-    payload = request.json
-    name = payload.get("name")
-    if not name:
-        return json({"error": "name required"}, 400)
 
-    conn = get_db()
-    cur = conn.cursor()
-    try:
-        cur.execute("INSERT INTO items (name) VALUES (%s) RETURNING id;", (name,))
-        new_id = cur.fetchone()[0]
-        conn.commit()
-        return json({"id": new_id, "name": name}, 201)
-    except Exception as e:
-        conn.rollback()
-        return json({"error": str(e)}, 500)
-    finally:
-        cur.close()
-        conn.close()
 
+# ------------------------------------------------------------------
+# FITXATEGIAK
+# ------------------------------------------------------------------
+@app.get("/api/fitxategiak")
+async def get_fitxategiak(request):
+    print("Received request to /api/fitxategiak:", str(request))
+    id = request.args.get("id")
+    results = db.get_fitxategiak(id)
+    return json(results)
+
+@app.get("/api/fitxategia")
+async def get_fitxategia(request):
+    print("Received request to /api/fitxategia:", str(request))
+    id = request.args.get("id")
+
+    results = db.get_fitxategia(id)
+    return json(results)
+
+@app.post("/api/igo_fitxategiak")
+def upload_fitxategiak(request):
+    print("Received request to /api/igo_fitxategiak:", str(request))
+
+    nt_id = request.form.get("nt_id")
+    files = request.files.getlist("files")
+
+    if not nt_id or not files:
+        raise BadRequest("nt_id and at least one file are required")
+    print('Notebook id: ', nt_id, '\nFiles: ')
+    for f in files: print(); print(f) 
+    db.upload_fitxategiak(nt_id, files)
+    return json({"id": nt_id, "status": "ok"})
+
+
+# ------------------------------------------------------------------
+# NOTAK
+# ------------------------------------------------------------------
+@app.get("/api/notak")
+async def get_notak(request):
+    print("Received request to /api/notak:", str(request))
+    results = db.get_notak()
+    return json(results)
+
+@app.get("/api/nota")
+async def get_nota(request):
+    print("Received request to /api/nota:", str(request))
+    id = request.args.get("id")
+
+    results = db.get_nota(id)
+    return json(results)
+
+# ------------------------------------------------------------------
+# MAIN
+# ------------------------------------------------------------------
 if __name__ == "__main__":
-    # You can create tables manually or run a .sql script once:
-    # CREATE TABLE IF NOT EXISTS items (id SERIAL PRIMARY KEY, name VARCHAR(50));
     app.run(host="0.0.0.0", port=8000, debug=True)
