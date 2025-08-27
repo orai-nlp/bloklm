@@ -1,0 +1,4 @@
+pypdf2
+python-docx
+chardet
+textract
