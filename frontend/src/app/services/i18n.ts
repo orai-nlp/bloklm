@@ -88,6 +88,10 @@ export class I18nService {
       eu: "Gehitu",
       es: "Añadir",
     },
+    source:{
+      eu: "Fitxategi",
+      es: "Archivos",
+    },
     discover: {
       eu: "Fitxategi lokalak igo",
       es: "Subir fuentes locales",
@@ -227,6 +231,14 @@ export class I18nService {
     modal_placeholdertext_docname: {
       eu:"Sartu fitxategiaren izena (adib., dokumentua.txt)",
       es:"Escriba el nombre del archivo (e.g., documento.txt)"
+    },
+    chat_placerholder: {
+      eu:"Hasi idazten...",
+      es:"Empieza a escribir..."
+    },
+    chat_placerholder_empty: {
+      eu:"Igo fitxategirenbat txateatzen hasteko",
+      es:"Sube algun archivo para empezar a chatear"
     },
   }
 

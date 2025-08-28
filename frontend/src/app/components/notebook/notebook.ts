@@ -25,6 +25,8 @@ export class NotebookComponent implements OnInit {
   notebook: Notebook | null = null
   sources: Source[] = []
   showUploadModal = false
+  chat_placeholder = this.i18n.translate('chat_placerholder')
+  chat_placeholder_empty = this.i18n.translate('chat_placerholder_empty')
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
