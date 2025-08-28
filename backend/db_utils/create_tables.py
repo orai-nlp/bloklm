@@ -1,7 +1,7 @@
 import psycopg2
 import sys
-sys.path.insert(0, "../../../")
-from bloklm.backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+sys.path.insert(0, "../../")
+from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 
 # Read the SQL schema from file
 with open("create_tables.sql", "r") as f:

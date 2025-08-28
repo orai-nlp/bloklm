@@ -2,8 +2,8 @@ import psycopg2
 from collections import namedtuple
 import datetime
 import sys
-sys.path.insert(0, "../")
-from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+sys.path.insert(0, "../..")
+from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 import os
 from pdb import set_trace as d
 from document_parser_backend import extract_text_from_document

@@ -8,8 +8,10 @@ from sanic import Sanic, json
 from sanic.response import HTTPResponse
 from sanic.exceptions import BadRequest, ServerError
 from sanic_cors import CORS
-sys.path.insert(0, "../")
-from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from sanic.worker.manager import WorkerManager
+sys.path.insert(0, "../..")
+from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from backend.blok_app.document_parser_backend import extract_text_from_document
 
 from rag.core.factory import load_rag_instance
 from rag.core.response_stream import ResponseStream
