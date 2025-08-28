@@ -2,15 +2,43 @@ import logging
 import os
 import db
 import sys
+import asyncio
+
 from sanic import Sanic, json
+from sanic.response import HTTPResponse
 from sanic.exceptions import BadRequest, ServerError
 from sanic_cors import CORS
-sys.path.insert(0, "../")
-from config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from sanic.worker.manager import WorkerManager
+sys.path.insert(0, "../..")
+from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from backend.blok_app.document_parser_backend import extract_text_from_document
+
+from rag.core.factory import load_rag_instance
+from rag.core.response_stream import ResponseStream
+from rag.entity.document import Document
+
+WorkerManager.THRESHOLD = 600  # 60 s
 
 app = Sanic("backend")
-CORS(app, origins=[f"http://{DB_HOST}:4200"])
+CORS(
+    app,
+    resources={r"/api/*": {
+        "origins": ["http://{DB_HOST}:4200", "http://localhost:4200", "http://10.0.6.19:4200"],
+        "supports_credentials": True,
+        "allow_headers": ["Authorization","Content-Type"],
+        "methods": ["GET","POST","PUT","DELETE","OPTIONS"],
+    }},
+)
 log = logging.getLogger(__name__)   # <-- use this logger
+
+# Init RAG framework
+RAG_INSTANCE = "bloklm"
+rag, persistence = None, None
+
+@app.listener("before_server_start")
+async def setup_rag(app, loop):
+    global rag, persistence
+    rag, persistence = load_rag_instance(RAG_INSTANCE)
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection
@@ -101,8 +129,39 @@ def upload_fitxategiak(request):
     print('Notebook id: ', nt_id, '\nFiles: ')
     for f in files: print(); print(f) 
     db.upload_fitxategiak(nt_id, files)
+
+    # index by RAG engine
+    rag_docs = []
+    for uploaded_file in files:
+        text = extract_text_from_document(uploaded_file)['text']
+        fname = uploaded_file.name
+        rag_docs.append(Document(text, 'eu', fname, path=fname, collection=nt_id))
+    rag.add_document_batch(rag_docs)
+
     return json({"id": nt_id, "status": "ok"})
 
+
+# ------------------------------------------------------------------
+# RAG
+# ------------------------------------------------------------------
+
+@app.post("/api/create_chat")
+async def create_chat(request):
+    chat_id = rag.create_chat()
+    return json({"chat_id": chat_id})
+
+@app.post("/api/query")
+async def rag_query(request):
+    resp = ResponseStream(rag.query(request.json.get("query"), request.json.get("chat_id"), "eu", collection=request.json.get("collection")))
+
+    response = await request.respond(content_type="text/plain")
+    for token in resp:
+        await response.send(str(token))
+        await asyncio.sleep(0)
+    await response.eof()
+
+    return response
+        
 
 # ------------------------------------------------------------------
 # NOTAK
@@ -125,4 +184,4 @@ async def get_nota(request):
 # MAIN
 # ------------------------------------------------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True, workers=1)

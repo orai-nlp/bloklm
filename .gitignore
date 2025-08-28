@@ -2,4 +2,6 @@
 /backend/db_utils/db_venv
 /backend/__pycache__
 /backend/blok_app/__pycache__
+/bloklm/
+/node_modules/
 /text_parser
