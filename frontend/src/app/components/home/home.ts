@@ -89,6 +89,7 @@ export class HomeComponent implements OnInit {
       notebook.title = notebook.tempTitle.trim()
       notebook.updatedAt = new Date()
       
+      this.notebookService.renameLocalNotebook(notebook.id, notebook.title)
       console.log(`Renaming notebook ${notebook.id} from "${oldTitle}" to "${notebook.title}"`)
       this.notebookService.renameBackendNotebook({id: notebook.id, title: notebook.title })
     }

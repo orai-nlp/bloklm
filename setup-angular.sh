@@ -444,7 +444,7 @@ show_next_steps() {
 install_dependencies(){
     print_status "Installing npm dependencies..."
     echo
-    npm install @angular/animations
+    npm install
     echo
     print_success "Installation completed!"
     echo
@@ -464,10 +464,10 @@ main() {
     check_nodejs
     check_npm
     install_angular_cli
-    get_project_name
-    get_user_preferences
-    create_project
-    offer_to_source_nvm
+    # get_project_name
+    # get_user_preferences
+    # create_project
+    # offer_to_source_nvm
     install_dependencies
     show_next_steps
 }

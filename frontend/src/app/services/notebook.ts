@@ -37,6 +37,10 @@ export class NotebookService {
     return this.currentNotebook()
   }
 
+  setCurrentNotebook(note: Notebook): void {
+    this.currentNotebook.set(note)
+  }
+
   getSources(): Source[] {
     return this.sources()
   }
@@ -45,6 +49,13 @@ export class NotebookService {
   clearCurrentNotebook(): void {
     this.currentNotebook.set(null)
     this.sources.set([])
+  }
+
+  renameLocalNotebook(id:string, name:string){
+    let notebook = this.notebooks().find(n => n.id === id);
+    if (notebook){
+      notebook.title = name
+    }
   }
 
   createNotebook(): Observable<Notebook> {

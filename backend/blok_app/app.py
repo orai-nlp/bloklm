@@ -9,7 +9,7 @@ from sanic.response import HTTPResponse
 from sanic.exceptions import BadRequest, ServerError
 from sanic_cors import CORS
 from sanic.worker.manager import WorkerManager
-sys.path.insert(0, "../..")
+
 from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 from backend.blok_app.document_parser_backend import extract_text_from_document
 
@@ -17,7 +17,7 @@ from rag.core.factory import load_rag_instance
 from rag.core.response_stream import ResponseStream
 from rag.entity.document import Document
 
-WorkerManager.THRESHOLD = 600  # 60 s
+WorkerManager.THRESHOLD = 1800  # 3 min
 
 app = Sanic("backend")
 CORS(
@@ -127,7 +127,7 @@ def upload_fitxategiak(request):
     if not nt_id or not files:
         raise BadRequest("nt_id and at least one file are required")
     print('Notebook id: ', nt_id, '\nFiles: ')
-    for f in files: print(); print(f) 
+    for f in files: print(f.name) 
     db.upload_fitxategiak(nt_id, files)
 
     # index by RAG engine
