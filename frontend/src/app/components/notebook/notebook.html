@@ -63,7 +63,7 @@
             <h3 class="panel-title">{{ i18n.translate('chat') }}</h3>
           </div>
           
-          <div class="chat-content" *ngIf="sources.length > 0">
+         <div class="chat-content" *ngIf="sources.length > 0">
             <div class="notebook-summary">
               <div class="summary-icon">⏳</div>
               <h2 class="summary-title">{{ notebook.title }}</h2>
@@ -95,7 +95,8 @@
                 </button>
               </div>
             </div>
-          </div>
+            <app-chat></app-chat>
+          </div> 
           
           <div class="chat-empty" *ngIf="sources.length === 0">
             <div class="empty-upload-icon">
@@ -107,7 +108,7 @@
             </button>
           </div>
           
-          <div class="chat-input">
+          <!-- <div class="chat-input">
             <input 
               type="text" 
               class="chat-input-field" 
@@ -119,9 +120,9 @@
                 <span class="material-icons">send</span>
               </button>
             </div>
-          </div>
+          </div> -->
           
-          <p class="disclaimer">{{ i18n.translate('disclaimer')}}</p>
+          <!-- <p class="disclaimer">{{ i18n.translate('disclaimer')}}</p> -->
         </div>
         
         <!-- Studio Panel -->
