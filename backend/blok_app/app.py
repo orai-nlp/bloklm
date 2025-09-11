@@ -61,8 +61,7 @@ async def setup_rag(app, loop):
 
 @app.listener("before_server_start")
 async def start_worker(app, _):
-    if os.environ.get("SANIC_CHILD") == "true" or os.environ.get("DEBUGPY"):
-        asyncio.create_task(worker())
+    asyncio.create_task(worker())
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection
@@ -250,4 +249,4 @@ async def create_summary(request, body: SummaryModel):
 # MAIN
 # ------------------------------------------------------------------
 if __name__ == "__main__" and not os.environ.get("PYCHARM_HOSTED") and "DEBUGPY" not in os.environ:
-    app.run(host="0.0.0.0", port=8000, debug=False, workers=1)
+    app.run(host="0.0.0.0", port=8001, debug=False, workers=1)
