@@ -192,10 +192,14 @@ def upload_fitxategiak(id: str, files):
     ###########################      NOTAK       #############################
 ###################################################################################
 
-def get_notak(id):
-    notak_sql = f"SELECT id, name, description, type FROM Nota WHERE bilduma_key = {id};"
-    return query_db_as_dict(notak_sql)
+def get_notes(collection_id):
+    sql = f"SELECT id, name, description, type FROM Note WHERE bilduma_key = {collection_id};"
+    return query_db_as_dict(sql)
 
-def get_nota(id):
-    notak_sql = f"SELECT id, name, description, type FROM Nota WHERE id = {id};"
-    return query_db_as_dict(notak_sql)
+def get_note(note_id):
+    sql = f"SELECT id, name, description, type FROM Note WHERE id = {id};"
+    return query_db_as_dict(sql)
+
+def create_note(name, note_type, content, collection_id):
+    sql = f"INSERT INTO Note (name, type, content, bilduma_key) VALUES ('{name}', '{note_type}', '{content}', {collection_id})"
+    commit_query_db(sql)

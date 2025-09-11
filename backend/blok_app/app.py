@@ -9,6 +9,7 @@ from sanic.response import HTTPResponse
 from sanic.exceptions import BadRequest, ServerError
 from sanic_cors import CORS
 from sanic.worker.manager import WorkerManager
+from sanic_ext import Extend, validate
 
 from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 from backend.blok_app.document_parser_backend import extract_text_from_document
@@ -20,6 +21,7 @@ from rag.entity.document import Document
 WorkerManager.THRESHOLD = 1800  # 3 min
 
 app = Sanic("backend")
+Extend(app)
 CORS(
     app,
     resources={r"/api/*": {
@@ -38,7 +40,8 @@ rag, persistence = None, None
 @app.listener("before_server_start")
 async def setup_rag(app, loop):
     global rag, persistence
-    rag, persistence = load_rag_instance(RAG_INSTANCE)
+    rag, persistence = None, None
+    #rag, persistence = load_rag_instance(RAG_INSTANCE)
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection
@@ -164,21 +167,62 @@ async def rag_query(request):
         
 
 # ------------------------------------------------------------------
-# NOTAK
+# OHARRAK
 # ------------------------------------------------------------------
-@app.get("/api/notak")
-async def get_notak(request):
-    print("Received request to /api/notak:", str(request))
-    results = db.get_notak()
+
+# Motak: laburpena, eskema, glosarioa, kronograma, FAQ, Kontzeptu-mapa
+
+from pydantic import BaseModel
+from enum import IntEnum, Enum
+
+class Formality(IntEnum):
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+
+class Detail(IntEnum):
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+
+class LanguageComplexity(IntEnum):
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+
+class Style(Enum):
+    ACADEMIC = "academic"
+    TECHNICAL = "technical"
+    NON_TECHNICAL = "non-technical"
+
+class SummaryModel(BaseModel):
+    collection_id: int
+    formality: Formality
+    style: Style
+    detail: Detail
+    language_complexity: LanguageComplexity
+
+
+@app.get("/api/notes")
+async def get_notes(request):
+    results = db.get_notes()
     return json(results)
 
-@app.get("/api/nota")
-async def get_nota(request):
-    print("Received request to /api/nota:", str(request))
+@app.get("/api/note")
+async def get_note(request):
     id = request.args.get("id")
-
-    results = db.get_nota(id)
+    results = db.get_note(id)
     return json(results)
+
+@app.post("/api/note")
+@validate(json=SummaryModel)
+async def create_summary(request, body: SummaryModel):
+    db.create_note("izena", "summary", "lorem ipsum", 1)
+    return json({}, status=202)
+
+# ------------------------------------------------------------------
+# PODCAST
+# ------------------------------------------------------------------
 
 # ------------------------------------------------------------------
 # MAIN
