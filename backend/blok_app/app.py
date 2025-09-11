@@ -1,18 +1,18 @@
 import logging
-import os
 import db
-import sys
 import asyncio
+import os
+from concurrent.futures import ThreadPoolExecutor
 
 from sanic import Sanic, json
-from sanic.response import HTTPResponse
-from sanic.exceptions import BadRequest, ServerError
+from sanic.exceptions import BadRequest
 from sanic_cors import CORS
 from sanic.worker.manager import WorkerManager
 from sanic_ext import Extend, validate
 
 from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 from backend.blok_app.document_parser_backend import extract_text_from_document
+import backend.blok_app.resource_generation_tasks as tasks
 
 from rag.core.factory import load_rag_instance
 from rag.core.response_stream import ResponseStream
@@ -37,11 +37,32 @@ log = logging.getLogger(__name__)   # <-- use this logger
 RAG_INSTANCE = "bloklm"
 rag, persistence = None, None
 
+# Shared asyncio queue: avoid concurrent tasks of note/podcast generation
+task_queue = asyncio.Queue()
+# Thread pool for blocking tasks
+executor = ThreadPoolExecutor(max_workers=1)  # 1 to serialize tasks
+
+# Worker coroutine: runs tasks (notes/podcasts) from the queue one by one
+async def worker():
+    loop = asyncio.get_running_loop()
+    while True:
+        func, args = await task_queue.get()
+        try:
+            # Run the blocking function in a thread
+            await loop.run_in_executor(executor, func, *args)
+        finally:
+            task_queue.task_done()
+
 @app.listener("before_server_start")
 async def setup_rag(app, loop):
     global rag, persistence
     rag, persistence = None, None
     #rag, persistence = load_rag_instance(RAG_INSTANCE)
+
+@app.listener("before_server_start")
+async def start_worker(app, _):
+    if os.environ.get("SANIC_CHILD") == "true" or os.environ.get("DEBUGPY"):
+        asyncio.create_task(worker())
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection
@@ -214,10 +235,11 @@ async def get_note(request):
     results = db.get_note(id)
     return json(results)
 
-@app.post("/api/note")
+@app.post("/api/summary")
 @validate(json=SummaryModel)
 async def create_summary(request, body: SummaryModel):
-    db.create_note("izena", "summary", "lorem ipsum", 1)
+    await task_queue.put((tasks.generate_summary, (body.formality, body.style, body.detail, body.language_complexity, body.collection_id)))
+    #db.create_note("izena", "summary", "lorem ipsum", 1)
     return json({}, status=202)
 
 # ------------------------------------------------------------------
@@ -227,5 +249,5 @@ async def create_summary(request, body: SummaryModel):
 # ------------------------------------------------------------------
 # MAIN
 # ------------------------------------------------------------------
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True, workers=1)
+if __name__ == "__main__" and not os.environ.get("PYCHARM_HOSTED") and "DEBUGPY" not in os.environ:
+    app.run(host="0.0.0.0", port=8000, debug=False, workers=1)
