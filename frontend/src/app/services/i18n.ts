@@ -76,6 +76,10 @@ export class I18nService {
       eu: "Fitxategiak",
       es: "Fuentes",
     },
+    supported: {
+      eu: "Onartutako formatuak",
+      es: "Formatos admitidos",
+    },
     chat: {
       eu: "Txata",
       es: "Chat",
@@ -145,8 +149,8 @@ export class I18nService {
       es: "Arrastra y suelta o elige archivo para subir",
     },
     supportedFileTypes: {
-      eu: "Onartutako fitxategi motak: PDF, txt, Markdown, DOCS, DOC",
-      es: "Tipos de archivo soportados: PDF, txt, Markdown, DOCS, DOC",
+      eu: "Onartutako fitxategi motak: PDF, TXT, SRT, DOCS, DOC",
+      es: "Tipos de archivo soportados: PDF, TXT, SRT, DOCS, DOC",
     },
     googleDrive: {
       eu: "Google Drive",

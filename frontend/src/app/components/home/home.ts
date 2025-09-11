@@ -118,6 +118,7 @@ export class HomeComponent implements OnInit {
         this.notebooks.splice(notebookIndex, 1)
         this.activeMenuId = null
         
+        this.notebookService.deleteLocalNotebook(notebookId)
         console.log(`Deleting notebook ${notebookId}`)
         this.notebookService.deleteBackendNotebook(notebookId)
         

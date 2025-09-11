@@ -11,7 +11,6 @@ from sanic_cors import CORS
 from sanic.worker.manager import WorkerManager
 
 from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
-from backend.blok_app.document_parser_backend import extract_text_from_document
 
 from rag.core.factory import load_rag_instance
 from rag.core.response_stream import ResponseStream
@@ -128,14 +127,13 @@ def upload_fitxategiak(request):
         raise BadRequest("nt_id and at least one file are required")
     print('Notebook id: ', nt_id, '\nFiles: ')
     for f in files: print(f.name) 
-    db.upload_fitxategiak(nt_id, files)
+    parsed_files = db.upload_fitxategiak(nt_id, files)
 
     # index by RAG engine
     rag_docs = []
-    for uploaded_file in files:
-        text = extract_text_from_document(uploaded_file)['text']
-        fname = uploaded_file.name
-        rag_docs.append(Document(text, 'eu', fname, path=fname, collection=nt_id))
+    for uploaded_file in parsed_files:
+        fname = uploaded_file['filename']
+        rag_docs.append(Document(uploaded_file['text'], 'eu', fname, path=fname, collection=nt_id))
     rag.add_document_batch(rag_docs)
 
     return json({"id": nt_id, "status": "ok"})

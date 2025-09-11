@@ -6,7 +6,7 @@ sys.path.insert(0, "../..")
 from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 import os
 from pdb import set_trace as d
-from document_parser_backend import extract_text_from_document
+from document_parser_backend_ocr import extract_from_documents
 
 
 ###################################################################################
@@ -23,6 +23,11 @@ format_mapping = {
     "application/docx": "DOCX",
     "application/srt": "SRT",
     }
+
+file_type = {
+    ".docx":"DOCX",
+    ".pdf":"PDF",
+}
 
 ###################################################################################
     #########################      GENERIKOAK       ############################
@@ -56,20 +61,23 @@ def query_db(query, args = ()):
     conn.close()
     return result
 
-def commit_query_db(query):
+def commit_query_db(query, params = None):
     try:
         conn = get_db()
         cur = conn.cursor()
         print("Query: ",query[:100])
         presql=datetime.datetime.now()
-        cur.execute(query)
+        cur.execute(query, params)
         conn.commit()
         postsql=datetime.datetime.now()
         print("PostgreSQL: commited succesfully the change: ",postsql-presql) 
         cur.close()
         conn.close()
     except Exception as exc:
+        conn.rollback()
         print("Query failed:", exc)
+        raise exc
+
         
 
 
@@ -172,22 +180,28 @@ def upload_fitxategiak(id: str, files):
     Save every uploaded file for the given notebook.
     files: list of Sanic File objects (f.name, f.body, f.type)
     """
+
+    # --- Parse text using the unchanged parser ---
     try:
-        for f in files:
-            # --- Parse text using the unchanged parser ---
-            parsed = extract_text_from_document(f)
+        parsed_files = extract_from_documents(files)
+    except Exception as e:
+        raise f'Error: Extracting content from files; {str(e)}'
+    try:
+        for parsed in parsed_files:
             
             if not parsed['success']:
                 # handle / log error
                 raise Exception('The file could not be properly read.')
             
             # --- Insert into DB ---
-            q = "INSERT INTO Fitxategia (name, text, charNum, format, bilduma_key) VALUES ('{}', '{}', {}, '{}', {})".format(f.name, parsed['text'], len(parsed['text']), parsed['file_type'], id)
-            commit_query_db(q)
+            q = "INSERT INTO Fitxategia (name, text, charNum, format, bilduma_key) VALUES (%s, %s, %s, %s, %s)"
+            params = (parsed['filename'], parsed['text'], len(parsed['text']), file_type[parsed['file_type']] if parsed['file_type'] in file_type else parsed['file_type'], id)
+            commit_query_db(q, params)
     
     except Exception as e:
-        raise f'Error: Saving the files in database; {e}'
+        raise f'Error: Saving the files in database; {str(e)}'
 
+    return parsed_files
 ###################################################################################
     ###########################      NOTAK       #############################
 ###################################################################################

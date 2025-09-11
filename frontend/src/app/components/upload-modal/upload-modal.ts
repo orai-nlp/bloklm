@@ -37,7 +37,7 @@ export class UploadModalComponent {
   placeholderText_docname = this.i18n.translate('modal_placeholdertext_docname')
 
   // Allowed file extensions
-  private allowedExtensions = ['.pdf', '.txt', '.md', '.doc', '.docx']
+  private allowedExtensions = ['.pdf', '.txt', '.srt', '.doc', '.docx']
 
 
   closeModal() {
@@ -108,7 +108,7 @@ export class UploadModalComponent {
     }
 
     if (invalidFiles.length > 0) {
-      alert(`The following files are not supported:\n${invalidFiles.join('\n')}\n\nOnly PDF, TXT, MD, DOC, and DOCX files are allowed.`)
+      alert(`The following files are not supported:\n${invalidFiles.join('\n')}\n\nOnly PDF, TXT, SRT, DOC, and DOCX files are allowed.`)
     }
 
     // Add valid files to the list (max 50 files)
@@ -184,7 +184,7 @@ export class UploadModalComponent {
       case 'doc':
       case 'docx':
         return 'description'
-      case 'md':
+      case 'srt':
         return 'code'
       default:
         return 'text_snippet'

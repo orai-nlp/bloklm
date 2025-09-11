@@ -58,6 +58,13 @@ export class NotebookService {
     }
   }
 
+
+  deleteLocalNotebook(id:string){
+    this.notebooks.update(notebooks => 
+      notebooks.filter(notebook => notebook.id !== id)
+    );
+  }
+
   createNotebook(): Observable<Notebook> {
     const newNotebook: Notebook = {
       id: Date.now().toString(),

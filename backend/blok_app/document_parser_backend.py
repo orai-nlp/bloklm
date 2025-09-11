@@ -3,8 +3,10 @@ import io
 # from werkzeug.datastructures import FileStorage
 import PyPDF2
 import docx
+import docx2txt
 import chardet
 import textract
+import tempfile
 
 class SanicFileAdapter:
     """
@@ -36,6 +38,10 @@ class SanicFileAdapter:
     @property
     def name(self):
         return self.filename
+    
+def extract_from_documents(files) -> list[dict]:
+    return [extract_text_from_document(f) for f in files]
+    # return list(map(extract_text_from_document, files))
     
 def extract_text_from_document(file) -> dict:
     """

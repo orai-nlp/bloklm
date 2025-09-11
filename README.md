@@ -7,6 +7,9 @@ Backend-a lehen aldiz erabiltzen hasteko sortu dut `backend/db_utils/setup.sh`, 
 * Sortu databasea eta erabiltzailea
 * Sortu taula hutsak databasearen barruan
 
+## DOC fitxategiak
+DOC fitxategi motak parseatzeko 'libreoffice' programa erabiltzen dugu (`setup.sh`-ean gehitua). Instalatzeko egin: `sudo apt install libreoffice` 
+
 ## FRONTEND
 ### SETUP
 Frontend-a lehen aldiz erabiltzen hasteko sortu dut `setup-angular.sh`, bertan instalatu eta sortzen dira behar diren programa/pakete/proiektu-ak:

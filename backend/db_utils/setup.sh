@@ -27,6 +27,20 @@ else
 fi
 
 # -------------------------------
+# Check if libreoffice is installed
+# -------------------------------
+echo "Checking if LibreOffice is already installed..."
+if dpkg -l | grep -q libreoffice; then
+    echo "LibreOffice is already installed. Skipping installation."
+else
+    echo "LibreOffice not found. Installing..."
+    # Update package list and install LibreOffice
+    echo "Installing LibreOffice..."
+    sudo apt update
+    sudo apt install libreoffice -y   # Installs LibreOffice suite
+fi
+
+# -------------------------------
 # Load environment variables from .env file
 # -------------------------------
 echo "Loading environment variables from .env file..."
