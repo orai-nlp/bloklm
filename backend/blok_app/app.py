@@ -230,6 +230,11 @@ class SummaryModel(BaseModel):
     detail: Detail
     language_complexity: LanguageComplexity
 
+class FAQModel(BaseModel):
+    collection_id: int
+    file_ids: List[int]
+    detail: Detail
+    language_complexity: LanguageComplexity
 
 @app.get("/api/notes")
 async def get_notes(request):
@@ -246,6 +251,12 @@ async def get_note(request):
 @validate(json=SummaryModel)
 async def create_summary(request, body: SummaryModel):
     await task_queue.put((tasks.generate_summary, (llm, db, body.collection_id, body.file_ids, body.formality, body.style, body.detail, body.language_complexity)))
+    return json({}, status=202)
+
+@app.post("/api/faq")
+@validate(json=FAQModel)
+async def create_faq(request, body: FAQModel):
+    await task_queue.put((tasks.generate_faq, (llm, db, body.collection_id, body.file_ids, body.detail, body.language_complexity)))
     return json({}, status=202)
 
 # ------------------------------------------------------------------
