@@ -247,6 +247,11 @@ class OutlineModel(BaseModel):
     file_ids: List[int]
     detail: Detail
 
+class ChronogramModel(BaseModel):
+    collection_id: int
+    file_ids: List[int]
+    detail: Detail
+
 class MindMapModel(BaseModel):
     collection_id: int
     file_ids: List[int]
@@ -291,6 +296,12 @@ async def create_mind_map(request, body: MindMapModel):
 @validate(json=GlossaryModel)
 async def create_glossary(request, body: GlossaryModel):
     await task_queue.put((tasks.generate_glossary, (llm, db, body.collection_id, body.file_ids, body.detail, body.language_complexity)))
+    return json({}, status=202)
+
+@app.post("/api/chronogram")
+@validate(json=ChronogramModel)
+async def create_chronogram(request, body: ChronogramModel):
+    await task_queue.put((tasks.generate_chronogram, (llm, db, body.collection_id, body.file_ids, body.detail)))
     return json({}, status=202)
 
 # ------------------------------------------------------------------

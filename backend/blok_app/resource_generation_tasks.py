@@ -394,6 +394,96 @@ def generate_outline(llm, db, collection_id, file_ids, detail):
 
     db.create_note("title", "outline", result["output_text"], collection_id)
 
+def generate_chronogram(llm, db, collection_id, file_ids, detail):
+    docs = db.get_fitxategiak(collection_id, content=True, file_ids=file_ids)
+    texts = [ doc['text'] for doc in docs ]
+    
+    splitter = TokenTextSplitter(
+        chunk_size=8192,
+        chunk_overlap=500,
+        encoding_name="cl100k_base",  # compatible with LLaMA 3.1 tokenizer
+    )
+    docs = []
+    for text in texts:
+        docs.extend(splitter.create_documents([text]))
+
+    lc_llm = CustomHuggingFacePipeline(pipeline=llm)
+
+    map_prompt = PromptTemplate(
+        input_variables=["text", "detail_level"],
+        template=(
+            "You are a helpful assistant. Build a chronogram from the following passage. Keep the original language of the text, and consider the customization parameters provided below.\n"
+            "\n"
+            "Detail level: {detail_level}\n"
+            "\n"
+            "Text:\n"
+            "{text}\n"
+            "\n"
+            "Chronogram:\n"
+            "\n"
+        )
+    )
+
+    reduce_prompt = PromptTemplate(
+        input_variables=["text", "detail_level"],
+        template=(
+            "You are a helpful assistant. Combine and refine the following chronograms into a cohesive global chronogram. Keep the original language of the text, and consider the customization parameters provided below.\n"
+            "\n"
+            "Detail level: {detail_level}\n"
+            "\n"
+            "Chronograms:\n"
+            "{text}\n"
+            "\n"
+            "Final chronogram:\n"
+            "\n"
+        )
+    )
+
+    collapse_prompt = PromptTemplate(
+        input_variables=["text", "detail_level"],
+        template=(
+            "You are a helpful assistant. Shrink the following chronograms into a more concise chronogram. Keep the original language of the text, and consider the customization parameters provided below.\n"
+            "\n"
+            "Detail level: {detail_level}\n"
+            "\n"
+            "Chronograms:\n"
+            "{text}\n"
+            "\n"
+            "Collapsed chronogram:\n"
+            "\n"
+        )
+    )
+
+    map_chain = LLMChain(llm=lc_llm, prompt=map_prompt, verbose=True)
+    reduce_chain = LLMChain(llm=lc_llm, prompt=reduce_prompt, verbose=True)
+    combine_documents_chain = StuffDocumentsChain(
+        llm_chain=reduce_chain, document_variable_name="text", verbose=True,
+    )
+    collapse_chain = LLMChain(llm=lc_llm, prompt=collapse_prompt, verbose=True)
+    collapse_documents_chain = StuffDocumentsChain(
+        llm_chain=collapse_chain, document_variable_name="text", verbose=True
+    )
+    reduce_documents_chain = ReduceDocumentsChain(
+        combine_documents_chain=combine_documents_chain,
+        collapse_documents_chain=collapse_documents_chain,
+        token_max=8192,
+        verbose=True,
+    )
+    map_reduce_chain = MapReduceDocumentsChain(
+        llm_chain=map_chain,
+        reduce_documents_chain=reduce_documents_chain,
+        document_variable_name="text",
+        verbose=True,
+    )
+
+    result = map_reduce_chain.invoke({
+        "input_documents": docs,
+        "detail_level": detail.value,
+    })
+    print(result["output_text"])
+
+    db.create_note("title", "chronogram", result["output_text"], collection_id)
+
 def generate_mind_map(llm, db, collection_id, file_ids, detail):
     docs = db.get_fitxategiak(collection_id, content=True, file_ids=file_ids)
     texts = [ doc['text'] for doc in docs ]
