@@ -236,6 +236,12 @@ class FAQModel(BaseModel):
     detail: Detail
     language_complexity: LanguageComplexity
 
+class GlossaryModel(BaseModel):
+    collection_id: int
+    file_ids: List[int]
+    detail: Detail
+    language_complexity: LanguageComplexity
+
 class OutlineModel(BaseModel):
     collection_id: int
     file_ids: List[int]
@@ -279,6 +285,12 @@ async def create_outline(request, body: OutlineModel):
 @validate(json=MindMapModel)
 async def create_mind_map(request, body: MindMapModel):
     await task_queue.put((tasks.generate_mind_map, (llm, db, body.collection_id, body.file_ids, body.detail)))
+    return json({}, status=202)
+
+@app.post("/api/glossary")
+@validate(json=GlossaryModel)
+async def create_glossary(request, body: GlossaryModel):
+    await task_queue.put((tasks.generate_glossary, (llm, db, body.collection_id, body.file_ids, body.detail, body.language_complexity)))
     return json({}, status=202)
 
 # ------------------------------------------------------------------
