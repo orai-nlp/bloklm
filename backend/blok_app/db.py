@@ -159,9 +159,18 @@ def rename_bilduma(args):
   ########################       FITXATEGIAK        #############################
 ###################################################################################
 
-def get_fitxategiak(id):
-    notak_sql = f"SELECT id, name, charNum,format FROM Fitxategia WHERE bilduma_key = {id};"
-    return query_db_as_dict(notak_sql)
+def get_fitxategiak(collection_id, content=False, file_ids=[]):
+    args = []
+    filter_collection = f"bilduma_key = {collection_id}"
+    filter_files = ""
+    if file_ids:
+        filter_files = "AND id = ANY(%s)"
+        args.append(file_ids)
+    select_content = ""
+    if content:
+        select_content = ", text"
+    notak_sql = f"SELECT id, name, format {select_content} FROM Fitxategia WHERE {filter_collection} {filter_files};"
+    return query_db_as_dict(notak_sql, args=tuple(args))
 
 def get_fitxategia(id):
     notak_sql = f"SELECT id, name, text, charNum, format, type FROM Fitxategia WHERE id = {id};"

@@ -3,6 +3,9 @@ import db
 import asyncio
 import os
 from concurrent.futures import ThreadPoolExecutor
+from pydantic import BaseModel
+from enum import IntEnum, Enum
+from typing import List
 
 from sanic import Sanic, json
 from sanic.exceptions import BadRequest
@@ -17,6 +20,8 @@ import backend.blok_app.resource_generation_tasks as tasks
 from rag.core.factory import load_rag_instance
 from rag.core.response_stream import ResponseStream
 from rag.entity.document import Document
+
+from backend.blok_app.llm_factory import build_hf_llm
 
 WorkerManager.THRESHOLD = 1800  # 3 min
 
@@ -62,6 +67,11 @@ async def setup_rag(app, loop):
 @app.listener("before_server_start")
 async def start_worker(app, _):
     asyncio.create_task(worker())
+
+@app.listener("before_server_start")
+async def load_hf_llm(app, _):
+    global llm
+    llm = build_hf_llm("HiTZ/Latxa-Llama-3.1-8B-Instruct", device="cuda:2")
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection
@@ -192,9 +202,6 @@ async def rag_query(request):
 
 # Motak: laburpena, eskema, glosarioa, kronograma, FAQ, Kontzeptu-mapa
 
-from pydantic import BaseModel
-from enum import IntEnum, Enum
-
 class Formality(IntEnum):
     LOW = 1
     MEDIUM = 2
@@ -217,6 +224,7 @@ class Style(Enum):
 
 class SummaryModel(BaseModel):
     collection_id: int
+    file_ids: List[int]
     formality: Formality
     style: Style
     detail: Detail
@@ -237,8 +245,7 @@ async def get_note(request):
 @app.post("/api/summary")
 @validate(json=SummaryModel)
 async def create_summary(request, body: SummaryModel):
-    await task_queue.put((tasks.generate_summary, (body.formality, body.style, body.detail, body.language_complexity, body.collection_id)))
-    #db.create_note("izena", "summary", "lorem ipsum", 1)
+    await task_queue.put((tasks.generate_summary, (llm, db, body.collection_id, body.file_ids, body.formality, body.style, body.detail, body.language_complexity)))
     return json({}, status=202)
 
 # ------------------------------------------------------------------
