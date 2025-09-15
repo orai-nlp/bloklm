@@ -34,13 +34,14 @@ def generate_summary(llm, db, collection_id, file_ids, formality, style, detail,
     lc_llm = CustomHuggingFacePipeline(pipeline=llm)
 
     map_prompt = PromptTemplate(
-        input_variables=["text", "formality_level", "detail_level", "style"],
+        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity"],
         template=(
             "You are a helpful assistant. Summarize the following passage. Keep the original language of the text. Consider the following customization parameters:\n"
             "\n"
             "Style: {style}\n"
             "Formality: {formality_level}\n"
             "Detail level: {detail_level}\n"
+            "Language complexity: {language_complexity}\n"
             "\n"
             "{text}\n"
             "\n"
@@ -57,6 +58,7 @@ def generate_summary(llm, db, collection_id, file_ids, formality, style, detail,
             "Style: {style}\n"
             "Formality: {formality_level}\n"
             "Detail level: {detail_level}\n"
+            "Language complexity: {language_complexity}\n"
             "\n"
             "Summaries:\n"
             "{text}\n"
@@ -74,6 +76,7 @@ def generate_summary(llm, db, collection_id, file_ids, formality, style, detail,
             "Style: {style}\n"
             "Formality: {formality_level}\n"
             "Detail level: {detail_level}\n"
+            "Language complexity: {language_complexity}\n"
             "\n"
             "Summaries:\n"
             "{text}\n"
@@ -109,6 +112,7 @@ def generate_summary(llm, db, collection_id, file_ids, formality, style, detail,
         "input_documents": docs,
         "formality_level": formality.value,
         "detail_level": detail.value,
+        "language_complexity": language_complexity.value,
         "style": style.value,
     })
     print(summary["output_text"])
