@@ -300,3 +300,106 @@ def generate_outline(llm, db, collection_id, file_ids, detail):
     print(summary["output_text"])
 
     db.create_note("title", "outline", summary["output_text"], collection_id)
+
+def generate_mind_map(llm, db, collection_id, file_ids, detail):
+    docs = db.get_fitxategiak(collection_id, content=True, file_ids=file_ids)
+    texts = [ doc['text'] for doc in docs ]
+    
+    splitter = TokenTextSplitter(
+        chunk_size=8192,
+        chunk_overlap=500,
+        encoding_name="cl100k_base",  # compatible with LLaMA 3.1 tokenizer
+    )
+    docs = []
+    for text in texts:
+        docs.extend(splitter.create_documents([text]))
+
+    lc_llm = CustomHuggingFacePipeline(pipeline=llm)
+
+    map_prompt = PromptTemplate(
+        input_variables=["text", "detail_level"],
+        template=(
+            "You are a helpful assistant. Build a mind map of the following passage. Keep the original language of the text, and consider the following customization parameters. Provide the graph representation of the mind map following the JSON structure provided below.\n"
+            "\n"
+            "Detail level: {detail_level}\n"
+            "\n"
+            "JSON structure:\n"
+            "{{\n"
+            "  \"nodes\": [\n"
+            "    {{\"id\": \"1\", \"label\": \"Artificial Intelligence\" }},\n"
+            "    {{\"id\": \"2\", \"label\": \"Machine Learning\" }},\n"
+            "    {{\"id\": \"3\", \"label\": \"Neural Networks\" }}\n"
+            "  ],\n"
+            "  \"edges\": [\n"
+            "    {{\"source\": \"1\", \"target\": \"2\", \"relation\": \"includes\" }},\n"
+            "    {{\"source\": \"2\", \"target\": \"3\", \"relation\": \"includes\" }}\n"
+            "  ]\n"
+            "}}\n"
+            "\n"
+            "Text:\n"
+            "{text}\n"
+            "\n"
+            "Mind map:\n"
+            "\n"
+        )
+    )
+
+    reduce_prompt = PromptTemplate(
+        input_variables=["text", "detail_level"],
+        template=(
+            "You are a helpful assistant. Combine and refine the following mind maps into a cohesive global mind map. Keep the original language of the text, and consider the following customization parameters. Keep the original JSON format to represent the graph.\n"
+            "\n"
+            "Detail level: {detail_level}\n"
+            "\n"
+            "Mind maps:\n"
+            "{text}\n"
+            "\n"
+            "Final mind map:\n"
+            "\n"
+        )
+    )
+
+    collapse_prompt = PromptTemplate(
+        input_variables=["text", "detail_level"],
+        template=(
+            "You are a helpful assistant. Shrink the following mind maps into a more concise mind map. Keep the original language of the text, and consider the following customization parameters. Keep the original JSON format to represent the graph.\n"
+            "\n"
+            "Detail level: {detail_level}\n"
+            "\n"
+            "Mind maps:\n"
+            "{text}\n"
+            "\n"
+            "Collapsed mind map:\n"
+            "\n"
+        )
+    )
+
+    map_chain = LLMChain(llm=lc_llm, prompt=map_prompt, verbose=True)
+    reduce_chain = LLMChain(llm=lc_llm, prompt=reduce_prompt, verbose=True)
+    combine_documents_chain = StuffDocumentsChain(
+        llm_chain=reduce_chain, document_variable_name="text", verbose=True,
+    )
+    collapse_chain = LLMChain(llm=lc_llm, prompt=collapse_prompt, verbose=True)
+    collapse_documents_chain = StuffDocumentsChain(
+        llm_chain=collapse_chain, document_variable_name="text", verbose=True
+    )
+    reduce_documents_chain = ReduceDocumentsChain(
+        combine_documents_chain=combine_documents_chain,
+        collapse_documents_chain=collapse_documents_chain,
+        token_max=8192,
+        verbose=True,
+    )
+    map_reduce_chain = MapReduceDocumentsChain(
+        llm_chain=map_chain,
+        reduce_documents_chain=reduce_documents_chain,
+        document_variable_name="text",
+        verbose=True,
+    )
+
+    summary = map_reduce_chain.invoke({
+        "input_documents": docs,
+        "detail_level": detail.value,
+    })
+    print(summary["output_text"])
+
+    db.create_note("title", "mindmap", summary["output_text"], collection_id)

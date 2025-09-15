@@ -71,7 +71,7 @@ async def start_worker(app, _):
 @app.listener("before_server_start")
 async def load_hf_llm(app, _):
     global llm
-    llm = build_hf_llm("HiTZ/Latxa-Llama-3.1-8B-Instruct", device="cuda:2")
+    llm = build_hf_llm("HiTZ/Latxa-Llama-3.1-8B-Instruct", device="cuda:3")
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection
@@ -241,6 +241,11 @@ class OutlineModel(BaseModel):
     file_ids: List[int]
     detail: Detail
 
+class MindMapModel(BaseModel):
+    collection_id: int
+    file_ids: List[int]
+    detail: Detail
+
 @app.get("/api/notes")
 async def get_notes(request):
     results = db.get_notes()
@@ -268,6 +273,12 @@ async def create_faq(request, body: FAQModel):
 @validate(json=OutlineModel)
 async def create_outline(request, body: OutlineModel):
     await task_queue.put((tasks.generate_outline, (llm, db, body.collection_id, body.file_ids, body.detail)))
+    return json({}, status=202)
+
+@app.post("/api/mindmap")
+@validate(json=MindMapModel)
+async def create_mind_map(request, body: MindMapModel):
+    await task_queue.put((tasks.generate_mind_map, (llm, db, body.collection_id, body.file_ids, body.detail)))
     return json({}, status=202)
 
 # ------------------------------------------------------------------
