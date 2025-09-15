@@ -56,13 +56,13 @@ def query_db(query, args = ()):
     conn.close()
     return result
 
-def commit_query_db(query):
+def commit_query_db(query, data=None):
     try:
         conn = get_db()
         cur = conn.cursor()
         print("Query: ",query[:100])
         presql=datetime.datetime.now()
-        cur.execute(query)
+        cur.execute(query, data)
         conn.commit()
         postsql=datetime.datetime.now()
         print("PostgreSQL: commited succesfully the change: ",postsql-presql) 
@@ -210,5 +210,6 @@ def get_note(note_id):
     return query_db_as_dict(sql)
 
 def create_note(name, note_type, content, collection_id):
-    sql = f"INSERT INTO Note (name, type, content, bilduma_key) VALUES ('{name}', '{note_type}', '{content}', {collection_id})"
-    commit_query_db(sql)
+    sql = f"INSERT INTO Note (name, type, content, bilduma_key) VALUES (%s, %s, %s, %s)"
+    data = (name, note_type, content, collection_id)
+    commit_query_db(sql, data)

@@ -202,20 +202,20 @@ async def rag_query(request):
 
 # Motak: laburpena, eskema, glosarioa, kronograma, FAQ, Kontzeptu-mapa
 
-class Formality(IntEnum):
-    LOW = 1
-    MEDIUM = 2
-    HIGH = 3
+class Formality(Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
 
-class Detail(IntEnum):
-    LOW = 1
-    MEDIUM = 2
-    HIGH = 3
+class Detail(Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
 
-class LanguageComplexity(IntEnum):
-    LOW = 1
-    MEDIUM = 2
-    HIGH = 3
+class LanguageComplexity(Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
 
 class Style(Enum):
     ACADEMIC = "academic"

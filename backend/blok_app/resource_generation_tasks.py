@@ -36,11 +36,11 @@ def generate_summary(llm, db, collection_id, file_ids, formality, style, detail,
     map_prompt = PromptTemplate(
         input_variables=["text", "formality_level", "detail_level", "style"],
         template=(
-            "You are a helpful assistant. Summarize the following passage. Keep the original language of the text.\n"
+            "You are a helpful assistant. Summarize the following passage. Keep the original language of the text. Consider the following customization parameters:\n"
             "\n"
             "Style: {style}\n"
             "Formality: {formality_level}\n"
-            "Detail: {detail_level}\n"
+            "Detail level: {detail_level}\n"
             "\n"
             "{text}\n"
             "\n"
@@ -52,11 +52,11 @@ def generate_summary(llm, db, collection_id, file_ids, formality, style, detail,
     reduce_prompt = PromptTemplate(
         input_variables=["text", "formality_level", "detail_level", "style"],
         template=(
-            "You are a helpful assistant. Combine and refine the following summaries into a cohesive global summary. Keep the original language of the summaries.\n"
+            "You are a helpful assistant. Combine and refine the following summaries into a cohesive global summary. Keep the original language of the summaries. Consider the following customization parameters:\n"
             "\n"
             "Style: {style}\n"
             "Formality: {formality_level}\n"
-            "Detail: {detail_level}\n"
+            "Detail level: {detail_level}\n"
             "\n"
             "Summaries:\n"
             "{text}\n"
@@ -69,11 +69,11 @@ def generate_summary(llm, db, collection_id, file_ids, formality, style, detail,
     collapse_prompt = PromptTemplate(
         input_variables=["text", "formality_level", "detail_level", "style"],
         template=(
-            "Shrink the following summaries into a more concise summary. Keep the original language of the summaries.\n"
+            "Shrink the following summaries into a more concise summary. Keep the original language of the summaries. Consider the following customization parameters:\n"
             "\n"
             "Style: {style}\n"
             "Formality: {formality_level}\n"
-            "Detail: {detail_level}\n"
+            "Detail level: {detail_level}\n"
             "\n"
             "Summaries:\n"
             "{text}\n"
@@ -107,9 +107,9 @@ def generate_summary(llm, db, collection_id, file_ids, formality, style, detail,
 
     summary = map_reduce_chain.invoke({
         "input_documents": docs,
-        "formality_level": formality,
-        "detail_level": detail,
-        "style": style,
+        "formality_level": formality.value,
+        "detail_level": detail.value,
+        "style": style.value,
     })
     print(summary["output_text"])
 
