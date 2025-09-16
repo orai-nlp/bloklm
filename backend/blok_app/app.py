@@ -222,6 +222,10 @@ class Style(Enum):
     TECHNICAL = "technical"
     NON_TECHNICAL = "non-technical"
 
+class PodcastType(Enum):
+    CONVERSATIONAL = "conversational"
+    NARRATIVE = "narrative"
+
 class SummaryModel(BaseModel):
     collection_id: int
     file_ids: List[int]
@@ -256,6 +260,15 @@ class MindMapModel(BaseModel):
     collection_id: int
     file_ids: List[int]
     detail: Detail
+
+class PodcastModel(BaseModel):
+    collection_id: int
+    file_ids: List[int]
+    formality: Formality
+    style: Style
+    detail: Detail
+    language_complexity: LanguageComplexity
+    type: PodcastType
 
 @app.get("/api/notes")
 async def get_notes(request):
@@ -307,6 +320,12 @@ async def create_chronogram(request, body: ChronogramModel):
 # ------------------------------------------------------------------
 # PODCAST
 # ------------------------------------------------------------------
+
+@app.post("/api/podcast")
+@validate(json=PodcastModel)
+async def create_podcast(request, body: PodcastModel):
+    await task_queue.put((tasks.generate_podcast, (llm, db, body.collection_id, body.file_ids, body.formality, body.style, body.detail, body.language_complexity, body.type)))
+    return json({}, status=202)
 
 # ------------------------------------------------------------------
 # MAIN

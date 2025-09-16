@@ -3,8 +3,6 @@ from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import TokenTextSplitter
 
-import os
-from langchain.docstore.document import Document
 from langchain.chains.llm import LLMChain
 from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChain, ReduceDocumentsChain
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
@@ -586,3 +584,113 @@ def generate_mind_map(llm, db, collection_id, file_ids, detail):
     print(result["output_text"])
 
     db.create_note("title", "mindmap", result["output_text"], collection_id)
+
+def generate_podcast(llm, db, collection_id, file_ids, formality, style, detail, language_complexity, podcast_type):
+    docs = db.get_fitxategiak(collection_id, content=True, file_ids=file_ids)
+    texts = [ doc['text'] for doc in docs ]
+    
+    splitter = TokenTextSplitter(
+        chunk_size=8192,
+        chunk_overlap=500,
+        encoding_name="cl100k_base",  # compatible with LLaMA 3.1 tokenizer
+    )
+    docs = []
+    for text in texts:
+        docs.extend(splitter.create_documents([text]))
+
+    lc_llm = CustomHuggingFacePipeline(pipeline=llm)
+
+    map_prompt = PromptTemplate(
+        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity", "type"],
+        template=(
+            "You are a helpful assistant. Generate a {type} podcast script from the contents of the following passage. Keep the original language of the text, considering the customization parameters below. In order to represent the script, you must follow the JSON structure provided below.\n"
+            "\n"
+            "Style: {style}\n"
+            "Formality: {formality_level}\n"
+            "Detail level: {detail_level}\n"
+            "Language complexity: {language_complexity}\n"
+            "\n"
+            "Script format:\n"
+            "[\n"
+            "  {{ \"speaker\": \"1\", \"text\": \"...\" }},"
+            "  {{ \"speaker\": \"2\", \"text\": \"...\" }},"
+            "  {{ \"speaker\": \"1\", \"text\": \"...\" }},"
+            "  ..."
+            "]\n"
+            "\n"
+            "{text}\n"
+            "\n"
+            "Podcast script:\n"
+            "\n"
+        )
+    )
+
+    reduce_prompt = PromptTemplate(
+        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity", "type"],
+        template=(
+            "You are a helpful assistant. Combine and refine the following {type} podcast script into a cohesive global {type} podcast script. Keep the original language of the contents. Consider the customization parameters below.\n"
+            "\n"
+            "Style: {style}\n"
+            "Formality: {formality_level}\n"
+            "Detail level: {detail_level}\n"
+            "Language complexity: {language_complexity}\n"
+            "\n"
+            "Podcast scripts:\n"
+            "{text}\n"
+            "\n"
+            "Final podcast script:\n"
+            "\n"
+        )
+    )
+
+    collapse_prompt = PromptTemplate(
+        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity", "type"],
+        template=(
+            "Shrink the following {type} podcast scripts into a more concise {type} podcast script. Keep the original language of the contents. Consider the customization parameters below.\n"
+            "\n"
+            "Style: {style}\n"
+            "Formality: {formality_level}\n"
+            "Detail level: {detail_level}\n"
+            "Language complexity: {language_complexity}\n"
+            "\n"
+            "Podcast scripts:\n"
+            "{text}\n"
+            "\n"
+            "Collapsed podcast script:\n"
+            "\n"
+        )
+    )
+
+    map_chain = LLMChain(llm=lc_llm, prompt=map_prompt, verbose=True)
+    reduce_chain = LLMChain(llm=lc_llm, prompt=reduce_prompt, verbose=True)
+    combine_documents_chain = StuffDocumentsChain(
+        llm_chain=reduce_chain, document_variable_name="text", verbose=True,
+    )
+    collapse_chain = LLMChain(llm=lc_llm, prompt=collapse_prompt, verbose=True)
+    collapse_documents_chain = StuffDocumentsChain(
+        llm_chain=collapse_chain, document_variable_name="text", verbose=True
+    )
+    reduce_documents_chain = ReduceDocumentsChain(
+        combine_documents_chain=combine_documents_chain,
+        collapse_documents_chain=collapse_documents_chain,
+        token_max=8192,
+        verbose=True,
+    )
+    map_reduce_chain = MapReduceDocumentsChain(
+        llm_chain=map_chain,
+        reduce_documents_chain=reduce_documents_chain,
+        document_variable_name="text",
+        verbose=True,
+    )
+
+    result = map_reduce_chain.invoke({
+        "input_documents": docs,
+        "formality_level": formality.value,
+        "detail_level": detail.value,
+        "language_complexity": language_complexity.value,
+        "style": style.value,
+        "type": podcast_type.value,
+    })
+    print(result["output_text"])
+
+    db.create_note("title", "podcast", result["output_text"], collection_id)
