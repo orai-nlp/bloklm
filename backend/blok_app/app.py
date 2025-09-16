@@ -4,7 +4,6 @@ import asyncio
 import os
 from concurrent.futures import ThreadPoolExecutor
 from pydantic import BaseModel
-from enum import IntEnum, Enum
 from typing import List
 
 from sanic import Sanic, json
@@ -16,6 +15,8 @@ from sanic_ext import Extend, validate
 from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 from backend.blok_app.document_parser_backend import extract_text_from_document
 import backend.blok_app.resource_generation_tasks as tasks
+import backend.blok_app.customization_config as custom
+from backend.blok_app.customization_config import CustomizationConfig
 
 from rag.core.factory import load_rag_instance
 from rag.core.response_stream import ResponseStream
@@ -202,73 +203,49 @@ async def rag_query(request):
 
 # Motak: laburpena, eskema, glosarioa, kronograma, FAQ, Kontzeptu-mapa
 
-class Formality(Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-
-class Detail(Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-
-class LanguageComplexity(Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-
-class Style(Enum):
-    ACADEMIC = "academic"
-    TECHNICAL = "technical"
-    NON_TECHNICAL = "non-technical"
-
-class PodcastType(Enum):
-    CONVERSATIONAL = "conversational"
-    NARRATIVE = "narrative"
-
 class SummaryModel(BaseModel):
     collection_id: int
     file_ids: List[int]
-    formality: Formality
-    style: Style
-    detail: Detail
-    language_complexity: LanguageComplexity
+    formality: custom.Formality
+    style: custom.Style
+    detail: custom.Detail
+    language_complexity: custom.LanguageComplexity
 
 class FAQModel(BaseModel):
     collection_id: int
     file_ids: List[int]
-    detail: Detail
-    language_complexity: LanguageComplexity
+    detail: custom.Detail
+    language_complexity: custom.LanguageComplexity
 
 class GlossaryModel(BaseModel):
     collection_id: int
     file_ids: List[int]
-    detail: Detail
-    language_complexity: LanguageComplexity
+    detail: custom.Detail
+    language_complexity: custom.LanguageComplexity
 
 class OutlineModel(BaseModel):
     collection_id: int
     file_ids: List[int]
-    detail: Detail
+    detail: custom.Detail
 
 class ChronogramModel(BaseModel):
     collection_id: int
     file_ids: List[int]
-    detail: Detail
+    detail: custom.Detail
 
 class MindMapModel(BaseModel):
     collection_id: int
     file_ids: List[int]
-    detail: Detail
+    detail: custom.Detail
 
 class PodcastModel(BaseModel):
     collection_id: int
     file_ids: List[int]
-    formality: Formality
-    style: Style
-    detail: Detail
-    language_complexity: LanguageComplexity
-    type: PodcastType
+    formality: custom.Formality
+    style: custom.Style
+    detail: custom.Detail
+    language_complexity: custom.LanguageComplexity
+    type: custom.PodcastType
 
 @app.get("/api/notes")
 async def get_notes(request):
@@ -284,7 +261,7 @@ async def get_note(request):
 @app.post("/api/summary")
 @validate(json=SummaryModel)
 async def create_summary(request, body: SummaryModel):
-    await task_queue.put((tasks.generate_summary, (llm, db, body.collection_id, body.file_ids, body.formality, body.style, body.detail, body.language_complexity)))
+    await task_queue.put((tasks.generate_summary, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 @app.post("/api/faq")

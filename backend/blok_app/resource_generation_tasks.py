@@ -15,8 +15,8 @@ LLM_MODEL_ID = "HiTZ/Latxa-Llama-3.1-8B-Instruct"
 class CustomHuggingFacePipeline(HuggingFacePipeline):
     def get_token_ids(self, text: str) -> list[int]:
         return self.pipeline.tokenizer.encode(text)
-
-def generate_summary(llm, db, collection_id, file_ids, formality, style, detail, language_complexity):
+    
+def generate_note(llm, db, collection_id, file_ids, map_prompt, reduce_prompt, collapse_prompt, custom_conf):
     docs = db.get_fitxategiak(collection_id, content=True, file_ids=file_ids)
     texts = [ doc['text'] for doc in docs ]
     
@@ -30,59 +30,6 @@ def generate_summary(llm, db, collection_id, file_ids, formality, style, detail,
         docs.extend(splitter.create_documents([text]))
 
     lc_llm = CustomHuggingFacePipeline(pipeline=llm)
-
-    map_prompt = PromptTemplate(
-        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity"],
-        template=(
-            "You are a helpful assistant. Summarize the following passage. Keep the original language of the text. Consider the following customization parameters:\n"
-            "\n"
-            "Style: {style}\n"
-            "Formality: {formality_level}\n"
-            "Detail level: {detail_level}\n"
-            "Language complexity: {language_complexity}\n"
-            "\n"
-            "{text}\n"
-            "\n"
-            "Summary:\n"
-            "\n"
-        )
-    )
-
-    reduce_prompt = PromptTemplate(
-        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity"],
-        template=(
-            "You are a helpful assistant. Combine and refine the following summaries into a cohesive global summary. Keep the original language of the summaries. Consider the following customization parameters:\n"
-            "\n"
-            "Style: {style}\n"
-            "Formality: {formality_level}\n"
-            "Detail level: {detail_level}\n"
-            "Language complexity: {language_complexity}\n"
-            "\n"
-            "Summaries:\n"
-            "{text}\n"
-            "\n"
-            "Final summary:\n"
-            "\n"
-        )
-    )
-
-    collapse_prompt = PromptTemplate(
-        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity"],
-        template=(
-            "Shrink the following summaries into a more concise summary. Keep the original language of the summaries. Consider the following customization parameters:\n"
-            "\n"
-            "Style: {style}\n"
-            "Formality: {formality_level}\n"
-            "Detail level: {detail_level}\n"
-            "Language complexity: {language_complexity}\n"
-            "\n"
-            "Summaries:\n"
-            "{text}\n"
-            "\n"
-            "Collapsed summary:\n"
-            "\n"
-        )
-    )
 
     map_chain = LLMChain(llm=lc_llm, prompt=map_prompt, verbose=True)
     reduce_chain = LLMChain(llm=lc_llm, prompt=reduce_prompt, verbose=True)
@@ -106,16 +53,64 @@ def generate_summary(llm, db, collection_id, file_ids, formality, style, detail,
         verbose=True,
     )
 
-    result = map_reduce_chain.invoke({
-        "input_documents": docs,
-        "formality_level": formality.value,
-        "detail_level": detail.value,
-        "language_complexity": language_complexity.value,
-        "style": style.value,
-    })
+    result = map_reduce_chain.invoke({"input_documents": docs, **custom_conf.to_name_value_dict()})
     print(result["output_text"])
+    return result["output_text"]
 
-    db.create_note("title", "summary", result["output_text"], collection_id)
+def generate_summary(llm, db, collection_id, file_ids, custom_conf):
+    map_prompt = PromptTemplate(
+        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity"],
+        template=(
+            "You are a helpful assistant. Summarize the following passage. Keep the original language of the text. Consider the following customization parameters:\n"
+            "\n"
+            "Style: {style}\n"
+            "Formality: {formality}\n"
+            "Detail level: {detail}\n"
+            "Language complexity: {language_complexity}\n"
+            "\n"
+            "{text}\n"
+            "\n"
+            "Summary:\n"
+            "\n"
+        )
+    )
+    reduce_prompt = PromptTemplate(
+        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity"],
+        template=(
+            "You are a helpful assistant. Combine and refine the following summaries into a cohesive global summary. Keep the original language of the summaries. Consider the following customization parameters:\n"
+            "\n"
+            "Style: {style}\n"
+            "Formality: {formality}\n"
+            "Detail level: {detail}\n"
+            "Language complexity: {language_complexity}\n"
+            "\n"
+            "Summaries:\n"
+            "{text}\n"
+            "\n"
+            "Final summary:\n"
+            "\n"
+        )
+    )
+    collapse_prompt = PromptTemplate(
+        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity"],
+        template=(
+            "Shrink the following summaries into a more concise summary. Keep the original language of the summaries. Consider the following customization parameters:\n"
+            "\n"
+            "Style: {style}\n"
+            "Formality: {formality}\n"
+            "Detail level: {detail}\n"
+            "Language complexity: {language_complexity}\n"
+            "\n"
+            "Summaries:\n"
+            "{text}\n"
+            "\n"
+            "Collapsed summary:\n"
+            "\n"
+        )
+    )
+
+    res_text = generate_note(llm, db, collection_id, file_ids, map_prompt, reduce_prompt, collapse_prompt, custom_conf)
+    db.create_note("title", "summary", res_text, collection_id)
 
 def generate_faq(llm, db, collection_id, file_ids, detail, language_complexity):
     docs = db.get_fitxategiak(collection_id, content=True, file_ids=file_ids)
