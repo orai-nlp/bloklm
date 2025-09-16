@@ -76,6 +76,10 @@ export class I18nService {
       eu: "Fitxategiak",
       es: "Fuentes",
     },
+    source:{
+      eu: "Fitxategi",
+      es: "Archivo",
+    },
     supported: {
       eu: "Onartutako formatuak",
       es: "Formatos admitidos",
@@ -92,10 +96,7 @@ export class I18nService {
       eu: "Gehitu",
       es: "Añadir",
     },
-    source:{
-      eu: "Fitxategi",
-      es: "Archivos",
-    },
+
     discover: {
       eu: "Fitxategi lokalak igo",
       es: "Subir fuentes locales",
@@ -235,6 +236,26 @@ export class I18nService {
     modal_placeholdertext_docname: {
       eu:"Sartu fitxategiaren izena (adib., dokumentua.txt)",
       es:"Escriba el nombre del archivo (e.g., documento.txt)"
+    },
+    modal_cancel_confirm: {
+      eu:"Igo gabeko fitxategiak dituzu. Ziur zaude itxi nahi duzula?",
+      es:"Tienes archivos pendientes de subir. ¿Estás seguro de que quieres cerrar?"
+    },
+    modal_alertFormat: {
+      eu:"PDF, TXT, SRT, DOC eta DOCX fitxategiak bakarrik onartzen dira.\n\nOndorengo fitxategiak ez daude onartuta:",
+      es:"Solo se permiten archivos PDF, TXT, SRT, DOC y DOCX.\n\nLos siguientes archivos no son compatibles:"
+    },
+    modal_alertFileNum: {
+      eu:"fitxategi bakarrik gehitu dira. Gainditu duzu 50 fitxategien gehienezko muga.",
+      es:"archivos han sido añadidos unicamente. Límite máximo de 50 archivos alcanzado."
+    },
+    modal_alertFileExists: {
+      eu:"Ya existe un archivo con este nombre.",
+      es:"Izen hori duen fitxategia badago lehendik ere."
+    },
+    modal_alertUploadFailed: {
+      eu:"Huts egin du fitxategiak igotzean. Mesedez, saiatu berriro.",
+      es:"Error al subir los archivos. Por favor, inténtenlo de nuevo."
     },
     chat_placerholder: {
       eu:"Hasi idazten...",

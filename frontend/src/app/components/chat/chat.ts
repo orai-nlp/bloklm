@@ -1,8 +1,10 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, AfterContentInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { ChatService, Chat, Message } from '../../services/chat';
+import { Chat, Message } from '../../interfaces/chat.type';
+import { ChatService } from '../../services/chat';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-chat',
@@ -10,9 +12,12 @@ import { ChatService, Chat, Message } from '../../services/chat';
   templateUrl: './chat.html',
   styleUrl: './chat.scss'
 })
-export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
+export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit, OnDestroy {
   @ViewChild('chatContainer') chatContainer!: ElementRef;
   @ViewChild('userInput') userInput!: ElementRef;
+
+  route = inject(ActivatedRoute)
+
 
   // UI State
   userInputValue: string = '';
@@ -21,7 +26,6 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   showConfirmationModal: boolean = false;
 
   // Service data
-  chatHistory: Chat[] = [];
   currentChat: Chat | null = null;
   currentTheme: string = 'light';
   isGenerating: boolean = false;
@@ -31,9 +35,13 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   constructor(private chatService: ChatService) {}
 
+  ngAfterContentInit(){
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) { return; }
+    this.chatService.loadChat(id)
+  }
   ngOnInit() {
     this.subscribeToServiceData();
-    this.chatService.createNewChat();
   }
 
   ngAfterViewChecked() {
@@ -49,13 +57,6 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   private subscribeToServiceData() {
-    // Subscribe to chat history
-    this.chatService.chatHistory$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(history => {
-        this.chatHistory = history;
-      });
-
     // Subscribe to current chat
     this.chatService.currentChat$
       .pipe(takeUntil(this.destroy$))
@@ -97,16 +98,10 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.chatService.setTheme(target.value);
   }
 
-  // Chat Management
-  createNewChat() {
-    this.chatService.createNewChat();
-    this.focusInput();
-  }
-
-  loadChat(chatId: string) {
-    this.chatService.loadChat(chatId);
-    this.focusInput();
-  }
+  // loadChat(chatId: string) {
+  //   this.chatService.loadChat(chatId);
+  //   this.focusInput();
+  // }
 
   // Message Management
   getDisplayMessages(): Message[] {
@@ -192,7 +187,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   clearAllData() {
     try {
       this.chatService.clearAllData();
-      this.createNewChat();
+      // this.createNewChat();
       this.hideConfirmModal();
       
       // Show success message

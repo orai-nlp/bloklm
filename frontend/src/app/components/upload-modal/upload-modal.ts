@@ -4,6 +4,7 @@ import { FormsModule } from "@angular/forms"
 import { I18nService } from "../../services/i18n"
 import { NotebookService } from "../../services/notebook"
 import { firstValueFrom } from "rxjs"
+import { ChatService } from "../../services/chat"
 
 interface UploadFile {
   name: string
@@ -27,7 +28,8 @@ export class UploadModalComponent {
 
   i18n = inject(I18nService)
   notebookService = inject(NotebookService)
-
+  chatService = inject(ChatService)
+  
   isDragOver = false
   uploadedFiles: UploadFile[] = []
   showPasteArea = false
@@ -35,19 +37,26 @@ export class UploadModalComponent {
   pastedFileName = ''
   placeholderText = this.i18n.translate('modal_placeholdertext')
   placeholderText_docname = this.i18n.translate('modal_placeholdertext_docname')
+  
+  // Loading state
+  isUploading = false
 
   // Allowed file extensions
   private allowedExtensions = ['.pdf', '.txt', '.srt', '.doc', '.docx']
 
-
   closeModal() {
+    // Prevent closing if upload is in progress
+    if (this.isUploading) {
+      return
+    }
+
     // Only close if no files are uploaded or user explicitly cancels
     if (this.uploadedFiles.length === 0) {
       this.resetModal()
       this.close.emit()
     } else {
       // Ask for confirmation if files are pending
-      if (confirm('You have files pending upload. Are you sure you want to close?')) {
+      if (confirm(this.i18n.translate('modal_cancel_confirm'))) {
         this.resetModal()
         this.close.emit()
       }
@@ -55,6 +64,11 @@ export class UploadModalComponent {
   }
 
   onDragOver(event: DragEvent) {
+    // Prevent drag over if uploading
+    if (this.isUploading) {
+      return
+    }
+    
     event.preventDefault()
     event.stopPropagation()
     this.isDragOver = true
@@ -67,6 +81,11 @@ export class UploadModalComponent {
   }
 
   onDrop(event: DragEvent) {
+    // Prevent drop if uploading
+    if (this.isUploading) {
+      return
+    }
+
     event.preventDefault()
     event.stopPropagation()
     this.isDragOver = false
@@ -78,6 +97,11 @@ export class UploadModalComponent {
   }
 
   onFileSelected(event: Event) {
+    // Prevent file selection if uploading
+    if (this.isUploading) {
+      return
+    }
+
     const input = event.target as HTMLInputElement
     if (input.files && input.files.length > 0) {
       this.processFiles(input.files)
@@ -108,7 +132,7 @@ export class UploadModalComponent {
     }
 
     if (invalidFiles.length > 0) {
-      alert(`The following files are not supported:\n${invalidFiles.join('\n')}\n\nOnly PDF, TXT, SRT, DOC, and DOCX files are allowed.`)
+      alert(`${this.i18n.translate('modal_alertFormat')}\n${invalidFiles.join('\n')}`)
     }
 
     // Add valid files to the list (max 50 files)
@@ -117,7 +141,7 @@ export class UploadModalComponent {
     this.uploadedFiles = [...this.uploadedFiles, ...filesToAdd]
 
     if (validFiles.length > remainingSlots) {
-      alert(`Only ${remainingSlots} files were added. Maximum limit of 50 files reached.`)
+      alert(`${remainingSlots} ${this.i18n.translate('modal_alertFileNum')}`)
     }
   }
 
@@ -131,17 +155,25 @@ export class UploadModalComponent {
   }
 
   showPasteTextArea() {
+    // Prevent showing paste area if uploading
+    if (this.isUploading) {
+      return
+    }
     this.showPasteArea = true
   }
 
   cancelPaste() {
+    // Prevent canceling paste if uploading
+    if (this.isUploading) {
+      return
+    }
     this.showPasteArea = false
     this.pastedText = ''
     this.pastedFileName = ''
   }
 
   addPastedText() {
-    if (!this.pastedText || !this.pastedFileName) {
+    if (!this.pastedText || !this.pastedFileName || this.isUploading) {
       return
     }
 
@@ -157,7 +189,7 @@ export class UploadModalComponent {
 
     // Check if file already exists
     if (this.uploadedFiles.some(f => f.name === filename)) {
-      alert('A file with this name already exists.')
+      alert(this.i18n.translate('modal_alertFileExists'))
       return
     }
 
@@ -174,6 +206,10 @@ export class UploadModalComponent {
   }
 
   removeFile(index: number) {
+    // Prevent removing files if uploading
+    if (this.isUploading) {
+      return
+    }
     this.uploadedFiles.splice(index, 1)
   }
 
@@ -200,9 +236,12 @@ export class UploadModalComponent {
   }
 
   async uploadFiles() {
-    if (this.uploadedFiles.length === 0) {
+    if (this.uploadedFiles.length === 0 || this.isUploading) {
       return
     }
+
+    // Set loading state
+    this.isUploading = true
 
     // Convert uploadedFiles to FileList-like structure for backend
     const formData = new FormData()
@@ -234,7 +273,10 @@ export class UploadModalComponent {
       })
     } catch (error) {
       console.error('Upload failed:', error)
-      alert('Failed to upload files. Please try again.')
+      alert(this.i18n.translate('modal_alertUploadFailed'))
+    } finally {
+      // Always reset loading state
+      this.isUploading = false
     }
   }
 
@@ -260,11 +302,20 @@ export class UploadModalComponent {
     if (!notebookId) {
       throw new Error('No notebook selected');
     }
-    debugger
     // Tell the notebook service to do the upload
     await firstValueFrom(
       this.notebookService.uploadFilesToBackend(notebookId, formData)
     );
+  }
+
+  private async createChat(): Promise<void> {
+    const notebookId = this.notebookService.getCurrentNotebook()?.id;
+    if (!notebookId) {
+      throw new Error('No notebook selected');
+    }
+    
+    // Tell the notebook service to do the upload
+    this.chatService.createNewChat(notebookId)
   }
 
   private resetModal() {
@@ -273,5 +324,6 @@ export class UploadModalComponent {
     this.pastedText = ''
     this.pastedFileName = ''
     this.isDragOver = false
+    this.isUploading = false
   }
 }

@@ -162,6 +162,13 @@ def rename_bilduma(args):
     q = f"UPDATE Bilduma SET name = '{title}', update_date = CURRENT_DATE WHERE id = {id};"
     commit_query_db(q)
 
+def set_chat_id(nt_id, chat_id):
+    q = "UPDATE Bilduma SET chat_id = %s WHERE id = %s;"
+    commit_query_db(q, (chat_id, nt_id))
+
+def get_chat_id(nt_id):
+    q = "SELECT chat_id FROM Bilduma WHERE id = %s;"
+    return query_db_as_dict(q, (nt_id))
 
 ###################################################################################
   ########################       FITXATEGIAK        #############################

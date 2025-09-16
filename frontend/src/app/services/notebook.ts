@@ -125,7 +125,7 @@ export class NotebookService {
 
   private async loadSourcesForNotebook(notebookId: string) {
     // backend-ean bilatu
-    debugger
+
     const raw$ = this.call_backend('fitxategiak', 'GET', {id: notebookId}, undefined);
     const raw_fitxaegiak = await firstValueFrom(raw$);
     const fitxategiak: Source[] = (raw_fitxaegiak as BackendSource[]).map(this.convertBackendSource)

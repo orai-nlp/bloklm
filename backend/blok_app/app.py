@@ -143,11 +143,41 @@ def upload_fitxategiak(request):
 # RAG
 # ------------------------------------------------------------------
 
-@app.post("/api/create_chat")
+@app.get("/api/create_chat")
 async def create_chat(request):
-    chat_id = rag.create_chat()
-    return json({"chat_id": chat_id})
+    id = request.args.get("nt_id")
+    
+    try:
+        chat_id = rag.create_chat()
+    except Exception as e:
+        error_msg = 'Error while creating chat: ' + str(e)
+        raise Exception(error_msg)
+    
+    try:
+        db.set_chat_id(id, chat_id)
+        return json({"chat_id": chat_id, 'error': ''})
+    except Exception as e:
+        error_msg = 'Error while setting chat id in bilduma: ' + str(e)
+        raise Exception(error_msg)
 
+@app.get("/api/get_chat")
+async def get_chat(request):
+    nt_id = request.args.get("nt_id")
+
+    try:
+        response = db.get_chat_id(nt_id)
+        chat_id = response['chat_id']
+    except Exception as e:
+        error_msg = 'Error while getting chat_id from database: ' + str(e)
+        raise Exception(error_msg)
+    
+    try:
+        chat_hist = rag.chat_history(chat_id)
+        return json({"chat_id": chat_id, "chat_history": chat_hist, 'error': ''})
+    except Exception as e:
+        error_msg = 'Error while getting chat history from RAG: ' + str(e)
+        raise Exception(error_msg)
+     
 @app.post("/api/query")
 async def rag_query(request):
     resp = ResponseStream(rag.query(request.json.get("query"), request.json.get("chat_id"), "eu", collection=request.json.get("collection")))

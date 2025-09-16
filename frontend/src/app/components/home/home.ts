@@ -1,4 +1,4 @@
-import { Component, inject, type OnInit, ChangeDetectorRef, ViewChild, ElementRef, HostListener, AfterViewInit } from "@angular/core"
+import { Component, inject, type OnInit, ChangeDetectorRef, ViewChild, ElementRef, HostListener, AfterViewInit, PipeTransform, Pipe } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { FormsModule } from "@angular/forms"
 import { Router } from "@angular/router"
@@ -11,10 +11,29 @@ interface NotebookWithUI extends Notebook {
   tempTitle?: string;
 }
 
+// Create a sort pipe
+@Pipe({name: 'sortBy'})
+export class SortByPipe implements PipeTransform {
+  transform(array: any[], field: string, order: 'asc' | 'desc' = 'desc'): any[] {
+    if (!array || !field) return array;
+    
+    return array.sort((a, b) => {
+      const aValue = new Date(a[field]).getTime();
+      const bValue = new Date(b[field]).getTime();
+      
+      if (order === 'asc') {
+        return aValue - bValue;
+      } else {
+        return bValue - aValue;
+      }
+    });
+  }
+}
+
 @Component({
   selector: "app-home",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SortByPipe],
   templateUrl:"./home.html",
   styleUrls: ["./home.scss"],
 })

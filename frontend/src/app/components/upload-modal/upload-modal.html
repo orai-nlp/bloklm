@@ -1,10 +1,18 @@
-<div class="modal-overlay" *ngIf="isOpen" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
+<div class="modal-overlay" *ngIf="isOpen" (click)="closeModal()" [class.uploading]="isUploading">
+  <div class="modal-content" (click)="$event.stopPropagation()" [class.disabled]="isUploading">
+    <!-- Loading overlay -->
+    <div class="loading-overlay" *ngIf="isUploading">
+      <div class="loading-spinner">
+        <span class="material-icons spinning">refresh</span>
+        <p class="loading-text">{{ i18n.translate('uploading') || 'Uploading files...' }}</p>
+      </div>
+    </div>
+
     <div class="modal-header">
       <div class="modal-title-section">
         <h2 class="section-title">{{ i18n.translate('addSources') }}</h2>
       </div>
-      <button class="close-btn" (click)="closeModal()">
+      <button class="close-btn" (click)="closeModal()" [disabled]="isUploading">
         <span class="material-icons">close</span>
       </button>
     </div>
@@ -17,10 +25,11 @@
       <!-- File Upload Area -->
       <div class="upload-area" 
            [class.drag-over]="isDragOver"
+           [class.disabled]="isUploading"
            (dragover)="onDragOver($event)"
            (dragleave)="onDragLeave($event)"
            (drop)="onDrop($event)"
-           (click)="fileInput.click()">
+           (click)="!isUploading && fileInput.click()">
         <div class="upload-icon">
           <span class="material-icons">cloud_upload</span>
         </div>
@@ -35,18 +44,21 @@
                multiple 
                accept=".pdf,.txt,.md,.doc,.docx"
                (change)="onFileSelected($event)"
+               [disabled]="isUploading"
                style="display: none;">
       </div>
       
       <!-- Paste Text Option -->
       <div class="paste-section" *ngIf="!showPasteArea">
-        <div class="option-section">
+        <div class="option-section" [class.disabled]="isUploading">
           <div class="option-header">
             <span class="material-icons">content_paste</span>
             <span class="option-title">{{ i18n.translate('pasteText') }}</span>
           </div>
           <div class="option-buttons">
-            <button class="option-btn" (click)="showPasteArea = true">
+            <button class="option-btn" 
+                    (click)="showPasteTextArea()" 
+                    [disabled]="isUploading">
               <span class="material-icons">content_copy</span>
               {{ i18n.translate('modal_paste_Clipboard') }}
             </button>
@@ -55,11 +67,11 @@
       </div>
 
       <!-- Paste Text Area -->
-      <div class="paste-text-area" *ngIf="showPasteArea">
+      <div class="paste-text-area" *ngIf="showPasteArea" [class.disabled]="isUploading">
         <div class="paste-header">
           <span class="material-icons">content_paste</span>
           <span class="paste-title">{{ i18n.translate('modal_paste_text') }}</span>
-          <button class="cancel-paste-btn" (click)="cancelPaste()">
+          <button class="cancel-paste-btn" (click)="cancelPaste()" [disabled]="isUploading">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -67,6 +79,7 @@
           class="paste-textarea" 
           [(ngModel)]="pastedText"
           [placeholder]="placeholderText"
+          [disabled]="isUploading"
           rows="6">
         </textarea>
         <div class="paste-actions">
@@ -74,9 +87,10 @@
             type="text" 
             class="filename-input" 
             [(ngModel)]="pastedFileName"
-            [placeholder]="placeholderText_docname">
+            [placeholder]="placeholderText_docname"
+            [disabled]="isUploading">
           <button class="add-paste-btn" 
-                  [disabled]="!pastedText || !pastedFileName"
+                  [disabled]="!pastedText || !pastedFileName || isUploading"
                   (click)="addPastedText()">
             {{ i18n.translate('modal_addText') }}
           </button>
@@ -86,7 +100,7 @@
       <!-- Uploaded Files List -->
       <div class="uploaded-files" *ngIf="uploadedFiles.length > 0">
         <h4 class="files-title">{{ i18n.translate('modal_filesToUp') }} ({{ uploadedFiles.length }})</h4>
-        <div class="file-list">
+        <div class="file-list" [class.disabled]="isUploading">
           <div class="file-item" *ngFor="let file of uploadedFiles; let i = index">
             <div class="file-info">
               <span class="material-icons file-icon">
@@ -97,7 +111,9 @@
                 <span class="file-size">{{ formatFileSize(file.size) }}</span>
               </div>
             </div>
-            <button class="remove-file-btn" (click)="removeFile(i)">
+            <button class="remove-file-btn" 
+                    (click)="removeFile(i)" 
+                    [disabled]="isUploading">
               <span class="material-icons">delete</span>
             </button>
           </div>
@@ -113,14 +129,17 @@
 
       <!-- Upload Button -->
       <div class="modal-footer">
-        <button class="cancel-btn" (click)="closeModal()">
+        <button class="cancel-btn" (click)="closeModal()" [disabled]="isUploading">
           Cancel
         </button>
         <button class="upload-btn" 
-                [disabled]="uploadedFiles.length === 0"
+                [disabled]="uploadedFiles.length === 0 || isUploading"
+                [class.loading]="isUploading"
                 (click)="uploadFiles()">
-          <span class="material-icons">upload</span>
-          {{ i18n.translate('modal_upload_files') }} ({{ uploadedFiles.length }})
+          <span class="material-icons upload-icon" *ngIf="!isUploading">upload</span>
+          <span class="material-icons loading-icon spinning" *ngIf="isUploading">refresh</span>
+          {{ isUploading ? (i18n.translate('uploading') || 'Uploading...') : (i18n.translate('modal_upload_files') || 'Upload Files') }} 
+          <span *ngIf="!isUploading">({{ uploadedFiles.length }})</span>
         </button>
       </div>
     </div>

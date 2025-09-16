@@ -1,28 +1,11 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, firstValueFrom, Observable, Subject } from 'rxjs';
+import { Chat, ChatStreamChunk, Config, Message } from '../interfaces/chat.type';
+import { NotebookService } from './notebook';
+import { ActivatedRoute } from '@angular/router';
+import { environment } from '../../environments/environment';
+import { HttpClient, HttpErrorResponse } from "@angular/common/http"
 
-export interface Message {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-}
-
-export interface Chat {
-  id: string;
-  title: string;
-  messages: Message[];
-}
-
-export interface Config {
-  apiUrl: string;
-  apiKey: string;
-  model: string;
-  initialSystemPrompt: string;
-}
-
-export interface ChatStreamChunk {
-  content: string;
-  isComplete: boolean;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -42,20 +25,26 @@ export class ChatService {
   };
 
   // State subjects
-  private chatHistorySubject = new BehaviorSubject<Chat[]>([]);
   private currentChatSubject = new BehaviorSubject<Chat | null>(null);
   private isGeneratingSubject = new BehaviorSubject<boolean>(false);
   private themeSubject = new BehaviorSubject<string>('light');
 
   // Observables
-  public chatHistory$ = this.chatHistorySubject.asObservable();
   public currentChat$ = this.currentChatSubject.asObservable();
   public isGenerating$ = this.isGeneratingSubject.asObservable();
   public theme$ = this.themeSubject.asObservable();
 
-  constructor() {
+  // Extra
+  private currentNtId;
+  route = inject(ActivatedRoute)
+
+  constructor(private notebookService: NotebookService, private http: HttpClient) {
     this.loadSettings();
-    this.loadChatHistory();
+
+    this.currentNtId = this.route.snapshot.paramMap.get('id') || null
+    // if (!this.currentNtId) { return; }
+
+    // this.loadChat();
   }
 
   // Configuration methods
@@ -88,58 +77,75 @@ export class ChatService {
     }
   }
 
-  // Chat history management
-  private loadChatHistory(): void {
+  loadChat(id: string): void {
+    if (!this.currentChatSubject.value) {
+      this.call_backend('get_chat', 'GET', {nt_id: id}, undefined).subscribe({
+        next: (chat) => {
+          const newChat = this.convertChatElement(chat);
+          this.currentChatSubject.next(newChat);
+          console.log('Chat loaded from backend: ', newChat);
+        },
+        error: (error) => {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+          console.error('Error loading chat:', errorMessage);
+          // You can either throw the error or handle it gracefully
+          throw new Error(`Chat did not load from backend: ${errorMessage}`);
+        }
+      });
+    }
+  }
+
+  convertChatElement(chat: any): Chat{
     try {
-      const savedHistory = localStorage.getItem(this.STORAGE_KEYS.CHAT_HISTORY);
-      if (savedHistory) {
-        const history = JSON.parse(savedHistory);
-        this.chatHistorySubject.next(history);
+      // TODO: chat.chat_history kudeatu eta formateatu Message modura: role, content
+      const chatContent = chat.chat_history
+      return {
+        id: chat.chat_id,
+        title: 'New Chat',
+        messages: chatContent
+      } as Chat;
+    } catch (error) {
+      throw new Error("Could not convert provided content to Chat", { cause: error });
+    }
+  }
+
+  async createNewChat(notebookId: string): Promise<void> {
+    try {
+      const raw$ = this.call_backend('create_chat', 'GET', {nt_id: notebookId}, undefined);
+      const response = await firstValueFrom(raw$);
+      
+      const chatId = response?.chat_id;
+      
+      if (chatId) {
+        // Success case
+        console.log('Chat created with ID:', chatId);
+        const newChat: Chat = {
+          id: chatId,
+          title: 'New Chat',
+          messages: []
+        };
+
+        this.currentChatSubject.next(newChat);
+      } else {
+        // Handle case where response is successful but no chat_id
+        throw new Error('No chat ID received from backend');
       }
     } catch (error) {
-      console.error('Error loading chat history:', error);
+      // Handle both network errors and backend exceptions
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Error creating chat:', errorMessage);
+      throw new Error(errorMessage);
     }
   }
 
-  private saveChatHistory(): void {
-    try {
-      localStorage.setItem(
-        this.STORAGE_KEYS.CHAT_HISTORY, 
-        JSON.stringify(this.chatHistorySubject.value)
-      );
-    } catch (error) {
-      console.error('Error saving chat history:', error);
-    }
-  }
-
-  createNewChat(): Chat {
-    const newChat: Chat = {
-      id: Date.now().toString(),
-      title: 'New Chat',
-      messages: [{
-        role: 'system',
-        content: this.config.initialSystemPrompt
-      }]
-    };
-
-    const currentHistory = this.chatHistorySubject.value;
-    const updatedHistory = [newChat, ...currentHistory];
+  // loadChat(ntId: string): Chat | null {
     
-    this.chatHistorySubject.next(updatedHistory);
-    this.currentChatSubject.next(newChat);
-    this.saveChatHistory();
 
-    return newChat;
-  }
-
-  loadChat(chatId: string): Chat | null {
-    const chat = this.chatHistorySubject.value.find(c => c.id === chatId);
-    if (chat) {
-      this.currentChatSubject.next({ ...chat });
-      return { ...chat };
-    }
-    return null;
-  }
+  //     this.currentChatSubject.next({ ...chat });
+  //     return { ...chat };
+    
+  //   return null;
+  // }
 
   addMessageToCurrentChat(message: Message): void {
     const currentChat = this.currentChatSubject.value;
@@ -152,15 +158,6 @@ export class ChatService {
 
     // Update current chat
     this.currentChatSubject.next(updatedChat);
-
-    // Update in history
-    const currentHistory = this.chatHistorySubject.value;
-    const chatIndex = currentHistory.findIndex(c => c.id === currentChat.id);
-    if (chatIndex !== -1) {
-      currentHistory[chatIndex] = updatedChat;
-      this.chatHistorySubject.next([...currentHistory]);
-      this.saveChatHistory();
-    }
   }
 
   updateLastMessageInCurrentChat(content: string): void {
@@ -180,39 +177,27 @@ export class ChatService {
 
     this.currentChatSubject.next(updatedChat);
 
-    // Update in history
-    const currentHistory = this.chatHistorySubject.value;
-    const chatIndex = currentHistory.findIndex(c => c.id === currentChat.id);
-    if (chatIndex !== -1) {
-      currentHistory[chatIndex] = updatedChat;
-      this.chatHistorySubject.next([...currentHistory]);
-      this.saveChatHistory();
-    }
+    // // Update in history
+    // const currentHistory = this.chatHistorySubject.value;
+    // const chatIndex = currentHistory.findIndex(c => c.id === currentChat.id);
+    // if (chatIndex !== -1) {
+    //   currentHistory[chatIndex] = updatedChat;
+    //   this.chatHistorySubject.next([...currentHistory]);
+    //   this.saveChatHistory();
+    // }
   }
 
   updateChatTitle(chatId: string, title: string): void {
-    const currentHistory = this.chatHistorySubject.value;
-    const chatIndex = currentHistory.findIndex(c => c.id === chatId);
-    
-    if (chatIndex !== -1) {
-      currentHistory[chatIndex] = {
-        ...currentHistory[chatIndex],
+
+    // Update current chat if it's the same
+    const currentChat = this.currentChatSubject.value;
+    if (currentChat) {
+      this.currentChatSubject.next({
+        ...currentChat,
         title
-      };
-      
-      this.chatHistorySubject.next([...currentHistory]);
-      
-      // Update current chat if it's the same
-      const currentChat = this.currentChatSubject.value;
-      if (currentChat && currentChat.id === chatId) {
-        this.currentChatSubject.next({
-          ...currentChat,
-          title
-        });
-      }
-      
-      this.saveChatHistory();
+      });
     }
+    
   }
 
   // API communication
@@ -360,7 +345,6 @@ export class ChatService {
   clearAllData(): void {
     try {
       localStorage.clear();
-      this.chatHistorySubject.next([]);
       this.currentChatSubject.next(null);
       this.themeSubject.next('light');
       this.isGeneratingSubject.next(false);
@@ -405,10 +389,6 @@ export class ChatService {
     return this.currentChatSubject.value;
   }
 
-  getChatHistory(): Chat[] {
-    return this.chatHistorySubject.value;
-  }
-
   getCurrentTheme(): string {
     return this.themeSubject.value;
   }
@@ -416,4 +396,29 @@ export class ChatService {
   isCurrentlyGenerating(): boolean {
     return this.isGeneratingSubject.value;
   }
+
+
+  private call_backend(
+        id: string,
+        method: 'GET' | 'POST',
+        args_get?: Record<string, string | number | boolean | readonly (string | number | boolean)[]>,
+        args_post?: Record<string, string | number | boolean | readonly (string | number | boolean)[] | FormDataEntryValue | null> | FormData
+    ): Observable<any> 
+    {
+
+    const url = `${environment.apiBaseUrl}/${id}`;
+
+
+    switch (method) {
+      case 'GET':
+        return this.http.get(url, { params: args_get });
+      case 'POST':
+        return this.http.post(url, args_post);
+      default:
+        // This line will never be reached if you only call with 'GET' | 'POST',
+        // but it satisfies the compiler.
+        throw new Error(`Unsupported HTTP method: ${method}`);
+    }
+  }
+  
 }

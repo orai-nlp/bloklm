@@ -20,7 +20,7 @@
           <div class="notebooks-grid">
             <div 
               class="notebook-card" 
-              *ngFor="let notebook of notebooks; trackBy: trackByNotebookId">
+                *ngFor="let notebook of notebooks | sortBy:'updatedAt':'desc'; trackBy: trackByNotebookId">
               
               <div class="notebook-content" (click)="openNotebook(notebook.id)">
                 <div class="notebook-icon">{{ notebook.icon || '📓' }}</div>
@@ -35,7 +35,7 @@
                     (blur)="confirmRename(notebook)"
                     #renameInput>
                   <p class="notebook-meta">
-                    {{ formatDate(notebook.updatedAt) }} • {{ notebook.sourceCount }} source{{ notebook.sourceCount !== 1 ? 's' : '' }}
+                    {{ formatDate(notebook.updatedAt) }} • {{ notebook.sourceCount }} {{ i18n.translate('source') }}{{ notebook.sourceCount !== 1 && i18n.language === 'es' ? 's' : '' }}
                   </p>
                 </div>
               </div>
