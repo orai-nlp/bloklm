@@ -57,22 +57,29 @@ def generate_note(llm, db, collection_id, file_ids, map_prompt, reduce_prompt, c
     print(result["output_text"])
     return result["output_text"]
 
-def generate_summary(llm, db, collection_id, file_ids, custom_conf):
-    map_prompt = PromptTemplate(
-        input_variables=["text", "formality_level", "detail_level", "style", "language_complexity"],
+def build_map_prompt(main_prompt, name_singular, custom_conf):
+    params = custom_conf.to_name_value_dict()
+    customization_prompt = "\n".join(
+       f"- {lbl.capitalize()}: {v}" for lbl, v in custom_conf.to_label_value_dict().items()
+    )
+    return PromptTemplate(
+        input_variables=list(params.keys()),
         template=(
-            "You are a helpful assistant. Summarize the following passage. Keep the original language of the text. Consider the following customization parameters:\n"
-            "\n"
-            "Style: {style}\n"
-            "Formality: {formality}\n"
-            "Detail level: {detail}\n"
-            "Language complexity: {language_complexity}\n"
-            "\n"
-            "{text}\n"
-            "\n"
-            "Summary:\n"
-            "\n"
+            f"{main_prompt}\n"
+            "Preserve the language of the original text and strictly follow the customization parameters listed below.\n\n"
+            "Customization parameters:\n"
+            f"{customization_prompt}\n\n"
+            "Passage:\n"
+            "{text}\n\n"
+            f"{name_singular.capitalize()}:\n\n"
         )
+    )
+
+def generate_summary(llm, db, collection_id, file_ids, custom_conf):
+    map_prompt = build_map_prompt(
+        main_prompt="Summarize the following passage.",
+        name_singular="summary",
+        custom_conf=custom_conf,
     )
     reduce_prompt = PromptTemplate(
         input_variables=["text", "formality_level", "detail_level", "style", "language_complexity"],

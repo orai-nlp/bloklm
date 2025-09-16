@@ -51,7 +51,7 @@ class CustomizationConfig:
         return { name: v['value'].value for name, v in self.params.items() }
     
     def to_label_value_dict(self):
-        return { name: v['label'].value for name, v in self.params.items() }
+        return { v['label']: v['value'].value for _, v in self.params.items() }
 
     @classmethod
     def from_sanic_body(cls, body):
