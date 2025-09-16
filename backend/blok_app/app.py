@@ -245,7 +245,7 @@ class PodcastModel(BaseModel):
     style: custom.Style
     detail: custom.Detail
     language_complexity: custom.LanguageComplexity
-    type: custom.PodcastType
+    podcast_type: custom.PodcastType
 
 @app.get("/api/notes")
 async def get_notes(request):
@@ -267,31 +267,31 @@ async def create_summary(request, body: SummaryModel):
 @app.post("/api/faq")
 @validate(json=FAQModel)
 async def create_faq(request, body: FAQModel):
-    await task_queue.put((tasks.generate_faq, (llm, db, body.collection_id, body.file_ids, body.detail, body.language_complexity)))
+    await task_queue.put((tasks.generate_faq, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 @app.post("/api/outline")
 @validate(json=OutlineModel)
 async def create_outline(request, body: OutlineModel):
-    await task_queue.put((tasks.generate_outline, (llm, db, body.collection_id, body.file_ids, body.detail)))
+    await task_queue.put((tasks.generate_outline, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 @app.post("/api/mindmap")
 @validate(json=MindMapModel)
 async def create_mind_map(request, body: MindMapModel):
-    await task_queue.put((tasks.generate_mind_map, (llm, db, body.collection_id, body.file_ids, body.detail)))
+    await task_queue.put((tasks.generate_mind_map, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 @app.post("/api/glossary")
 @validate(json=GlossaryModel)
 async def create_glossary(request, body: GlossaryModel):
-    await task_queue.put((tasks.generate_glossary, (llm, db, body.collection_id, body.file_ids, body.detail, body.language_complexity)))
+    await task_queue.put((tasks.generate_glossary, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 @app.post("/api/chronogram")
 @validate(json=ChronogramModel)
 async def create_chronogram(request, body: ChronogramModel):
-    await task_queue.put((tasks.generate_chronogram, (llm, db, body.collection_id, body.file_ids, body.detail)))
+    await task_queue.put((tasks.generate_chronogram, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 # ------------------------------------------------------------------
@@ -301,7 +301,7 @@ async def create_chronogram(request, body: ChronogramModel):
 @app.post("/api/podcast")
 @validate(json=PodcastModel)
 async def create_podcast(request, body: PodcastModel):
-    await task_queue.put((tasks.generate_podcast, (llm, db, body.collection_id, body.file_ids, body.formality, body.style, body.detail, body.language_complexity, body.type)))
+    await task_queue.put((tasks.generate_podcast, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 # ------------------------------------------------------------------
