@@ -6,7 +6,7 @@ def generate_summary_task(llm, db, collection_id, file_ids, custom_conf):
 
 def generate_faq_task(llm, db, collection_id, file_ids, custom_conf):
     res_content = resgen.generate_faq(llm, db, collection_id, file_ids, custom_conf)
-    db.create_note("", "faq", res_content, collection_id)
+    db.create_note("", "FAQ", res_content, collection_id)
 
 def generate_glossary_task(llm, db, collection_id, file_ids, custom_conf):
     res_content = resgen.generate_glossary(llm, db, collection_id, file_ids, custom_conf)
@@ -18,7 +18,7 @@ def generate_outline_task(llm, db, collection_id, file_ids, custom_conf):
 
 def generate_chronogram_task(llm, db, collection_id, file_ids, custom_conf):
     res_content = resgen.generate_chronogram(llm, db, collection_id, file_ids, custom_conf)
-    db.create_note("", "chronogram", res_content, collection_id)
+    db.create_note("", "timeline", res_content, collection_id)
 
 def generate_mind_map_task(llm, db, collection_id, file_ids, custom_conf):
     res_content = resgen.generate_mind_map(llm, db, collection_id, file_ids, custom_conf)

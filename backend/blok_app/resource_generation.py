@@ -54,7 +54,7 @@ class PromptBuilder:
             input_variables=list(self.customization_params.keys()),
             template=(
                 f"{self.reduce_main_prompt}\n"
-                "Preserve the language of the original text and strictly follow the customization parameters listed below, if provided.\n\n"
+                "Preserve the language of the original text and strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
                 f"{self.customization_prompt}\n\n"
                 f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 f"{self.name_plural.capitalize()}:\n"
@@ -68,7 +68,7 @@ class PromptBuilder:
             input_variables=list(self.customization_params.keys()),
             template=(
                 f"Shrink the following {self.name_plural} into a more concise {self.name_singular}.\n"
-                "Preserve the language of the original text and strictly follow the customization parameters listed below, if provided.\n\n"
+                "Preserve the language of the original text and strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
                 f"{self.customization_prompt}\n\n"
                 f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 f"{self.name_plural.capitalize()}:\n"
@@ -126,6 +126,11 @@ def generate_note(llm, db, collection_id, file_ids, prompter, custom_conf):
 
     chain = create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, output_key="output_text")
     result = chain.invoke({"input_documents": docs, **custom_conf.to_name_value_dict()})
+    print((
+        "--------------------\n"
+        f"{result['output_text']}\n"
+        "--------------------"
+    ))
     return result["output_text"]
 
 def generate_headings(llm, db, collection_id, file_ids):

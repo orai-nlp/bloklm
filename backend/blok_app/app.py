@@ -70,20 +70,31 @@ async def start_worker(app, _):
 
 # Load local LLM
 
-LLM_DEVICE="cuda:2"
-LLM_MODEL_ID = "HiTZ/Latxa-Llama-3.1-8B-Instruct"
+# LLM_DEVICE="cuda:2"
+# LLM_MODEL_ID = "HiTZ/Latxa-Llama-3.1-8B-Instruct"
 
-from langchain_huggingface import HuggingFacePipeline
+# from langchain_huggingface import HuggingFacePipeline
 
-class CustomHuggingFacePipeline(HuggingFacePipeline):
-    def get_token_ids(self, text: str) -> list[int]:
-        return self.pipeline.tokenizer.encode(text)
+# class CustomHuggingFacePipeline(HuggingFacePipeline):
+#     def get_token_ids(self, text: str) -> list[int]:
+#         return self.pipeline.tokenizer.encode(text)
     
+# @app.listener("before_server_start")
+# async def load_hf_llm(app, _):
+#     global llm
+#     hf_llm = build_hf_llm(LLM_MODEL_ID, device=LLM_DEVICE)
+#     llm = CustomHuggingFacePipeline(pipeline=hf_llm)
+
+from langchain_openai.chat_models import ChatOpenAI
+
 @app.listener("before_server_start")
-async def load_hf_llm(app, _):
+async def load_chatgpt_llm(app, _):
     global llm
-    hf_llm = build_hf_llm(LLM_MODEL_ID, device=LLM_DEVICE)
-    llm = CustomHuggingFacePipeline(pipeline=hf_llm)
+    llm = ChatOpenAI(
+        model_name="gpt-4o-mini",
+        temperature=0.7,
+        max_tokens=1024,
+    )
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection
