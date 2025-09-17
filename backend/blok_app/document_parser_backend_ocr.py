@@ -4,7 +4,6 @@ import io
 # from werkzeug.datastructures import FileStorage
 import chardet
 import tempfile
-import mammoth
 
 import subprocess
 
