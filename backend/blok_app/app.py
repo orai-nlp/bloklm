@@ -13,7 +13,6 @@ from sanic.worker.manager import WorkerManager
 from sanic_ext import Extend, validate
 
 from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
-from backend.blok_app.document_parser_backend import extract_text_from_document
 import backend.blok_app.resource_generation_tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
@@ -24,7 +23,7 @@ from rag.entity.document import Document
 
 from backend.blok_app.llm_factory import build_hf_llm
 
-WorkerManager.THRESHOLD = 1800  # 3 min
+WorkerManager.THRESHOLD = 3000  # 5 min
 
 app = Sanic("backend")
 Extend(app)
