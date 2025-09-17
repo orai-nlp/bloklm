@@ -12,7 +12,7 @@ from sanic_cors import CORS
 from sanic.worker.manager import WorkerManager
 from sanic_ext import Extend, validate
 
-from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, BACKEND_PORT
 import backend.blok_app.tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
@@ -338,4 +338,4 @@ async def create_podcast(request, body: PodcastModel):
 # MAIN
 # ------------------------------------------------------------------
 if __name__ == "__main__" and not os.environ.get("PYCHARM_HOSTED") and "DEBUGPY" not in os.environ:
-    app.run(host="0.0.0.0", port=8002, debug=True, workers=1)
+    app.run(host="0.0.0.0", port=int(BACKEND_PORT), debug=True, workers=1)
