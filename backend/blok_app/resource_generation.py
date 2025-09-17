@@ -150,15 +150,26 @@ def generate_headings(llm, db, collection_id, file_ids):
             "Title:"
         )
     )
+    name_prompt = PromptTemplate(
+        input_variables=["summary"],
+        template=(
+            "You are provided a summary of a collection of files. Based on the summary, generate a concise and descriptive name for the collection. It should be only a few words long.\n\n"
+            "Summary:\n"
+            "{summary}\n\n"
+            "Return only the requested name. Do not add any explanations, comments, or extra text.\n\n"
+            "Name:"
+        )
+    )
     summary_chain = create_map_reduce_chain(llm, prompter.build_map_prompt(), prompter.build_reduce_prompt(), prompter.build_collapse_prompt(), output_key="summary")
     title_chain = LLMChain(llm=llm, prompt=title_prompt, output_key="title")
+    name_chain = LLMChain(llm=llm, prompt=name_prompt, output_key="name")
     chain = SequentialChain(
-        chains=[summary_chain, title_chain],
+        chains=[summary_chain, title_chain, name_chain],
         input_variables=["input_documents"],   # same input as map_reduce_chain
-        output_variables=["summary", "title"]   # summary + generated title
+        output_variables=["summary", "title", "name"]   # summary + generated title
     )
     result = chain.invoke({"input_documents": docs})
-    return result["summary"], result["title"]
+    return result["name"], result["title"], result["summary"]
 
 def generate_summary(llm, db, collection_id, file_ids, custom_conf):
     prompter = PromptBuilder(
@@ -205,6 +216,7 @@ def generate_chronogram(llm, db, collection_id, file_ids, custom_conf):
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
+# TODO: validate created mindmap's JSON structure
 def generate_mind_map(llm, db, collection_id, file_ids, custom_conf):
     main_prompt = (
         "Build a mind map of the following passage.\n"
@@ -230,6 +242,7 @@ def generate_mind_map(llm, db, collection_id, file_ids, custom_conf):
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
+# TODO: validate created podcast's JSON structure
 def generate_podcast_script(llm, db, collection_id, file_ids, custom_conf):
     podcast_type = custom_conf.to_name_value_dict()['podcast_type']
     main_prompt = (
