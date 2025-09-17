@@ -69,10 +69,22 @@ async def setup_rag(app, loop):
 async def start_worker(app, _):
     asyncio.create_task(worker())
 
+# Load local LLM
+
+LLM_DEVICE="cuda:2"
+LLM_MODEL_ID = "HiTZ/Latxa-Llama-3.1-8B-Instruct"
+
+from langchain_huggingface import HuggingFacePipeline
+
+class CustomHuggingFacePipeline(HuggingFacePipeline):
+    def get_token_ids(self, text: str) -> list[int]:
+        return self.pipeline.tokenizer.encode(text)
+    
 @app.listener("before_server_start")
 async def load_hf_llm(app, _):
     global llm
-    llm = build_hf_llm("HiTZ/Latxa-Llama-3.1-8B-Instruct", device="cuda:2")
+    hf_llm = build_hf_llm(LLM_MODEL_ID, device=LLM_DEVICE)
+    llm = CustomHuggingFacePipeline(pipeline=hf_llm)
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection

@@ -1,4 +1,3 @@
-from langchain_huggingface import HuggingFacePipeline
 from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import TokenTextSplitter
@@ -11,14 +10,8 @@ from langchain.prompts import PromptTemplate
 
 import time
 
-LLM_MODEL_ID = "HiTZ/Latxa-Llama-3.1-8B-Instruct"
-
 CHUNK_SIZE = 8192
 CHUNK_OVERLAP = 500
-
-class CustomHuggingFacePipeline(HuggingFacePipeline):
-    def get_token_ids(self, text: str) -> list[int]:
-        return self.pipeline.tokenizer.encode(text)
 
 class PromptBuilder:
 
@@ -101,8 +94,6 @@ def retrieve_docs(db, collection_id, file_ids):
     return docs
 
 def create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, output_key="output_text"):
-    llm = CustomHuggingFacePipeline(pipeline=llm)
-    
     map_chain = LLMChain(llm=llm, prompt=map_prompt, verbose=True)
     reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt, verbose=True)
     combine_documents_chain = StuffDocumentsChain(
@@ -155,7 +146,6 @@ def generate_headings(llm, db, collection_id, file_ids):
         )
     )
     summary_chain = create_map_reduce_chain(llm, prompter.build_map_prompt(), prompter.build_reduce_prompt(), prompter.build_collapse_prompt(), output_key="summary")
-    llm = summary_chain.llm_chain.llm
     title_chain = LLMChain(llm=llm, prompt=title_prompt, output_key="title")
     chain = SequentialChain(
         chains=[summary_chain, title_chain],
