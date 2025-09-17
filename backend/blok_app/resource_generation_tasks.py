@@ -4,6 +4,7 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import TokenTextSplitter
 
 from langchain.chains.llm import LLMChain
+from langchain.chains import SequentialChain
 from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChain, ReduceDocumentsChain
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.prompts import PromptTemplate
@@ -21,26 +22,34 @@ class CustomHuggingFacePipeline(HuggingFacePipeline):
 
 class PromptBuilder:
 
-    def __init__(self, map_main_prompt, name_singular, name_plural, custom_conf):
+    def __init__(self, map_main_prompt, name_singular, name_plural, custom_conf=None, reduce_main_prompt=None):
         self.map_main_prompt = map_main_prompt
         self.name_singular = name_singular
         self.name_plural = name_plural
-        self.customization_params = custom_conf.to_name_value_dict()
-        customization_params_prompt = "\n".join(
-            f"- {lbl.capitalize()}: {v}" for lbl, v in custom_conf.to_label_value_dict().items()
-        )
-        self.customization_prompt = (
-            "Customization parameters:\n"
-            f"{customization_params_prompt}"
-        )
+        self.customization_params = {}
+        self.customization_prompt = ""
+        if custom_conf:
+            self.customization_params = custom_conf.to_name_value_dict()
+            customization_params_prompt = "\n".join(
+                f"- {lbl.capitalize()}: {v}" for lbl, v in custom_conf.to_label_value_dict().items()
+            )
+            self.customization_prompt = (
+                "Customization parameters:\n"
+                f"{customization_params_prompt}"
+            )
+        # reduce prompt
+        self.reduce_main_prompt = f"Combine and refine the following {self.name_plural} into a cohesive global {self.name_singular}."
+        if reduce_main_prompt:
+            self.reduce_main_prompt = reduce_main_prompt
 
     def build_map_prompt(self):
         return PromptTemplate(
             input_variables=list(self.customization_params.keys()),
             template=(
                 f"{self.map_main_prompt}\n"
-                "Preserve the language of the original text and strictly follow the customization parameters listed below.\n\n"
+                "Preserve the language of the original text and strictly follow the customization parameters listed below, if provided.\n\n"
                 f"{self.customization_prompt}\n\n"
+                f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 "Passage:\n"
                 "{text}\n\n"
                 f"{self.name_singular.capitalize()}:\n"
@@ -51,9 +60,10 @@ class PromptBuilder:
         return PromptTemplate(
             input_variables=list(self.customization_params.keys()),
             template=(
-                f"Combine and refine the following {self.name_plural} into a cohesive global {self.name_singular}.\n"
-                "Preserve the language of the original text and strictly follow the customization parameters listed below.\n\n"
+                f"{self.reduce_main_prompt}\n"
+                "Preserve the language of the original text and strictly follow the customization parameters listed below, if provided.\n\n"
                 f"{self.customization_prompt}\n\n"
+                f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 f"{self.name_plural.capitalize()}:\n"
                 "{text}\n\n"
                 f"Final {self.name_singular}:\n"
@@ -65,15 +75,16 @@ class PromptBuilder:
             input_variables=list(self.customization_params.keys()),
             template=(
                 f"Shrink the following {self.name_plural} into a more concise {self.name_singular}.\n"
-                "Preserve the language of the original text and strictly follow the customization parameters listed below.\n\n"
+                "Preserve the language of the original text and strictly follow the customization parameters listed below, if provided.\n\n"
                 f"{self.customization_prompt}\n\n"
+                f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 f"{self.name_plural.capitalize()}:\n"
                 "{text}\n\n"
                 f"Collapsed {self.name_singular}:\n"
             )
         )
 
-def generate_note(llm, db, collection_id, file_ids, prompter, custom_conf):
+def retrieve_docs(db, collection_id, file_ids):
     docs = db.get_fitxategiak(collection_id, content=True, file_ids=file_ids)
     if not docs:
         raise ValueError("No content provided")
@@ -87,15 +98,29 @@ def generate_note(llm, db, collection_id, file_ids, prompter, custom_conf):
     docs = []
     for text in texts:
         docs.extend(splitter.create_documents([text]))
+    return docs
 
-    lc_llm = CustomHuggingFacePipeline(pipeline=llm)
+def generate_note(llm, db, collection_id, file_ids, prompter, custom_conf):
+    docs = retrieve_docs(db, collection_id, file_ids)
 
-    map_chain = LLMChain(llm=lc_llm, prompt=prompter.build_map_prompt(), verbose=True)
-    reduce_chain = LLMChain(llm=lc_llm, prompt=prompter.build_reduce_prompt(), verbose=True)
+    map_prompt = prompter.build_map_prompt()
+    reduce_prompt = prompter.build_reduce_prompt()
+    collapse_prompt = prompter.build_collapse_prompt()
+
+    chain = create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt)
+    result = chain.invoke({"input_documents": docs, **custom_conf.to_name_value_dict()})
+    print(result["output_text"])
+    return result["output_text"]
+
+def create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, output_key="output_text"):
+    llm = CustomHuggingFacePipeline(pipeline=llm)
+    
+    map_chain = LLMChain(llm=llm, prompt=map_prompt, verbose=True)
+    reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt, verbose=True)
     combine_documents_chain = StuffDocumentsChain(
         llm_chain=reduce_chain, document_variable_name="text", verbose=True,
     )
-    collapse_chain = LLMChain(llm=lc_llm, prompt=prompter.build_collapse_prompt(), verbose=True)
+    collapse_chain = LLMChain(llm=llm, prompt=collapse_prompt, verbose=True)
     collapse_documents_chain = StuffDocumentsChain(
         llm_chain=collapse_chain, document_variable_name="text", verbose=True
     )
@@ -105,16 +130,41 @@ def generate_note(llm, db, collection_id, file_ids, prompter, custom_conf):
         token_max=8192,
         verbose=True,
     )
-    map_reduce_chain = MapReduceDocumentsChain(
+    return MapReduceDocumentsChain(
         llm_chain=map_chain,
         reduce_documents_chain=reduce_documents_chain,
         document_variable_name="text",
         verbose=True,
+        output_key=output_key,
     )
 
-    result = map_reduce_chain.invoke({"input_documents": docs, **custom_conf.to_name_value_dict()})
-    print(result["output_text"])
-    return result["output_text"]
+def generate_headings(llm, db, collection_id, file_ids):
+    docs = retrieve_docs(db, collection_id, file_ids)
+    prompter = PromptBuilder(
+        map_main_prompt="Summarize the following passage.",
+        reduce_main_prompt="Combine and refine the following summaries into a short cohesive global summary of a single paragraph.",
+        name_singular="summary",
+        name_plural="summaries",
+    )
+    title_prompt = PromptTemplate(
+        input_variables=["summary"],
+        template=(
+            "Based on the following summary, generate a concise and descriptive title:\n\n"
+            "{summary}\n\n"
+            "Return only the requested title. Do not add any explanations, comments, or extra text.\n\n"
+            "Title:"
+        )
+    )
+    summary_chain = create_map_reduce_chain(llm, prompter.build_map_prompt(), prompter.build_reduce_prompt(), prompter.build_collapse_prompt(), output_key="summary")
+    llm = summary_chain.llm_chain.llm
+    title_chain = LLMChain(llm=llm, prompt=title_prompt, output_key="title")
+    chain = SequentialChain(
+        chains=[summary_chain, title_chain],
+        input_variables=["input_documents"],   # same input as map_reduce_chain
+        output_variables=["summary", "title"]   # summary + generated title
+    )
+    result = chain.invoke({"input_documents": docs})
+    return result["summary"], result["title"]
 
 def generate_summary(llm, db, collection_id, file_ids, custom_conf):
     prompter = PromptBuilder(

@@ -203,44 +203,34 @@ async def rag_query(request):
 
 # Motak: laburpena, eskema, glosarioa, kronograma, FAQ, Kontzeptu-mapa
 
-class SummaryModel(BaseModel):
+class BasicResourceModel(BaseModel):
     collection_id: int
     file_ids: List[int]
+
+class SummaryModel(BasicResourceModel):
     formality: custom.Formality
     style: custom.Style
     detail: custom.Detail
     language_complexity: custom.LanguageComplexity
 
-class FAQModel(BaseModel):
-    collection_id: int
-    file_ids: List[int]
+class FAQModel(BasicResourceModel):
     detail: custom.Detail
     language_complexity: custom.LanguageComplexity
 
-class GlossaryModel(BaseModel):
-    collection_id: int
-    file_ids: List[int]
+class GlossaryModel(BasicResourceModel):
     detail: custom.Detail
     language_complexity: custom.LanguageComplexity
 
-class OutlineModel(BaseModel):
-    collection_id: int
-    file_ids: List[int]
+class OutlineModel(BasicResourceModel):
     detail: custom.Detail
 
-class ChronogramModel(BaseModel):
-    collection_id: int
-    file_ids: List[int]
+class ChronogramModel(BasicResourceModel):
     detail: custom.Detail
 
-class MindMapModel(BaseModel):
-    collection_id: int
-    file_ids: List[int]
+class MindMapModel(BasicResourceModel):
     detail: custom.Detail
 
-class PodcastModel(BaseModel):
-    collection_id: int
-    file_ids: List[int]
+class PodcastModel(BasicResourceModel):
     formality: custom.Formality
     style: custom.Style
     detail: custom.Detail
@@ -257,6 +247,12 @@ async def get_note(request):
     id = request.args.get("id")
     results = db.get_note(id)
     return json(results)
+
+@app.post("/api/headings")
+@validate(json=BasicResourceModel)
+async def create_headings(request, body: BasicResourceModel):
+    summary, title = tasks.generate_headings(llm, db, body.collection_id, body.file_ids)
+    return json({"summary": summary, "title": title}, status=200)
 
 @app.post("/api/summary")
 @validate(json=SummaryModel)
@@ -308,4 +304,4 @@ async def create_podcast(request, body: PodcastModel):
 # MAIN
 # ------------------------------------------------------------------
 if __name__ == "__main__" and not os.environ.get("PYCHARM_HOSTED") and "DEBUGPY" not in os.environ:
-    app.run(host="0.0.0.0", port=8001, debug=False, workers=1)
+    app.run(host="0.0.0.0", port=8001, debug=True, workers=1)
