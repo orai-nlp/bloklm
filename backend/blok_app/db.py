@@ -168,7 +168,7 @@ def set_chat_id(nt_id, chat_id):
 
 def get_chat_id(nt_id):
     q = "SELECT chat_id FROM Bilduma WHERE id = %s;"
-    return query_db_as_dict(q, (nt_id))
+    return query_db_as_dict(q, (nt_id,))
 
 ###################################################################################
   ########################       FITXATEGIAK        #############################
