@@ -8,7 +8,6 @@ from typing import List
 
 from sanic import Sanic, json
 from sanic.exceptions import BadRequest
-from sanic_cors import CORS
 from sanic.worker.manager import WorkerManager
 from sanic_ext import Extend, validate
 
@@ -16,6 +15,7 @@ from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, BACK
 import backend.blok_app.tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
+from backend.blok_app.resource_generation import generate_headings
 
 from rag.core.factory import load_rag_instance
 from rag.core.response_stream import ResponseStream
@@ -26,16 +26,10 @@ from backend.blok_app.llm_factory import build_hf_llm
 WorkerManager.THRESHOLD = 3000  # 5 min
 
 app = Sanic("backend")
-Extend(app)
-CORS(
-    app,
-    resources={r"/api/*": {
-        "origins": ["http://{DB_HOST}:4200", "http://localhost:4200", "http://10.0.6.19:4200"],
-        "supports_credentials": True,
-        "allow_headers": ["Authorization","Content-Type"],
-        "methods": ["GET","POST","PUT","DELETE","OPTIONS"],
-    }},
-)
+Extend(app, config={
+    "cors": True,
+    "cors_origins": "*",
+})
 log = logging.getLogger(__name__)   # <-- use this logger
 
 # Init RAG framework
@@ -187,11 +181,17 @@ def upload_fitxategiak(request):
     parsed_files = db.upload_fitxategiak(nt_id, files)
 
     # index by RAG engine
-    rag_docs = []
-    for uploaded_file in parsed_files:
-        fname = uploaded_file['filename']
-        rag_docs.append(Document(uploaded_file['text'], 'eu', fname, path=fname, collection=nt_id))
-    rag.add_document_batch(rag_docs)
+    # rag_docs = []
+    # for uploaded_file in parsed_files:
+    #     fname = uploaded_file['filename']
+    #     rag_docs.append(Document(uploaded_file['text'], 'eu', fname, path=fname, collection=nt_id))
+    # rag.add_document_batch(rag_docs)
+
+    # generate collection-level title and summary
+    files = db.get_fitxategiak(nt_id)
+    file_ids = [ f['id'] for f in files ]
+    name, title, summary = generate_headings(llm, db, nt_id, file_ids)
+    db.set_descriptors_to_bilduma(nt_id, name, title, summary)
 
     return json({"id": nt_id, "status": "ok"})
 
