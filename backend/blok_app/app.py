@@ -1,24 +1,33 @@
 import logging
-import os
 import db
-import sys
 import asyncio
+import os
+from concurrent.futures import ThreadPoolExecutor
+from pydantic import BaseModel
+from typing import List
 
 from sanic import Sanic, json
-from sanic.response import HTTPResponse
-from sanic.exceptions import BadRequest, ServerError
+from sanic.exceptions import BadRequest
 from sanic_cors import CORS
 from sanic.worker.manager import WorkerManager
+from sanic_ext import Extend, validate
 
 from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
+from backend.blok_app.document_parser_backend import extract_text_from_document
+import backend.blok_app.resource_generation_tasks as tasks
+import backend.blok_app.customization_config as custom
+from backend.blok_app.customization_config import CustomizationConfig
 
 from rag.core.factory import load_rag_instance
 from rag.core.response_stream import ResponseStream
 from rag.entity.document import Document
 
+from backend.blok_app.llm_factory import build_hf_llm
+
 WorkerManager.THRESHOLD = 1800  # 3 min
 
 app = Sanic("backend")
+Extend(app)
 CORS(
     app,
     resources={r"/api/*": {
@@ -34,10 +43,36 @@ log = logging.getLogger(__name__)   # <-- use this logger
 RAG_INSTANCE = "bloklm"
 rag, persistence = None, None
 
+# Shared asyncio queue: avoid concurrent tasks of note/podcast generation
+task_queue = asyncio.Queue()
+# Thread pool for blocking tasks
+executor = ThreadPoolExecutor(max_workers=1)  # 1 to serialize tasks
+
+# Worker coroutine: runs tasks (notes/podcasts) from the queue one by one
+async def worker():
+    loop = asyncio.get_running_loop()
+    while True:
+        func, args = await task_queue.get()
+        try:
+            # Run the blocking function in a thread
+            await loop.run_in_executor(executor, func, *args)
+        finally:
+            task_queue.task_done()
+
 @app.listener("before_server_start")
 async def setup_rag(app, loop):
     global rag, persistence
-    rag, persistence = load_rag_instance(RAG_INSTANCE)
+    rag, persistence = None, None
+    #rag, persistence = load_rag_instance(RAG_INSTANCE)
+
+@app.listener("before_server_start")
+async def start_worker(app, _):
+    asyncio.create_task(worker())
+
+@app.listener("before_server_start")
+async def load_hf_llm(app, _):
+    global llm
+    llm = build_hf_llm("HiTZ/Latxa-Llama-3.1-8B-Instruct", device="cuda:3")
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection
@@ -192,24 +227,110 @@ async def rag_query(request):
         
 
 # ------------------------------------------------------------------
-# NOTAK
+# OHARRAK
 # ------------------------------------------------------------------
-@app.get("/api/notak")
-async def get_notak(request):
-    print("Received request to /api/notak:", str(request))
-    results = db.get_notak()
+
+# Motak: laburpena, eskema, glosarioa, kronograma, FAQ, Kontzeptu-mapa
+
+class BasicResourceModel(BaseModel):
+    collection_id: int
+    file_ids: List[int]
+
+class SummaryModel(BasicResourceModel):
+    formality: custom.Formality
+    style: custom.Style
+    detail: custom.Detail
+    language_complexity: custom.LanguageComplexity
+
+class FAQModel(BasicResourceModel):
+    detail: custom.Detail
+    language_complexity: custom.LanguageComplexity
+
+class GlossaryModel(BasicResourceModel):
+    detail: custom.Detail
+    language_complexity: custom.LanguageComplexity
+
+class OutlineModel(BasicResourceModel):
+    detail: custom.Detail
+
+class ChronogramModel(BasicResourceModel):
+    detail: custom.Detail
+
+class MindMapModel(BasicResourceModel):
+    detail: custom.Detail
+
+class PodcastModel(BasicResourceModel):
+    formality: custom.Formality
+    style: custom.Style
+    detail: custom.Detail
+    language_complexity: custom.LanguageComplexity
+    podcast_type: custom.PodcastType
+
+@app.get("/api/notes")
+async def get_notes(request):
+    results = db.get_notes()
     return json(results)
 
-@app.get("/api/nota")
-async def get_nota(request):
-    print("Received request to /api/nota:", str(request))
+@app.get("/api/note")
+async def get_note(request):
     id = request.args.get("id")
-
-    results = db.get_nota(id)
+    results = db.get_note(id)
     return json(results)
+
+@app.post("/api/headings")
+@validate(json=BasicResourceModel)
+async def create_headings(request, body: BasicResourceModel):
+    summary, title = tasks.generate_headings(llm, db, body.collection_id, body.file_ids)
+    return json({"summary": summary, "title": title}, status=200)
+
+@app.post("/api/summary")
+@validate(json=SummaryModel)
+async def create_summary(request, body: SummaryModel):
+    await task_queue.put((tasks.generate_summary, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    return json({}, status=202)
+
+@app.post("/api/faq")
+@validate(json=FAQModel)
+async def create_faq(request, body: FAQModel):
+    await task_queue.put((tasks.generate_faq, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    return json({}, status=202)
+
+@app.post("/api/outline")
+@validate(json=OutlineModel)
+async def create_outline(request, body: OutlineModel):
+    await task_queue.put((tasks.generate_outline, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    return json({}, status=202)
+
+@app.post("/api/mindmap")
+@validate(json=MindMapModel)
+async def create_mind_map(request, body: MindMapModel):
+    await task_queue.put((tasks.generate_mind_map, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    return json({}, status=202)
+
+@app.post("/api/glossary")
+@validate(json=GlossaryModel)
+async def create_glossary(request, body: GlossaryModel):
+    await task_queue.put((tasks.generate_glossary, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    return json({}, status=202)
+
+@app.post("/api/chronogram")
+@validate(json=ChronogramModel)
+async def create_chronogram(request, body: ChronogramModel):
+    await task_queue.put((tasks.generate_chronogram, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    return json({}, status=202)
+
+# ------------------------------------------------------------------
+# PODCAST
+# ------------------------------------------------------------------
+
+@app.post("/api/podcast")
+@validate(json=PodcastModel)
+async def create_podcast(request, body: PodcastModel):
+    await task_queue.put((tasks.generate_podcast, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    return json({}, status=202)
 
 # ------------------------------------------------------------------
 # MAIN
 # ------------------------------------------------------------------
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True, workers=1)
+if __name__ == "__main__" and not os.environ.get("PYCHARM_HOSTED") and "DEBUGPY" not in os.environ:
+    app.run(host="0.0.0.0", port=8001, debug=True, workers=1)

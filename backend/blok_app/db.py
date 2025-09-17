@@ -174,9 +174,18 @@ def get_chat_id(nt_id):
   ########################       FITXATEGIAK        #############################
 ###################################################################################
 
-def get_fitxategiak(id):
-    notak_sql = f"SELECT id, name, charNum,format FROM Fitxategia WHERE bilduma_key = {id};"
-    return query_db_as_dict(notak_sql)
+def get_fitxategiak(collection_id, content=False, file_ids=[]):
+    args = []
+    filter_collection = f"bilduma_key = {collection_id}"
+    filter_files = ""
+    if file_ids:
+        filter_files = "AND id = ANY(%s)"
+        args.append(file_ids)
+    select_content = ""
+    if content:
+        select_content = ", text"
+    notak_sql = f"SELECT id, name, format {select_content} FROM Fitxategia WHERE {filter_collection} {filter_files};"
+    return query_db_as_dict(notak_sql, args=tuple(args))
 
 def get_fitxategia(id):
     notak_sql = f"SELECT id, name, text, charNum, format, type FROM Fitxategia WHERE id = {id};"
@@ -213,10 +222,15 @@ def upload_fitxategiak(id: str, files):
     ###########################      NOTAK       #############################
 ###################################################################################
 
-def get_notak(id):
-    notak_sql = f"SELECT id, name, description, type FROM Nota WHERE bilduma_key = {id};"
-    return query_db_as_dict(notak_sql)
+def get_notes(collection_id):
+    sql = f"SELECT id, name, description, type FROM Note WHERE bilduma_key = {collection_id};"
+    return query_db_as_dict(sql)
 
-def get_nota(id):
-    notak_sql = f"SELECT id, name, description, type FROM Nota WHERE id = {id};"
-    return query_db_as_dict(notak_sql)
+def get_note(note_id):
+    sql = f"SELECT id, name, description, type FROM Note WHERE id = {id};"
+    return query_db_as_dict(sql)
+
+def create_note(name, note_type, content, collection_id):
+    sql = f"INSERT INTO Note (name, type, content, bilduma_key) VALUES (%s, %s, %s, %s)"
+    data = (name, note_type, content, collection_id)
+    commit_query_db(sql, data)

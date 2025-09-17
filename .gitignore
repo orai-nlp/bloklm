@@ -7,3 +7,5 @@
 /text_parser
 /rag-framework
 .env
+
+.vscode/

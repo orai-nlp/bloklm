@@ -28,16 +28,16 @@ INSERT INTO Fitxategia (name, text, charNum, format, bilduma_key) VALUES
 -- 3) Nine notes (3 per collection, different types)
 INSERT INTO Nota (name, description, type, bilduma_key) VALUES
   -- Euskal Literatura
-  ('Literatura laburpena', 'Euskal literaturaren bilakaera historikoa...', 'laburpena', 1),
-  ('Literatura timeline',  'Urteak eta gertakariak...', 'timeline', 1),
-  ('Literatura FAQ',       'Ohiko galderak euskal literaturari buruz...', 'FAQ', 1),
+  ('Literatura laburpena', 'laburpena', '', 1),
+  ('Literatura timeline',  'timeline', '', 1),
+  ('Literatura FAQ',       'FAQ', '', 1),
 
   -- Software Dokumentazioa
-  ('API gida',             'Nola erabili APIa...', 'gida', 2),
-  ('Setup mindmap',        'Instalazio prozesuaren mapa mentala...', 'mindmap', 2),
-  ('Release notes',        '1.0 bertsioaren oharrak...', 'nota', 2),
+  ('API gida',             'gida', '', 2),
+  ('Setup mindmap',        'mindmap', '', 2),
+  ('Release notes',        'nota', '', 2),
 
   -- Azterketa-gidak
-  ('DB azterketa-gida',    'Datu-base azterketarako gida...', 'gida', 3),
-  ('Timeline 2025',        '2025eko ikasturteko timeline-a...', 'timeline', 3),
-  ('Ohiko galderak',       'Azken azterketako FAQa...', 'FAQ', 3);
+  ('DB azterketa-gida',    'gida', '', 3),
+  ('Timeline 2025',        'timeline', '', 3),
+  ('Ohiko galderak',       'FAQ', '', 3);
