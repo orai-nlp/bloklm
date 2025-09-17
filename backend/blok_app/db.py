@@ -148,7 +148,7 @@ def create_bilduma(args):
     id = args["id"]
     title = args["title"]
     date = args["date"]
-    q = f"INSERT INTO Bilduma (id, name, create_date, update_date) VALUES ({id}, '{title}', '{date}', '{date}');"
+    q = f"INSERT INTO Bilduma (id, chat_id, name, create_date, update_date) VALUES ({id}, NULL, '{title}', '{date}', '{date}');"
     commit_query_db(q)
 
 def delete_bilduma(args):
