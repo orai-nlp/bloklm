@@ -151,6 +151,10 @@ def create_bilduma(args):
     q = f"INSERT INTO Bilduma (id, chat_id, name, create_date, update_date) VALUES ({id}, NULL, '{title}', '{date}', '{date}');"
     commit_query_db(q)
 
+def set_descriptors_to_bilduma(id, name, title, summary):
+    q = "UPDATE Bilduma SET name = %s, title = %s, summary = %s where id = %s"
+    commit_query_db(q, (name, title, summary, id))
+
 def delete_bilduma(args):
     id = args["id"]
     q = f"DELETE FROM Bilduma WHERE id = {id};"
