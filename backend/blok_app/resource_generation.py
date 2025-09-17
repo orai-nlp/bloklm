@@ -83,7 +83,7 @@ class PromptBuilder:
                 f"Collapsed {self.name_singular}:\n"
             )
         )
-
+    
 def retrieve_docs(db, collection_id, file_ids):
     docs = db.get_fitxategiak(collection_id, content=True, file_ids=file_ids)
     if not docs:
@@ -99,18 +99,6 @@ def retrieve_docs(db, collection_id, file_ids):
     for text in texts:
         docs.extend(splitter.create_documents([text]))
     return docs
-
-def generate_note(llm, db, collection_id, file_ids, prompter, custom_conf):
-    docs = retrieve_docs(db, collection_id, file_ids)
-
-    map_prompt = prompter.build_map_prompt()
-    reduce_prompt = prompter.build_reduce_prompt()
-    collapse_prompt = prompter.build_collapse_prompt()
-
-    chain = create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt)
-    result = chain.invoke({"input_documents": docs, **custom_conf.to_name_value_dict()})
-    print(result["output_text"])
-    return result["output_text"]
 
 def create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, output_key="output_text"):
     llm = CustomHuggingFacePipeline(pipeline=llm)
@@ -137,6 +125,17 @@ def create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, out
         verbose=True,
         output_key=output_key,
     )
+
+def generate_note(llm, db, collection_id, file_ids, prompter, custom_conf):
+    docs = retrieve_docs(db, collection_id, file_ids)
+
+    map_prompt = prompter.build_map_prompt()
+    reduce_prompt = prompter.build_reduce_prompt()
+    collapse_prompt = prompter.build_collapse_prompt()
+
+    chain = create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, output_key="output_text")
+    result = chain.invoke({"input_documents": docs, **custom_conf.to_name_value_dict()})
+    return result["output_text"]
 
 def generate_headings(llm, db, collection_id, file_ids):
     docs = retrieve_docs(db, collection_id, file_ids)
@@ -173,8 +172,7 @@ def generate_summary(llm, db, collection_id, file_ids, custom_conf):
         name_plural="summaries",
         custom_conf=custom_conf,
     )
-    res_text = generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
-    db.create_note("title", "summary", res_text, collection_id)
+    return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
 def generate_faq(llm, db, collection_id, file_ids, custom_conf):
     prompter = PromptBuilder(
@@ -183,8 +181,7 @@ def generate_faq(llm, db, collection_id, file_ids, custom_conf):
         name_plural="FAQs",
         custom_conf=custom_conf,
     )
-    res_text = generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
-    db.create_note("title", "faq", res_text, collection_id)
+    return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
 def generate_glossary(llm, db, collection_id, file_ids, custom_conf):
     prompter = PromptBuilder(
@@ -193,8 +190,7 @@ def generate_glossary(llm, db, collection_id, file_ids, custom_conf):
         name_plural="glossaries",
         custom_conf=custom_conf,
     )
-    res_text = generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
-    db.create_note("title", "glossary", res_text, collection_id)
+    return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
 def generate_outline(llm, db, collection_id, file_ids, custom_conf):
     prompter = PromptBuilder(
@@ -203,8 +199,7 @@ def generate_outline(llm, db, collection_id, file_ids, custom_conf):
         name_plural="outlines",
         custom_conf=custom_conf,
     )
-    res_text = generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
-    db.create_note("title", "outline", res_text, collection_id)
+    return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
 def generate_chronogram(llm, db, collection_id, file_ids, custom_conf):
     prompter = PromptBuilder(
@@ -213,8 +208,7 @@ def generate_chronogram(llm, db, collection_id, file_ids, custom_conf):
         name_plural="chronograms",
         custom_conf=custom_conf,
     )
-    res_text = generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
-    db.create_note("title", "chronogram", res_text, collection_id)
+    return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
 def generate_mind_map(llm, db, collection_id, file_ids, custom_conf):
     main_prompt = (
@@ -239,10 +233,9 @@ def generate_mind_map(llm, db, collection_id, file_ids, custom_conf):
         name_plural="mind maps",
         custom_conf=custom_conf,
     )
-    res_text = generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
-    db.create_note("title", "mindmap", res_text, collection_id)
+    return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
-def generate_podcast(llm, db, collection_id, file_ids, custom_conf):
+def generate_podcast_script(llm, db, collection_id, file_ids, custom_conf):
     podcast_type = custom_conf.to_name_value_dict()['podcast_type']
     main_prompt = (
         f"Generate a {podcast_type} podcast script from the contents of the following passage.\n"
@@ -261,4 +254,4 @@ def generate_podcast(llm, db, collection_id, file_ids, custom_conf):
         name_plural=f"{podcast_type} podcast scripts",
         custom_conf=custom_conf,
     )
-    res_text = generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
+    return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)

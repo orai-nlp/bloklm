@@ -14,7 +14,7 @@ from sanic_ext import Extend, validate
 
 from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 from backend.blok_app.document_parser_backend import extract_text_from_document
-import backend.blok_app.resource_generation_tasks as tasks
+import backend.blok_app.tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
 
@@ -72,7 +72,7 @@ async def start_worker(app, _):
 @app.listener("before_server_start")
 async def load_hf_llm(app, _):
     global llm
-    llm = build_hf_llm("HiTZ/Latxa-Llama-3.1-8B-Instruct", device="cuda:3")
+    llm = build_hf_llm("HiTZ/Latxa-Llama-3.1-8B-Instruct", device="cuda:2")
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection
@@ -277,46 +277,40 @@ async def get_note(request):
     results = db.get_note(id)
     return json(results)
 
-@app.post("/api/headings")
-@validate(json=BasicResourceModel)
-async def create_headings(request, body: BasicResourceModel):
-    summary, title = tasks.generate_headings(llm, db, body.collection_id, body.file_ids)
-    return json({"summary": summary, "title": title}, status=200)
-
 @app.post("/api/summary")
 @validate(json=SummaryModel)
 async def create_summary(request, body: SummaryModel):
-    await task_queue.put((tasks.generate_summary, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_summary_task, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 @app.post("/api/faq")
 @validate(json=FAQModel)
 async def create_faq(request, body: FAQModel):
-    await task_queue.put((tasks.generate_faq, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_faq_task, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 @app.post("/api/outline")
 @validate(json=OutlineModel)
 async def create_outline(request, body: OutlineModel):
-    await task_queue.put((tasks.generate_outline, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_outline_task, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 @app.post("/api/mindmap")
 @validate(json=MindMapModel)
 async def create_mind_map(request, body: MindMapModel):
-    await task_queue.put((tasks.generate_mind_map, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_mind_map_task, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 @app.post("/api/glossary")
 @validate(json=GlossaryModel)
 async def create_glossary(request, body: GlossaryModel):
-    await task_queue.put((tasks.generate_glossary, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_glossary_task, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 @app.post("/api/chronogram")
 @validate(json=ChronogramModel)
 async def create_chronogram(request, body: ChronogramModel):
-    await task_queue.put((tasks.generate_chronogram, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_chronogram_task, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 # ------------------------------------------------------------------
@@ -326,11 +320,11 @@ async def create_chronogram(request, body: ChronogramModel):
 @app.post("/api/podcast")
 @validate(json=PodcastModel)
 async def create_podcast(request, body: PodcastModel):
-    await task_queue.put((tasks.generate_podcast, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_podcast_task, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
 # ------------------------------------------------------------------
 # MAIN
 # ------------------------------------------------------------------
 if __name__ == "__main__" and not os.environ.get("PYCHARM_HOSTED") and "DEBUGPY" not in os.environ:
-    app.run(host="0.0.0.0", port=8001, debug=True, workers=1)
+    app.run(host="0.0.0.0", port=8002, debug=True, workers=1)
