@@ -1,5 +1,6 @@
 /backend/back_venv
 /backend/db_utils/db_venv
+/backend/.env
 /backend/__pycache__
 /backend/blok_app/__pycache__
 /bloklm/
@@ -7,5 +8,8 @@
 /text_parser
 /rag-framework
 .env
-
 .vscode/
+/backend/screenlog.0
+/frontend/screenlog.0
+/frontend/angular.json
+/frontend/package-lock.json
