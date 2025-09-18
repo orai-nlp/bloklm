@@ -169,7 +169,7 @@ def generate_headings(llm, db, collection_id, file_ids):
         output_variables=["summary", "title", "name"]   # summary + generated title
     )
     result = chain.invoke({"input_documents": docs})
-    return result["name"], result["title"], result["summary"]
+    return result["name"].strip('"'), result["title"].strip('"'), result["summary"].strip('"')
 
 def generate_summary(llm, db, collection_id, file_ids, custom_conf):
     prompter = PromptBuilder(
