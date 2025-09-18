@@ -2,7 +2,7 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const path = require('path');
 
-const envConfig = dotenv.config({ path: path.resolve(__dirname, '../../backend/.env') }).parsed;
+const envConfig = dotenv.config({ path: path.resolve(__dirname, '../../.env') }).parsed;
 
 const targetPath = path.resolve(__dirname, '../src/environments/environment.ts');
 
