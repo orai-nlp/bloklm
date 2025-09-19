@@ -144,13 +144,12 @@ def ensure_collection_graph_exists(collection_id):
 
     collection_graphs[collection_id] = graph_builder.compile()
 
-def query(query, collection_id):
+async def query(query, collection_id):
     graph = collection_graphs[collection_id]
     for msg, metadata in graph.stream(
         { "messages": [{"role": "user", "content": query}] },
         stream_mode="messages",
     ):
-        #yield token
-        #await asyncio.sleep(0)
         if metadata["langgraph_node"] == "generate":
-            print(msg.content, end="")
+            yield msg.content
+            await asyncio.sleep(0)

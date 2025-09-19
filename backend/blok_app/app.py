@@ -262,11 +262,11 @@ async def rag_query(request, body: QueryModel):
     ensure_vector_store(body.collection)
     rag.ensure_collection_graph_exists(body.collection)
     
-    #await rag.query(body.query, body.collection)
-    rag.query(body.query, body.collection)
-    #response = await request.respond(content_type="text/plain")
-    #for token in rag.query(body.query, body.collection):
-    #    await response.send(token)
+    response = await request.respond(content_type="text/plain")
+    async for token in rag.query(body.query, body.collection):
+        await response.send(token)
+    await response.send("\n")
+    await response.eof()
 
     response = await request.respond(
         content_type="text/event-stream",
