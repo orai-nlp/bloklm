@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, type OnInit } from "@angular/core"
+import { ChangeDetectorRef, Component, effect, inject, type OnInit } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { ActivatedRoute } from "@angular/router"
 import { I18nService } from "../../services/i18n"
@@ -29,6 +29,12 @@ export class NotebookComponent implements OnInit {
   chat_placeholder = this.i18n.translate('chat_placerholder')
   chat_placeholder_empty = this.i18n.translate('chat_placerholder_empty')
 
+  constructor(){
+    effect(() => {
+      this.notebook = this.notebookService.getCurrentNotebook();
+      console.log('Notebook changed:', this.notebook);
+    });
+  }
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { return; }

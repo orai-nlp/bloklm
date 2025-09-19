@@ -138,7 +138,7 @@
                 (click)="uploadFiles()">
           <span class="material-icons upload-icon" *ngIf="!isUploading">upload</span>
           <span class="material-icons loading-icon spinning" *ngIf="isUploading">refresh</span>
-          {{ isUploading ? (i18n.translate('uploading') || 'Uploading...') : (i18n.translate('modal_upload_files') || 'Upload Files') }} 
+          {{ isUploading ? (i18n.translate('uploading') || 'Uploading...') : (i18n.translate('modal_upload_files') || 'Upload Files') }}
           <span *ngIf="!isUploading">({{ uploadedFiles.length }})</span>
         </button>
       </div>

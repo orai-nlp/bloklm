@@ -96,7 +96,6 @@ export class I18nService {
       eu: "Gehitu",
       es: "Añadir",
     },
-
     discover: {
       eu: "Fitxategi lokalak igo",
       es: "Subir fuentes locales",
@@ -224,6 +223,10 @@ export class I18nService {
     modal_upload_files: {
       eu:"Igo Fitxategiak",
       es:"Subir Archivos"
+    },
+    uploading: {
+      eu:"Prozesatzen...",
+      es:"Procesando..."
     },
     modal_addText: {
       eu:"Gehitu testua",

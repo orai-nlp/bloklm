@@ -58,11 +58,23 @@ export class NotebookService {
     }
   }
 
-
   deleteLocalNotebook(id:string){
     this.notebooks.update(notebooks => 
       notebooks.filter(notebook => notebook.id !== id)
     );
+  }
+
+  updateLocalNotebook(id:string, name:string, description:string, summary:string){
+    let notebook = this.notebooks().find(n => n.id === id);
+    if (notebook){
+      notebook.title = name
+      notebook.description = description
+      notebook.summary = summary
+    }
+
+    if (notebook) {
+      this.currentNotebook.set(notebook);
+    }
   }
 
   createNotebook(): Observable<Notebook> {
@@ -156,6 +168,8 @@ export class NotebookService {
     return {
       id: String(b.id),
       title: b.name,
+      description: b.title,
+      summary: b.summary,
       createdAt: new Date(b.c_date),
       updatedAt: new Date(b.u_date),
       sourceCount: b.fitxategia_count,
@@ -219,7 +233,7 @@ export class NotebookService {
     return of(newSources)
   }
 
-  uploadFilesToBackend(notebookId: string, formData: FormData): Observable<void> {
+  uploadFilesToBackend(notebookId: string, formData: FormData): Observable<any> {
     // 'upload_files' becomes the <id> segment in the final URL
     formData.append('nt_id', notebookId);
     return this.call_backend('igo_fitxategiak', 'POST', undefined, formData);

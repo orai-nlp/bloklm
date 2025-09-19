@@ -1,6 +1,8 @@
 export interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
+  isVirtual?: boolean;
+
 }
 
 export interface Chat {

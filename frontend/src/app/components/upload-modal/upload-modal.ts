@@ -260,13 +260,17 @@ export class UploadModalComponent {
 
     // Backend call
     try {
+
       await this.callBackend(formData)
+      await this.createChat()
+
       
       // Create a FileList-like object for saving them locally
       const fileList = this.createFileList()
       
       // Notify parent component
       this.notebookService.uploadFiles(fileList).subscribe(() => {
+
         this.filesUploaded.emit(fileList)
         this.resetModal()
         this.close.emit()
@@ -303,9 +307,10 @@ export class UploadModalComponent {
       throw new Error('No notebook selected');
     }
     // Tell the notebook service to do the upload
-    await firstValueFrom(
+    const response = await firstValueFrom(
       this.notebookService.uploadFilesToBackend(notebookId, formData)
     );
+    this.notebookService.updateLocalNotebook(response.id, response.title, response.description, response.summary)
   }
 
   private async createChat(): Promise<void> {
@@ -315,7 +320,7 @@ export class UploadModalComponent {
     }
     
     // Tell the notebook service to do the upload
-    this.chatService.createNewChat(notebookId)
+    await this.chatService.createNewChat(notebookId)
   }
 
   private resetModal() {

@@ -6,7 +6,7 @@ sys.path.insert(0, "../..")
 from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
 import os
 from pdb import set_trace as d
-from document_parser_backend_ocr import extract_from_documents
+from backend.blok_app.document_parser_backend_ocr import extract_from_documents
 
 
 ###################################################################################
@@ -137,18 +137,18 @@ def query_db_as_dict(sql, args=(), one=False):
 
 def get_bildumak():
     from_tables=get_from_table('',select_string='fitxa')
-    query = "SELECT  B.id, B.name, B.create_date::TEXT AS c_date, B.update_date::TEXT AS u_date, COUNT(F.id) AS fitxategia_count " + from_tables + " GROUP BY B.id, B.name, B.create_date, B.update_date"
+    query = "SELECT  B.id, B.name, B.title, B.summary, B.create_date::TEXT AS c_date, B.update_date::TEXT AS u_date, COUNT(F.id) AS fitxategia_count " + from_tables + " GROUP BY B.id, B.name, B.create_date, B.update_date"
     return query_db_as_dict(query)
 
 def get_bilduma(id):
-    bilduma_sql = f"SELECT id, name, create_date::TEXT AS c_date, update_date::TEXT AS u_date FROM Bilduma WHERE id = {id};"
+    bilduma_sql = f"SELECT id, name, title, summary, create_date::TEXT AS c_date, update_date::TEXT AS u_date FROM Bilduma WHERE id = {id};"
     return query_db_as_dict(bilduma_sql)
 
 def create_bilduma(args):
     id = args["id"]
     title = args["title"]
     date = args["date"]
-    q = f"INSERT INTO Bilduma (id, chat_id, name, create_date, update_date) VALUES ({id}, NULL, '{title}', '{date}', '{date}');"
+    q = f"INSERT INTO Bilduma (id, name, create_date, update_date) VALUES ({id}, '{title}', '{date}', '{date}');"
     commit_query_db(q)
 
 def set_descriptors_to_bilduma(id, name, title, summary):
@@ -171,8 +171,8 @@ def set_chat_id(nt_id, chat_id):
     commit_query_db(q, (chat_id, nt_id))
 
 def get_chat_id(nt_id):
-    q = "SELECT chat_id FROM Bilduma WHERE id = %s;"
-    return query_db_as_dict(q, (nt_id,))
+    q = f"SELECT chat_id FROM Bilduma WHERE id = {nt_id};"
+    return query_db_as_dict(q)
 
 ###################################################################################
   ########################       FITXATEGIAK        #############################

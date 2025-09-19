@@ -71,13 +71,13 @@
             
             <!-- Messages -->
             <div *ngFor="let message of getDisplayMessages()" 
-                 class="message"
-                 [class.user-message]="message.role === 'user'"
-                 [class.ai-message]="message.role === 'assistant'">
+                class="message"
+                [class.user-message]="message.role === 'user'"
+                [class.ai-message]="message.role === 'assistant'">
                 
                 <div class="avatar"
-                     [class.user-avatar]="message.role === 'user'"
-                     [class.ai-avatar]="message.role === 'assistant'">
+                    [class.user-avatar]="message.role === 'user'"
+                    [class.ai-avatar]="message.role === 'assistant'">
                     <!-- User icon -->
                     <svg *ngIf="message.role === 'user'" stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -89,20 +89,40 @@
                     </svg>
                 </div>
                 
-                <div class="message-content markdown" [innerHTML]="formatMarkdown(message.content)">
+                <!-- Regular message content -->
+                <div *ngIf="!message.isVirtual" class="message-content markdown" [innerHTML]="formatMarkdown(message.content)">
                 </div>
-            </div>
-            
-            <!-- Typing indicator -->
-            <div *ngIf="showTypingIndicator" class="message ai-message">
-                <div class="avatar ai-avatar">
-                    <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"></path>
-                    </svg>
-                </div>
-                <div class="message-content">
-                    <div class="typing-indicator">
-                        Thinking<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                
+                <!-- Notebook summary content -->
+                <div *ngIf="message.isVirtual && message.content === 'summary'" class="message-content notebook-summary-content">
+                    <div class="summary-icon">⚡</div>
+                    <h2 class="summary-title">{{ notebookService.getCurrentNotebook()?.description }}</h2>
+                    <p class="summary-meta">{{ notebookService.getSources()?.length }}  {{i18n.translate('source')}}{{ notebookService.getSources()?.length !== 1 && i18n.language == 'es' ? 's':''}}</p>
+                    <div class="summary-text">
+                        <p>{{ notebookService.getCurrentNotebook()?.summary }}</p>
+                    </div>
+                    <div class="summary-actions">
+                        <button class="action-btn save-btn">
+                            <span class="material-icons">bookmark</span>
+                            Save to note
+                        </button>
+                        <button class="action-btn copy-btn">
+                            <span class="material-icons">content_copy</span>
+                        </button>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn">
+                            <span class="material-icons">note_add</span>
+                            Add note
+                        </button>
+                        <button class="quick-action-btn">
+                            <span class="material-icons">graphic_eq</span>
+                            Audio Overview
+                        </button>
+                        <button class="quick-action-btn">
+                            <span class="material-icons">account_tree</span>
+                            Mind Map
+                        </button>
                     </div>
                 </div>
             </div>

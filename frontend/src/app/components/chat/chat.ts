@@ -5,6 +5,8 @@ import { Subject, takeUntil } from 'rxjs';
 import { Chat, Message } from '../../interfaces/chat.type';
 import { ChatService } from '../../services/chat';
 import { ActivatedRoute } from '@angular/router';
+import { NotebookService } from '../../services/notebook';
+import { I18nService } from '../../services/i18n';
 
 @Component({
   selector: 'app-chat',
@@ -17,6 +19,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
   @ViewChild('userInput') userInput!: ElementRef;
 
   route = inject(ActivatedRoute)
+  notebookService = inject(NotebookService)
+  i18n = inject(I18nService)
 
 
   // UI State
@@ -84,8 +88,9 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
   }
 
   private updateWelcomeScreen() {
-    this.showWelcomeScreen = !this.currentChat || 
-      this.currentChat.messages.filter(m => m.role !== 'system').length === 0;
+    // const hasNotebook = this.currentChat && this.getSources()?.length > 0;
+    
+    this.showWelcomeScreen = false
   }
 
   // Theme Management
@@ -106,7 +111,26 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
   // Message Management
   getDisplayMessages(): Message[] {
     if (!this.currentChat) return [];
-    return this.currentChat.messages.filter(msg => msg.role !== 'system');
+    
+    const regularMessages = this.currentChat.messages.filter(msg => msg.role !== 'system');
+    
+    // Check if we're in a notebook context and have sources
+    const notebook = this.notebookService.getCurrentNotebook();
+    const hasNotebookSummary = notebook && notebook.summary;
+    
+    if (hasNotebookSummary) {
+      // Create a virtual summary message as the first message
+      const summaryMessage: Message = {
+        role: 'assistant',
+        content: 'summary', // Special flag for template
+        isVirtual: true
+      };
+      
+      // Always return summary as first message, followed by regular messages
+      return [summaryMessage, ...regularMessages];
+    }
+    
+    return regularMessages;
   }
 
   async sendMessage() {

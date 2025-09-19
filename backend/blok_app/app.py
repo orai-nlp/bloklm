@@ -1,5 +1,5 @@
 import logging
-import db
+import backend.blok_app.db as db
 import asyncio
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -55,8 +55,8 @@ async def worker():
 @app.listener("before_server_start")
 async def setup_rag(app, loop):
     global rag, persistence
-    rag, persistence = None, None
-    #rag, persistence = load_rag_instance(RAG_INSTANCE)
+    # rag, persistence = None, None
+    rag, persistence = load_rag_instance(RAG_INSTANCE)
 
 @app.listener("before_server_start")
 async def start_worker(app, _):
@@ -135,6 +135,7 @@ async def ezabatu_bilduma(request):
     payload = request.json
 
     db.delete_bilduma(payload)
+    # TODO: Rag-en ezabatu bildumari dagokion txata
 
     return json({id:payload['id']})
     
@@ -181,11 +182,11 @@ def upload_fitxategiak(request):
     parsed_files = db.upload_fitxategiak(nt_id, files)
 
     # index by RAG engine
-    # rag_docs = []
-    # for uploaded_file in parsed_files:
-    #     fname = uploaded_file['filename']
-    #     rag_docs.append(Document(uploaded_file['text'], 'eu', fname, path=fname, collection=nt_id))
-    # rag.add_document_batch(rag_docs)
+    rag_docs = []
+    for uploaded_file in parsed_files:
+        fname = uploaded_file['filename']
+        rag_docs.append(Document(uploaded_file['text'], 'eu', fname, path=fname, collection=nt_id))
+    rag.add_document_batch(rag_docs)
 
     # generate collection-level title and summary
     files = db.get_fitxategiak(nt_id)
@@ -193,7 +194,7 @@ def upload_fitxategiak(request):
     name, title, summary = generate_headings(llm, db, nt_id, file_ids)
     db.set_descriptors_to_bilduma(nt_id, name, title, summary)
 
-    return json({"id": nt_id, "status": "ok"})
+    return json({"id": nt_id, "title": name, "description": title, "summary": summary, "status": "ok"})
 
 
 # ------------------------------------------------------------------
@@ -223,7 +224,8 @@ async def get_chat(request):
 
     try:
         response = db.get_chat_id(nt_id)
-        chat_id = response['chat_id']
+        chat_id = response[0]
+        chat_id = chat_id['chat_id']
     except Exception as e:
         error_msg = 'Error while getting chat_id from database: ' + str(e)
         raise Exception(error_msg)

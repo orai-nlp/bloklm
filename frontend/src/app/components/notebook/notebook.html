@@ -64,12 +64,12 @@
           </div>
           
          <div class="chat-content" *ngIf="sources.length > 0">
-            <div class="notebook-summary">
+            <!-- <div class="notebook-summary">
               <div class="summary-icon">⏳</div>
-              <h2 class="summary-title">{{ notebook.title }}</h2>
-              <p class="summary-meta">{{ sources.length }} source{{ sources.length !== 1 ? 's' : '' }}</p>
+              <h2 class="summary-title">{{ notebook.description }}</h2>
+              <p class="summary-meta">{{ sources.length }} {{i18n.translate('source')}}{{ sources.length !== 1 && i18n.language == 'es'? 's' : '' }}</p>
               <div class="summary-text">
-                <p>Example text for showing</p>
+                <p>{{ notebook.summary }}</p>
               </div>
               <div class="summary-actions">
                 <button class="action-btn save-btn">
@@ -94,7 +94,7 @@
                   Mind Map
                 </button>
               </div>
-            </div>
+            </div> -->
             <app-chat></app-chat>
           </div> 
           

@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS Bilduma (
     id BIGINT PRIMARY KEY NOT NULL,
     chat_id UUID,
     name VARCHAR(255) NOT NULL,
+    title TEXT,
+    summary TEXT,
     create_date DATE NOT NULL,
     update_date DATE NOT NULL
 );
