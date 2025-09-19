@@ -15,34 +15,12 @@ from langchain_core.messages import SystemMessage
 from langgraph.graph import END
 from langgraph.prebuilt import ToolNode, tools_condition
 
-RETRIEVE_FAISS_K = 2
+RETRIEVE_FAISS_K = 5
 
 embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
 llm = init_chat_model("gpt-4o-mini", model_provider="openai")
 
-vector_stores = {}
 collection_graphs = {}
-
-def load_vector_store(data: List[dict]):
-    if not data:
-        raise ValueError("No documents provided")
-    ids, texts, embeddings = zip(*[ (doc['id'], doc['content'], doc['emb']) for doc in data ])
-    embedding_dim = len(embeddings[0])
-    collection_id = data[0]["collection_id"]
-
-    index = faiss.IndexFlatL2(embedding_dim)
-    vector_store = FAISS(
-        embedding_function=embedding_model,
-        index=index,
-        docstore=InMemoryDocstore(),
-        index_to_docstore_id={},
-    )
-    vector_store.add_embeddings(
-        text_embeddings=zip(texts, embeddings),
-        ids=ids,
-    )
-
-    vector_stores[collection_id] = vector_store
 
 def split_and_vectorize(fids, contents):
     orig_docs = []
@@ -67,6 +45,27 @@ def split_and_vectorize(fids, contents):
         })
 
     return docs
+
+def _load_vector_store(data: List[dict]):
+    if not data:
+        raise ValueError("No documents provided")
+    ids, texts, embeddings = zip(*[ (doc['id'], doc['content'], doc['emb']) for doc in data ])
+    embedding_dim = len(embeddings[0])
+    collection_id = data[0]["collection_id"]
+
+    index = faiss.IndexFlatL2(embedding_dim)
+    vector_store = FAISS(
+        embedding_function=embedding_model,
+        index=index,
+        docstore=InMemoryDocstore(),
+        index_to_docstore_id={},
+    )
+    vector_store.add_embeddings(
+        text_embeddings=zip(texts, embeddings),
+        ids=ids,
+    )
+
+    return vector_store
 
 # RAG graph
 
@@ -103,17 +102,14 @@ def generate(state: MessagesState):
     response = llm.invoke(prompt)
     return {"messages": [response]}
     
-def ensure_collection_graph_exists(collection_id):
-    if collection_id in collection_graphs:
-        return
-    
+def init_collection_graph(collection_id, data):
+    collection_vector_store = _load_vector_store(data)
     graph_builder = StateGraph(MessagesState)
 
     @tool(response_format="content_and_artifact")
     def retrieve(query: str):
         """Retrieve information related to a query."""
-        vector_store = vector_stores[collection_id]
-        retrieved_docs = vector_store.similarity_search(query, k=RETRIEVE_FAISS_K)
+        retrieved_docs = collection_vector_store.similarity_search(query, k=RETRIEVE_FAISS_K)
         serialized = "\n\n".join(
             (f"Source: {doc.id}\nContent: {doc.page_content}")
             for doc in retrieved_docs

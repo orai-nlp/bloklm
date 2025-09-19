@@ -47,10 +47,10 @@ async def worker():
         finally:
             task_queue.task_done()
 
-def ensure_vector_store(collection_id):
-    if collection_id not in rag.vector_stores:
+def ensure_collection_rag_loaded(collection_id):
+    if collection_id not in rag.collection_graphs:
         docs = db.retrieve_collection_documents(collection_id)
-        rag.load_vector_store(docs)
+        rag.init_collection_graph(collection_id, docs)
 
 @app.listener("before_server_start")
 async def start_worker(app, _):
@@ -220,8 +220,7 @@ async def create_chat(request):
 async def get_chat(request):
     nt_id = request.args.get("nt_id")
 
-    ensure_vector_store(nt_id)
-    rag.ensure_collection_graph_exists(nt_id)
+    ensure_collection_rag_loaded(nt_id)
 
     try:
         response = db.get_chat_id(nt_id)
@@ -259,8 +258,7 @@ class QueryModel(BaseModel):
 @app.post("/api/query")
 @validate(json=QueryModel)
 async def rag_query(request, body: QueryModel):
-    ensure_vector_store(body.collection)
-    rag.ensure_collection_graph_exists(body.collection)
+    ensure_collection_rag_loaded(body.collection)
     
     response = await request.respond(content_type="text/plain")
     async for token in rag.query(body.query, body.collection):
