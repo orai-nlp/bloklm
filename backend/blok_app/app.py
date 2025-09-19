@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from typing import List
 
 import json as p_json
-from sanic import Sanic, json
+from sanic import Sanic, response, json
 from sanic.exceptions import BadRequest
 from sanic.worker.manager import WorkerManager
 from sanic_ext import Extend, validate
@@ -17,12 +17,10 @@ import backend.blok_app.tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
 from backend.blok_app.resource_generation import generate_headings
+#from backend.blok_app.llm_factory import build_hf_llm
+import backend.blok_app.rag as rag
 
-from rag.core.factory import load_rag_instance
-from rag.core.response_stream import ResponseStream
-from rag.entity.document import Document
-
-from backend.blok_app.llm_factory import build_hf_llm
+# TODO: elkartu bi requirements.txt fitxategiak
 
 WorkerManager.THRESHOLD = 3000  # 5 min
 
@@ -32,10 +30,6 @@ Extend(app, config={
     "cors_origins": "*",
 })
 log = logging.getLogger(__name__)   # <-- use this logger
-
-# Init RAG framework
-RAG_INSTANCE = "bloklm"
-rag, persistence = None, None
 
 # Shared asyncio queue: avoid concurrent tasks of note/podcast generation
 task_queue = asyncio.Queue()
@@ -53,11 +47,10 @@ async def worker():
         finally:
             task_queue.task_done()
 
-@app.listener("before_server_start")
-async def setup_rag(app, loop):
-    global rag, persistence
-    # rag, persistence = None, None
-    rag, persistence = load_rag_instance(RAG_INSTANCE)
+def ensure_vector_store(collection_id):
+    if collection_id not in rag.vector_stores:
+        docs = db.retrieve_collection_documents(collection_id)
+        rag.load_vector_store(docs)
 
 @app.listener("before_server_start")
 async def start_worker(app, _):
@@ -190,7 +183,11 @@ def upload_fitxategiak(request):
     rag.add_document_batch(rag_docs)
 
     # generate collection-level title and summary
-    files = db.get_fitxategiak(nt_id)
+    files = db.get_fitxategiak(nt_id, content=True)
+    fids, contents = zip(*[ (f["id"], f["text"]) for f in files ])
+    docs = rag.split_and_vectorize(fids, contents)
+    db.store_documents(docs)
+
     file_ids = [ f['id'] for f in files ]
     name, title, summary = generate_headings(llm, db, nt_id, file_ids)
     db.set_descriptors_to_bilduma(nt_id, name, title, summary)
@@ -223,6 +220,9 @@ async def create_chat(request):
 async def get_chat(request):
     nt_id = request.args.get("nt_id")
 
+    ensure_vector_store(nt_id)
+    rag.ensure_collection_graph_exists(nt_id)
+
     try:
         response = db.get_chat_id(nt_id)
         chat_id = response[0]
@@ -232,25 +232,41 @@ async def get_chat(request):
         raise Exception(error_msg)
     
     try:
-        chat_hist_raw = rag.chat_history(chat_id)
-        chat_hist = []
-        for message in chat_hist_raw[0]:
+        # TODO: hau begiratu
+        # chat_hist_raw = rag.chat_history(chat_id)
+        # chat_hist = []
+        # for message in chat_hist_raw[0]:
             
-            chat_hist_u = {'role': 'user', 'content': message['user']}
-            chat_hist_a = {'role': 'assistant', 'content': message['assistant']}
+        #     chat_hist_u = {'role': 'user', 'content': message['user']}
+        #     chat_hist_a = {'role': 'assistant', 'content': message['assistant']}
 
-            chat_hist.append(chat_hist_u)
-            chat_hist.append(chat_hist_a)
+        #     chat_hist.append(chat_hist_u)
+        #     chat_hist.append(chat_hist_a)
 
-        print(chat_hist)
-        return json({"chat_id": chat_id, "chat_history": chat_hist, 'error': ''})
+        # print(chat_hist)
+        # return json({"chat_id": chat_id, "chat_history": chat_hist_raw, 'error': ''})
+        return json({"chat_id": chat_id, "chat_history": [], 'error': ''})
     except Exception as e:
         error_msg = 'Error while getting chat history from RAG: ' + str(e)
         raise Exception(error_msg)
-     
+
+    return json({"chat_id": chat_id, "chat_history": chat_hist, 'error': ''})
+
+class QueryModel(BaseModel):
+    query: str
+    collection: int
+
 @app.post("/api/query")
-async def rag_query(request):
-    resp = ResponseStream(rag.query(request.json.get("query"), request.json.get("chat_id"), "eu", collection=request.json.get("collection")))
+@validate(json=QueryModel)
+async def rag_query(request, body: QueryModel):
+    ensure_vector_store(body.collection)
+    rag.ensure_collection_graph_exists(body.collection)
+    
+    #await rag.query(body.query, body.collection)
+    rag.query(body.query, body.collection)
+    #response = await request.respond(content_type="text/plain")
+    #for token in rag.query(body.query, body.collection):
+    #    await response.send(token)
 
     response = await request.respond(
         content_type="text/event-stream",

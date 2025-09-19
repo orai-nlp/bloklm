@@ -1,5 +1,4 @@
 from langchain.prompts import PromptTemplate
-from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import TokenTextSplitter
 
 from langchain.chains.llm import LLMChain

@@ -67,7 +67,10 @@ def commit_query_db(query, params = None):
         cur = conn.cursor()
         print("Query: ",query[:100])
         presql=datetime.datetime.now()
-        cur.execute(query, params)
+        if params and type(params[0]) in [list, tuple]:
+            cur.executemany(query, params)
+        else:
+            cur.execute(query, params)
         conn.commit()
         postsql=datetime.datetime.now()
         print("PostgreSQL: commited succesfully the change: ",postsql-presql) 
@@ -222,6 +225,16 @@ def upload_fitxategiak(id: str, files):
         raise f'Error: Saving the files in database; {str(e)}'
 
     return parsed_files
+
+def store_documents(docs):
+    q = "INSERT INTO Document (content, embedding, start_index, file_id) VALUES (%s, %s, %s, %s)"
+    params = [ (d['content'], d['embedding'], d['start_index'], d['file_id']) for d in docs ]
+    commit_query_db(q, params)
+
+def retrieve_collection_documents(collection_id):
+    q = "SELECT doc.id AS id, doc.content AS content, doc.embedding AS emb, f.bilduma_key AS collection_id FROM Document AS doc INNER JOIN Fitxategia as f ON doc.file_id = f.id WHERE f.bilduma_key=%s"
+    return query_db_as_dict(q, (collection_id,))
+
 ###################################################################################
     ###########################      NOTAK       #############################
 ###################################################################################
