@@ -14,6 +14,7 @@ from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage
 from langgraph.graph import END
 from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.checkpoint.memory import MemorySaver
 
 RETRIEVE_FAISS_K = 5
 
@@ -86,8 +87,7 @@ def generate(state: MessagesState):
         "You are an assistant for question-answering tasks. "
         "Use the following pieces of retrieved context to answer "
         "the question. If you don't know the answer, say that you "
-        "don't know. Use three sentences maximum and keep the "
-        "answer concise."
+        "don't know. Keep the answer concise."
         "\n\n"
         f"{docs_content}"
     )
@@ -138,14 +138,20 @@ def init_collection_graph(collection_id, data):
     graph_builder.add_edge("tools", "generate")
     graph_builder.add_edge("generate", END)
 
-    collection_graphs[collection_id] = graph_builder.compile()
+    collection_graphs[collection_id] = graph_builder.compile(checkpointer=MemorySaver())
 
 async def query(query, collection_id):
     graph = collection_graphs[collection_id]
     for msg, metadata in graph.stream(
         { "messages": [{"role": "user", "content": query}] },
         stream_mode="messages",
+        config={"configurable": {"thread_id": "default"}},
     ):
         if metadata["langgraph_node"] == "generate":
             yield msg.content
             await asyncio.sleep(0)
+
+def reset_chat(collection_id):
+    graph = collection_graphs.get(collection_id, None)
+    if graph:
+        graph.checkpointer = MemorySaver()
