@@ -42,6 +42,7 @@ export class NotebookComponent implements OnInit {
     this.notebook = await this.notebookService.loadNotebookAsync(id);
     this.sources = this.notebookService.getSources();
     this.cdr.markForCheck();   // only needed if OnPush
+    
   }
 
   onFilesUploaded(files: FileList) {

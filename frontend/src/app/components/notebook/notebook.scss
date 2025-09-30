@@ -237,7 +237,19 @@
 
 .chat-content {
   flex: 1;
-  padding: 20px;
+  padding: 0; // Remove padding
+  display: flex; // Make it a flex container
+  flex-direction: column;
+  overflow: hidden; // Prevent overflow
+  min-height: 0; // Important for flex children
+}
+
+// Add this new class to ensure the chat component takes full height
+.chat-content app-chat {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 
 .notebook-summary {

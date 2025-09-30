@@ -1,7 +1,18 @@
+
 .home-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* full viewport height */
+  overflow: hidden; /* prevent page scroll */
+}
+
+.home-content {
+  flex: 1 1 auto;       /* allow growing/shrinking */
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 60px 24px;
+  overflow-y: auto;     /* vertical scroll if needed */
+  scroll-behavior: smooth;
 }
 
 .welcome-title {

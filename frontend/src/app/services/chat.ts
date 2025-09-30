@@ -4,7 +4,7 @@ import { Chat, ChatStreamChunk, Config, Message } from '../interfaces/chat.type'
 import { NotebookService } from './notebook';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { HttpClient, HttpErrorResponse } from "@angular/common/http"
+import { HttpClient, HttpErrorResponse, HttpResponse } from "@angular/common/http"
 
 
 @Injectable({
@@ -78,21 +78,21 @@ export class ChatService {
   }
 
   loadChat(id: string): void {
-    if (!this.currentChatSubject.value) {
-      this.call_backend('get_chat', 'GET', {nt_id: id}, undefined).subscribe({
-        next: (chat) => {
-          const newChat = this.convertChatElement(chat);
-          this.currentChatSubject.next(newChat);
-          console.log('Chat loaded from backend: ', newChat);
-        },
-        error: (error) => {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-          console.error('Error loading chat:', errorMessage);
-          // You can either throw the error or handle it gracefully
-          throw new Error(`Chat did not load from backend: ${errorMessage}`);
-        }
-      });
-    }
+
+    this.call_backend('get_chat', 'GET', {nt_id: id}, undefined).subscribe({
+      next: (chat) => {
+        const newChat = this.convertChatElement(chat);
+        this.currentChatSubject.next(newChat);
+        console.log('Chat loaded from backend: ', newChat);
+      },
+      error: (error) => {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('Error loading chat:', errorMessage);
+        // You can either throw the error or handle it gracefully
+        throw new Error(`Chat did not load from backend: ${errorMessage}`);
+      }
+    });
+    
   }
 
   convertChatElement(chat: any): Chat{
@@ -208,7 +208,7 @@ export class ChatService {
     }
 
     this.isGeneratingSubject.next(true);
-
+    
     // Add user message
     this.addMessageToCurrentChat({
       role: 'user',
@@ -227,32 +227,31 @@ export class ChatService {
       content: ''
     });
 
+    const nb = this.notebookService.getCurrentNotebook();
     const streamSubject = new Subject<ChatStreamChunk>();
-
+    
     try {
       const updatedChat = this.currentChatSubject.value;
       if (!updatedChat) throw new Error('Chat not found');
 
-      const requestBody = {
-        model: this.config.model,
-        messages: updatedChat.messages,
-        stream: true,
-        temperature: 0.7
-      };
-
-      const response = await fetch(this.config.apiUrl, {
+      // Use fetch for streaming
+      const response = await fetch(`${environment.apiBaseUrl}/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` })
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({ 
+          query: userMessage, 
+          chat_id: updatedChat.id,
+          collection: nb ? nb.id : ''
+        })
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
+      // Process the stream
       this.processStream(response, streamSubject);
 
     } catch (error) {
@@ -275,34 +274,63 @@ export class ChatService {
     return streamSubject.asObservable();
   }
 
-  private async processStream(response: Response, streamSubject: Subject<ChatStreamChunk>): Promise<void> {
+  // Updated processStream to work with fetch Response
+  private async processStream(
+    response: Response, 
+    streamSubject: Subject<ChatStreamChunk>
+  ): Promise<void> {
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();
     
     let buffer = '';
     let fullResponse = '';
-
+    
     try {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
+        
         buffer += decoder.decode(value, { stream: true });
-
+        
+        // Debug: log raw buffer content
+        console.log('Raw buffer chunk:', buffer);
+        
         let lastJSONEnd = 0;
-
+        
         while (buffer.indexOf('\n', lastJSONEnd) !== -1) {
           const lineEnd = buffer.indexOf('\n', lastJSONEnd);
           const line = buffer.substring(lastJSONEnd, lineEnd).trim();
           lastJSONEnd = lineEnd + 1;
-
+          
+          // Debug: log each line
+          console.log('Processing line:', line);
+          
           if (line.startsWith('data: ')) {
             const jsonStr = line.slice(6);
-
-            if (jsonStr === '[DONE]') continue;
-
+            
+            // Debug: log the JSON string we're trying to parse
+            console.log('JSON string to parse:', jsonStr);
+            
+            if (jsonStr === '[DONE]') {
+              console.log('Received [DONE] signal');
+              // Mark as complete
+              streamSubject.next({
+                content: fullResponse,
+                isComplete: true
+              });
+              streamSubject.complete();
+              continue;
+            }
+            
+            // Skip empty data lines
+            if (!jsonStr || jsonStr.trim() === '') {
+              continue;
+            }
+            
             try {
               const json = JSON.parse(jsonStr);
+              console.log('Parsed JSON:', json);
+              
               const content = json.choices?.[0]?.delta?.content || '';
               
               if (content) {
@@ -319,20 +347,23 @@ export class ChatService {
               }
             } catch (e) {
               console.error('Error parsing JSON from stream:', e);
+              console.error('Failed to parse:', jsonStr);
+              console.error('Full line was:', line);
+              // Continue processing other lines instead of failing completely
             }
           }
         }
-
         buffer = buffer.substring(lastJSONEnd);
       }
-
-      // Mark as complete
-      streamSubject.next({
-        content: fullResponse,
-        isComplete: true
-      });
-      streamSubject.complete();
-
+      
+      // If stream ended without [DONE] signal
+      if (!streamSubject.closed) {
+        streamSubject.next({
+          content: fullResponse,
+          isComplete: true
+        });
+        streamSubject.complete();
+      }
     } catch (error) {
       console.error('Stream processing error:', error);
       streamSubject.error(error);
@@ -355,6 +386,11 @@ export class ChatService {
   }
 
   formatMarkdown(text: string): string {
+    // Handle undefined, null, or empty string
+    if (!text) {
+      return '';
+    }
+    
     // Handle code blocks
     text = text.replace(/```(\w*)([\s\S]*?)```/g, (match, language, code) => {
       return `<pre><code class="language-${language}">${this.escapeHtml(code.trim())}</code></pre>`;

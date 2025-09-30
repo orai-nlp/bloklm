@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pydantic import BaseModel
 from typing import List
 
+import json as p_json
 from sanic import Sanic, json
 from sanic.exceptions import BadRequest
 from sanic.worker.manager import WorkerManager
@@ -231,7 +232,17 @@ async def get_chat(request):
         raise Exception(error_msg)
     
     try:
-        chat_hist = rag.chat_history(chat_id)
+        chat_hist_raw = rag.chat_history(chat_id)
+        chat_hist = []
+        for message in chat_hist_raw[0]:
+            
+            chat_hist_u = {'role': 'user', 'content': message['user']}
+            chat_hist_a = {'role': 'assistant', 'content': message['assistant']}
+
+            chat_hist.append(chat_hist_u)
+            chat_hist.append(chat_hist_a)
+
+        print(chat_hist)
         return json({"chat_id": chat_id, "chat_history": chat_hist, 'error': ''})
     except Exception as e:
         error_msg = 'Error while getting chat history from RAG: ' + str(e)
@@ -241,13 +252,39 @@ async def get_chat(request):
 async def rag_query(request):
     resp = ResponseStream(rag.query(request.json.get("query"), request.json.get("chat_id"), "eu", collection=request.json.get("collection")))
 
-    response = await request.respond(content_type="text/plain")
+    response = await request.respond(
+        content_type="text/event-stream",
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no'
+        }
+    )
     for token in resp:
-        await response.send(str(token))
+        # Format as SSE with JSON payload
+        sse_data = p_json.dumps({
+            'choices': [{
+                'delta': {
+                    'content': str(token)
+                }
+            }]
+        })
+        print(sse_data)
+        await response.send(f"data: {sse_data}\n\n")
         await asyncio.sleep(0)
+    
+    # Send completion signal
+    await response.send("data: [DONE]\n\n")
     await response.eof()
+    # return response
 
-    return response
+
+    # response = await request.respond(content_type="text/plain")
+    # for token in resp:
+    #     await response.send(str(token))
+    #     await asyncio.sleep(0)
+    # await response.eof()
+
+    # return response
         
 
 # ------------------------------------------------------------------

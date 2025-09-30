@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, AfterContentInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, AfterContentInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, combineLatest, filter } from 'rxjs';
 import { Chat, Message } from '../../interfaces/chat.type';
 import { ChatService } from '../../services/chat';
 import { ActivatedRoute } from '@angular/router';
@@ -12,16 +12,18 @@ import { I18nService } from '../../services/i18n';
   selector: 'app-chat',
   imports: [CommonModule, FormsModule],
   templateUrl: './chat.html',
-  styleUrl: './chat.scss'
+  styleUrl: './chat.scss',
+  // Remove OnPush if you're using it, or handle change detection properly
+  // changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit, OnDestroy {
+export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('chatContainer') chatContainer!: ElementRef;
   @ViewChild('userInput') userInput!: ElementRef;
 
-  route = inject(ActivatedRoute)
-  notebookService = inject(NotebookService)
-  i18n = inject(I18nService)
-
+  route = inject(ActivatedRoute);
+  notebookService = inject(NotebookService);
+  i18n = inject(I18nService);
+  private cdr = inject(ChangeDetectorRef);
 
   // UI State
   userInputValue: string = '';
@@ -33,24 +35,96 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
   currentChat: Chat | null = null;
   currentTheme: string = 'light';
   isGenerating: boolean = false;
+  isLoading: boolean = true;
 
   private destroy$ = new Subject<void>();
   private shouldScrollToBottom: boolean = false;
+  placeholder_input:string = this.i18n.translate('chat_input_placeholder') + '...'
 
   constructor(private chatService: ChatService) {}
 
-  ngAfterContentInit(){
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) { return; }
-    this.chatService.loadChat(id)
-  }
-  ngOnInit() {
+  async ngOnInit() {
     this.subscribeToServiceData();
+    
+    // Get the notebook ID from the route
+    const notebookId = this.route.snapshot.paramMap.get('id');
+    
+    if (notebookId) {
+      try {
+        // Wait for notebook service to be ready
+        await this.notebookService.whenReady();
+        
+        // Load notebook data first
+        const notebook = await this.notebookService.loadNotebookAsync(notebookId);
+        
+        if (notebook) {
+          // Check if a chat already exists for this notebook
+          const existingChat = this.chatService.getCurrentChat();
+          
+          if (!existingChat || existingChat.id !== notebookId) {
+            // Create or load the chat for this notebook
+            await this.loadOrCreateChat(notebookId);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading notebook/chat data:', error);
+      } finally {
+        this.isLoading = false;
+        this.updateWelcomeScreen();
+        this.cdr.detectChanges();
+      }
+    } else {
+      this.isLoading = false;
+      this.updateWelcomeScreen();
+    }
+  }
+
+  private async loadOrCreateChat(notebookId: string) {
+    try {
+      // First try to load existing chat
+      await new Promise<void>((resolve, reject) => {
+        this.chatService.loadChat(notebookId);
+        
+        // Wait for the chat to be loaded
+        const subscription = this.chatService.currentChat$
+          .pipe(
+            filter(chat => chat !== null),
+            takeUntil(this.destroy$)
+          )
+          .subscribe({
+            next: (chat) => {
+              subscription.unsubscribe();
+              resolve();
+            },
+            error: (error) => {
+              subscription.unsubscribe();
+              reject(error);
+            }
+          });
+        
+        // Add timeout in case loading fails
+        setTimeout(() => {
+          subscription.unsubscribe();
+          reject(new Error('Chat loading timeout'));
+        }, 5000);
+      });
+    } catch (error) {
+      console.log('No existing chat found, creating new one');
+      // If loading fails, create a new chat
+      try {
+        await this.chatService.createNewChat(notebookId);
+      } catch (createError) {
+        console.error('Error creating new chat:', createError);
+      }
+    }
   }
 
   ngAfterViewChecked() {
     if (this.shouldScrollToBottom) {
-      this.scrollToBottom();
+      // Use setTimeout to ensure DOM is fully updated
+      setTimeout(() => {
+        this.scrollToBottom();
+      }, 0);
       this.shouldScrollToBottom = false;
     }
   }
@@ -61,13 +135,15 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
   }
 
   private subscribeToServiceData() {
-    // Subscribe to current chat
+    // Subscribe to current chat with proper change detection
     this.chatService.currentChat$
       .pipe(takeUntil(this.destroy$))
       .subscribe(chat => {
         this.currentChat = chat;
         this.updateWelcomeScreen();
-        this.shouldScrollToBottom = true;
+        // Force change detection
+        this.cdr.detectChanges();
+        this.forceScrollToBottom();
       });
 
     // Subscribe to theme changes
@@ -84,13 +160,13 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
       .subscribe(isGenerating => {
         this.isGenerating = isGenerating;
         this.showTypingIndicator = isGenerating;
+        this.cdr.detectChanges();
       });
   }
 
   private updateWelcomeScreen() {
-    // const hasNotebook = this.currentChat && this.getSources()?.length > 0;
-    
-    this.showWelcomeScreen = false
+    // Hide welcome screen once we have data
+    this.showWelcomeScreen = !this.currentChat && !this.isLoading;
   }
 
   // Theme Management
@@ -103,14 +179,9 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
     this.chatService.setTheme(target.value);
   }
 
-  // loadChat(chatId: string) {
-  //   this.chatService.loadChat(chatId);
-  //   this.focusInput();
-  // }
-
   // Message Management
   getDisplayMessages(): Message[] {
-    if (!this.currentChat) return [];
+    if (!this.currentChat || !this.currentChat.messages) return [];
     
     const regularMessages = this.currentChat.messages.filter(msg => msg.role !== 'system');
     
@@ -118,15 +189,23 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
     const notebook = this.notebookService.getCurrentNotebook();
     const hasNotebookSummary = notebook && notebook.summary;
     
-    if (hasNotebookSummary) {
-      // Create a virtual summary message as the first message
+    if (hasNotebookSummary && regularMessages.length === 0) {
+      // Create a virtual summary message as the first message only if no other messages exist
       const summaryMessage: Message = {
         role: 'assistant',
-        content: 'summary', // Special flag for template
+        content: 'summary',
         isVirtual: true
       };
       
-      // Always return summary as first message, followed by regular messages
+      return [summaryMessage];
+    } else if (hasNotebookSummary) {
+      // If there are regular messages, show summary first then messages
+      const summaryMessage: Message = {
+        role: 'assistant',
+        content: 'summary',
+        isVirtual: true
+      };
+      
       return [summaryMessage, ...regularMessages];
     }
     
@@ -149,14 +228,21 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (chunk) => {
-            this.shouldScrollToBottom = true;
-            // The service handles updating the messages
+            this.cdr.detectChanges();
+            setTimeout(() => {
+              this.shouldScrollToBottom = true;
+            }, 0);
           },
           error: (error) => {
             console.error('Stream error:', error);
           },
           complete: () => {
             this.focusInput();
+            // Final scroll after completion
+            setTimeout(() => {
+              this.cdr.detectChanges();
+              this.shouldScrollToBottom = true;
+            }, 100);
           }
         });
 
@@ -176,8 +262,31 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
 
   scrollToBottom() {
     if (this.chatContainer?.nativeElement) {
-      this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
+      const element = this.chatContainer.nativeElement;
+      // Use scrollTo for smoother behavior
+      element.scrollTo({
+        top: element.scrollHeight,
+        behavior: 'smooth'
+      });
     }
+  }
+
+  private forceScrollToBottom() {
+    // Multiple attempts to ensure scroll works
+    const scroll = () => {
+      if (this.chatContainer?.nativeElement) {
+        const element = this.chatContainer.nativeElement;
+        element.scrollTop = element.scrollHeight;
+      }
+    };
+    
+    // Immediate scroll
+    scroll();
+    
+    // Retry after short delay
+    setTimeout(scroll, 0);
+    setTimeout(scroll, 50);
+    setTimeout(scroll, 100);
   }
 
   autoResizeTextarea() {
@@ -211,7 +320,6 @@ export class ChatComponent implements OnInit, AfterViewChecked, AfterContentInit
   clearAllData() {
     try {
       this.chatService.clearAllData();
-      // this.createNewChat();
       this.hideConfirmModal();
       
       // Show success message

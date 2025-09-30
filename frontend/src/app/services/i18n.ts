@@ -192,6 +192,10 @@ export class I18nService {
       eu:"Ezabatu",
       es:"Borrar"
     },
+    cancel: {
+      eu:"Ezeztatu",
+      es:"Anular"
+    },
     confirm_delete: {
       eu:"Ziur zaude hurrengo bilduma ezabatu nahi duzula: ",
       es:"Estas seguro que quieres borrar la siguiente colección: "
@@ -268,6 +272,26 @@ export class I18nService {
       eu:"Igo fitxategirenbat txateatzen hasteko",
       es:"Sube algun archivo para empezar a chatear"
     },
+    chat_clear_title: {
+      eu:"Txat Garbiketa",
+      es:"Limpieza del Chat"
+    },
+    chat_clear_confirmation: {
+      eu:"Ziur zaude txateko mezu guztiak ezabatu nahi dituzula? Ekintza hau ezingo da desegin.",
+      es:"¿Está seguro de que desea borrar todos los mensajes del chat? Esta acción no se podrá deshacer."
+    },
+    chat_clear_button: {
+      eu:"Ezabatu Mezuak",
+      es:"Borrar Mensajes"
+    },  
+    chat_loading_message: {
+      eu:"Txata kargatzen",
+      es:"Cargando el chat"
+    },  
+    chat_input_placeholder: {
+      eu:"Idatzi hemen",
+      es:"Escribe un mensaje"
+    }, 
   }
 
 
