@@ -260,11 +260,11 @@ class QueryModel(BaseModel):
 async def rag_query(request, body: QueryModel):
     ensure_collection_rag_loaded(body.collection)
     
-    response = await request.respond(content_type="text/plain")
-    async for token in rag.query(body.query, body.collection):
-        await response.send(token)
-    await response.send("\n")
-    await response.eof()
+    # response = await request.respond(content_type="text/plain")
+    # async for token in rag.query(body.query, body.collection):
+    #     await response.send(token)
+    # await response.send("\n")
+    # await response.eof()
 
     response = await request.respond(
         content_type="text/event-stream",
@@ -273,7 +273,7 @@ async def rag_query(request, body: QueryModel):
             'X-Accel-Buffering': 'no'
         }
     )
-    for token in resp:
+    async for token in rag.query(body.query, body.collection):
         # Format as SSE with JSON payload
         sse_data = p_json.dumps({
             'choices': [{
@@ -289,16 +289,6 @@ async def rag_query(request, body: QueryModel):
     # Send completion signal
     await response.send("data: [DONE]\n\n")
     await response.eof()
-    # return response
-
-
-    # response = await request.respond(content_type="text/plain")
-    # for token in resp:
-    #     await response.send(str(token))
-    #     await asyncio.sleep(0)
-    # await response.eof()
-
-    # return response
         
 
 # ------------------------------------------------------------------
