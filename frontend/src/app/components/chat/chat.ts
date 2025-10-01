@@ -55,16 +55,11 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         await this.notebookService.whenReady();
         
         // Load notebook data first
-        const notebook = await this.notebookService.loadNotebookAsync(notebookId);
+        const notebook = this.notebookService.getCurrentNotebook();
         
         if (notebook) {
-          // Check if a chat already exists for this notebook
-          const existingChat = this.chatService.getCurrentChat();
-          
-          if (!existingChat || existingChat.id !== notebookId) {
-            // Create or load the chat for this notebook
-            await this.loadOrCreateChat(notebookId);
-          }
+          // Create or load the chat for this notebook
+          await this.loadOrCreateChat(notebookId);
         }
       } catch (error) {
         console.error('Error loading notebook/chat data:', error);
@@ -146,14 +141,6 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
         this.forceScrollToBottom();
       });
 
-    // Subscribe to theme changes
-    this.chatService.theme$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(theme => {
-        this.currentTheme = theme;
-        this.applyTheme(theme);
-      });
-
     // Subscribe to generation status
     this.chatService.isGenerating$
       .pipe(takeUntil(this.destroy$))
@@ -167,16 +154,6 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   private updateWelcomeScreen() {
     // Hide welcome screen once we have data
     this.showWelcomeScreen = !this.currentChat && !this.isLoading;
-  }
-
-  // Theme Management
-  applyTheme(themeName: string) {
-    document.body.setAttribute('data-theme', themeName);
-  }
-
-  onThemeChange(event: Event) {
-    const target = event.target as HTMLSelectElement;
-    this.chatService.setTheme(target.value);
   }
 
   // Message Management

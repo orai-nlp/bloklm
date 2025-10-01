@@ -6,16 +6,8 @@ export interface Message {
 }
 
 export interface Chat {
-  id: string;
   title: string;
   messages: Message[];
-}
-
-export interface Config {
-  apiUrl: string;
-  apiKey: string;
-  model: string;
-  initialSystemPrompt: string;
 }
 
 export interface ChatStreamChunk {

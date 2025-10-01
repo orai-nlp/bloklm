@@ -1,29 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, firstValueFrom, Observable, Subject } from 'rxjs';
-import { Chat, ChatStreamChunk, Config, Message } from '../interfaces/chat.type';
+import { Chat, ChatStreamChunk, Message } from '../interfaces/chat.type';
 import { NotebookService } from './notebook';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { HttpClient, HttpErrorResponse, HttpResponse } from "@angular/common/http"
+import { I18nService } from './i18n';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private readonly STORAGE_KEYS = {
-    CHAT_HISTORY: 'chatHistory',
-    THEME: 'theme'
-  };
-
-  // Configuration
-  private config: Config = {
-    apiUrl: 'http://localhost:1234/v1/chat/completions',
-    apiKey: 'not-needed',
-    model: 'local-model',
-    initialSystemPrompt: 'You are a helpful assistant. Make a breif summary of the provided content.'
-  };
-
   // State subjects
   private currentChatSubject = new BehaviorSubject<Chat | null>(null);
   private isGeneratingSubject = new BehaviorSubject<boolean>(false);
@@ -37,9 +25,9 @@ export class ChatService {
   // Extra
   private currentNtId;
   route = inject(ActivatedRoute)
+  i18n = inject(I18nService)
 
   constructor(private notebookService: NotebookService, private http: HttpClient) {
-    this.loadSettings();
 
     this.currentNtId = this.route.snapshot.paramMap.get('id') || null
     // if (!this.currentNtId) { return; }
@@ -47,35 +35,6 @@ export class ChatService {
     // this.loadChat();
   }
 
-  // Configuration methods
-  getConfig(): Config {
-    return { ...this.config };
-  }
-
-  updateConfig(newConfig: Partial<Config>): void {
-    this.config = { ...this.config, ...newConfig };
-  }
-
-  // Settings management
-  private loadSettings(): void {
-    try {
-      const savedTheme = localStorage.getItem(this.STORAGE_KEYS.THEME);
-      if (savedTheme) {
-        this.themeSubject.next(savedTheme);
-      }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  }
-
-  setTheme(theme: string): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEYS.THEME, theme);
-      this.themeSubject.next(theme);
-    } catch (error) {
-      console.error('Error saving theme:', error);
-    }
-  }
 
   loadChat(id: string): void {
 
@@ -111,25 +70,29 @@ export class ChatService {
 
   async createNewChat(notebookId: string): Promise<void> {
     try {
-      const raw$ = this.call_backend('create_chat', 'GET', {nt_id: notebookId}, undefined);
-      const response = await firstValueFrom(raw$);
+      // const raw$ = this.call_backend('create_chat', 'GET', {nt_id: notebookId}, undefined);
+      // const response = await firstValueFrom(raw$);
       
-      const chatId = response?.chat_id;
-      
-      if (chatId) {
-        // Success case
-        console.log('Chat created with ID:', chatId);
-        const newChat: Chat = {
-          id: chatId,
-          title: 'New Chat',
-          messages: []
-        };
+      // Success case
+      const newChat: Chat = {
+        title: 'New Chat',
+        messages: []
+      };
+      console.log('Chat created!');
+      // if (response?.ok) {
+      //   // Success case
+      //   const newChat: Chat = {
+      //     title: 'New Chat',
+      //     messages: []
+      //   };
+      //   console.log('Chat created!');
 
-        this.currentChatSubject.next(newChat);
-      } else {
-        // Handle case where response is successful but no chat_id
-        throw new Error('No chat ID received from backend');
-      }
+
+      this.currentChatSubject.next(newChat);
+      // } else {
+      //   // Handle case where response is successful but no chat_id
+      //   throw new Error('No chat ID received from backend');
+      // }
     } catch (error) {
       // Handle both network errors and backend exceptions
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -187,7 +150,7 @@ export class ChatService {
     // }
   }
 
-  updateChatTitle(chatId: string, title: string): void {
+  updateChatTitle(title: string): void {
 
     // Update current chat if it's the same
     const currentChat = this.currentChatSubject.value;
@@ -218,7 +181,7 @@ export class ChatService {
     // Update chat title if it's still "New Chat"
     if (currentChat.title === 'New Chat') {
       const title = userMessage.substring(0, 30) + (userMessage.length > 30 ? '...' : '');
-      this.updateChatTitle(currentChat.id, title);
+      this.updateChatTitle(title);
     }
 
     // Add placeholder for AI response
@@ -241,8 +204,7 @@ export class ChatService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          query: userMessage, 
-          chat_id: updatedChat.id,
+          query: userMessage,
           collection: nb ? nb.id : ''
         })
       });
@@ -259,11 +221,11 @@ export class ChatService {
       
       // Update the last message with error
       this.updateLastMessageInCurrentChat(
-        'Sorry, there was an error communicating with the API. Please check your connection and API settings.'
+        this.i18n.translate('chat_api_error')
       );
       
       streamSubject.next({ 
-        content: 'Sorry, there was an error communicating with the API. Please check your connection and API settings.',
+        content: this.i18n.translate('chat_api_error'),
         isComplete: true 
       });
       streamSubject.complete();

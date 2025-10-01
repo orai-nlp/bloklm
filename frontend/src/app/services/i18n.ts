@@ -292,6 +292,10 @@ export class I18nService {
       eu:"Idatzi hemen",
       es:"Escribe un mensaje"
     }, 
+    chat_api_error: {
+      eu:"Errorea gertatu da APIarekin komunikatzean.",
+      es:"Lo siento, hubo un error comunicándose con la API."
+    }, 
   }
 
 

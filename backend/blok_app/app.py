@@ -176,11 +176,11 @@ def upload_fitxategiak(request):
     parsed_files = db.upload_fitxategiak(nt_id, files)
 
     # index by RAG engine
-    rag_docs = []
-    for uploaded_file in parsed_files:
-        fname = uploaded_file['filename']
-        rag_docs.append(Document(uploaded_file['text'], 'eu', fname, path=fname, collection=nt_id))
-    rag.add_document_batch(rag_docs)
+    # rag_docs = []
+    # for uploaded_file in parsed_files:
+    #     fname = uploaded_file['filename']
+    #     rag_docs.append(Document(uploaded_file['text'], 'eu', fname, path=fname, collection=nt_id))
+    # rag.add_document_batch(rag_docs)
 
     # generate collection-level title and summary
     files = db.get_fitxategiak(nt_id, content=True)
@@ -221,29 +221,22 @@ async def get_chat(request):
     nt_id = int(request.args.get("nt_id"))
     ensure_collection_rag_loaded(nt_id)
 
-    chat_history = rag.chat_history(nt_id)
-
     try:
+        print(rag.chat_history(nt_id))
         # TODO: hau begiratu
-        # chat_hist_raw = rag.chat_history(chat_id)
-        # chat_hist = []
-        # for message in chat_hist_raw[0]:
-            
-        #     chat_hist_u = {'role': 'user', 'content': message['user']}
-        #     chat_hist_a = {'role': 'assistant', 'content': message['assistant']}
+        chat_hist = [
+            {'role': 'assistant', 'content': message['content']}
+            if message['role'].lower() == 'ai' 
+            else {'role': 'user', 'content': message['content']}
+            for message in rag.chat_history(nt_id)
+            if message['role'].lower() in ('ai', 'human') and message['content']
+        ]
 
-        #     chat_hist.append(chat_hist_u)
-        #     chat_hist.append(chat_hist_a)
-
-        # print(chat_hist)
-        # return json({"chat_id": chat_id, "chat_history": chat_hist_raw, 'error': ''})
-        #return json({"chat_history": chat_history, 'error': ''})
-        pass
+        print(chat_hist)
+        return json({"nt_id": nt_id, "chat_history": chat_hist, 'error': ''})
     except Exception as e:
         error_msg = 'Error while getting chat history from RAG: ' + str(e)
         raise Exception(error_msg)
-
-    return json({"nt_id": nt_id, "chat_history": chat_history, 'error': ''})
 
 class QueryModel(BaseModel):
     query: str
