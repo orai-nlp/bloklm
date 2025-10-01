@@ -218,18 +218,11 @@ async def create_chat(request):
 
 @app.get("/api/get_chat")
 async def get_chat(request):
-    nt_id = request.args.get("nt_id")
-
+    nt_id = int(request.args.get("nt_id"))
     ensure_collection_rag_loaded(nt_id)
 
-    try:
-        response = db.get_chat_id(nt_id)
-        chat_id = response[0]
-        chat_id = chat_id['chat_id']
-    except Exception as e:
-        error_msg = 'Error while getting chat_id from database: ' + str(e)
-        raise Exception(error_msg)
-    
+    chat_history = rag.chat_history(nt_id)
+
     try:
         # TODO: hau begiratu
         # chat_hist_raw = rag.chat_history(chat_id)
@@ -244,12 +237,13 @@ async def get_chat(request):
 
         # print(chat_hist)
         # return json({"chat_id": chat_id, "chat_history": chat_hist_raw, 'error': ''})
-        return json({"chat_id": chat_id, "chat_history": [], 'error': ''})
+        #return json({"chat_history": chat_history, 'error': ''})
+        pass
     except Exception as e:
         error_msg = 'Error while getting chat history from RAG: ' + str(e)
         raise Exception(error_msg)
 
-    return json({"chat_id": chat_id, "chat_history": chat_hist, 'error': ''})
+    return json({"nt_id": nt_id, "chat_history": chat_history, 'error': ''})
 
 class QueryModel(BaseModel):
     query: str

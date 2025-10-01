@@ -1,5 +1,6 @@
 from typing import List
 import asyncio
+import logging
 
 from langchain.chat_models import init_chat_model
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -17,6 +18,7 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 
 RETRIEVE_FAISS_K = 5
+THREAD_ID = "default"
 
 embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
 llm = init_chat_model("gpt-4o-mini", model_provider="openai")
@@ -145,11 +147,28 @@ async def query(query, collection_id):
     for msg, metadata in graph.stream(
         { "messages": [{"role": "user", "content": query}] },
         stream_mode="messages",
-        config={"configurable": {"thread_id": "default"}},
+        config={"configurable": {"thread_id": THREAD_ID}},
     ):
         if metadata["langgraph_node"] == "generate":
             yield msg.content
             await asyncio.sleep(0)
+
+def chat_history(collection_id):
+    graph = collection_graphs.get(collection_id, None)
+    if not graph:
+        logging.warning(f"Graph of the collection {collection_id} not found when retrieving chat history")
+        return []
+    state = graph.get_state({"configurable": {"thread_id": THREAD_ID}})
+    if "messages" not in state.values or not isinstance(state.values["messages"], list):
+        logging.warning(f"Graph state of the collection {collection_id} is empty or not valid when retrieving chat history")
+        return []
+    history = []
+    for msg in state.values["messages"]:
+        history.append({
+            "role": msg.type,
+            "content": msg.content,
+        })
+    return history
 
 def reset_chat(collection_id):
     graph = collection_graphs.get(collection_id, None)
