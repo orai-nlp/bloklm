@@ -154,4 +154,6 @@ async def query(query, collection_id):
 def reset_chat(collection_id):
     graph = collection_graphs.get(collection_id, None)
     if graph:
-        graph.checkpointer = MemorySaver()
+        # graph.checkpointer = MemorySaver()
+        config = {"configurable": {"thread_id": "default"}}
+        graph.delete_state(config)
