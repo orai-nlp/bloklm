@@ -149,9 +149,10 @@ async def query(query, collection_id):
         stream_mode="messages",
         config={"configurable": {"thread_id": THREAD_ID}},
     ):
-        if metadata["langgraph_node"] == "generate":
-            yield msg.content
-            await asyncio.sleep(0)
+        if metadata["langgraph_node"] in ["generate", "query_or_respond"]:
+            if msg.content:
+                yield msg.content
+                await asyncio.sleep(0)
 
 def chat_history(collection_id):
     graph = collection_graphs.get(collection_id, None)
