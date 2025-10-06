@@ -72,6 +72,10 @@ export class I18nService {
       eu: "Ezarpenak",
       es: "Configuración",
     },
+    configure: {
+      eu: "Konfiguratu",
+      es: "Configura",
+    },
     sources: {
       eu: "Fitxategiak",
       es: "Fuentes",
@@ -124,17 +128,29 @@ export class I18nService {
       eu: "Ikasketa Gida",
       es: "Guía de Estudio",
     },
-    briefingDoc: {
-      eu: "Briefing Dokumentua",
-      es: "Documento de Briefing",
+    summary: {
+      eu: "Laburpena",
+      es: "Resumen",
     },
-    faq: {
+    FAQ: {
       eu: "FAQ",
       es: "FAQ",
     },
     timeline: {
-      eu: "Denbora-lerroa",
-      es: "Línea de Tiempo",
+      eu: "Kronograma",
+      es: "Cronograma",
+    },
+    mindmap: {
+      eu: "Kontzeptu-mapa",
+      es: "Mapa de Conceptos",
+    },
+    outline: {
+      eu: "Eskema",
+      es: "Esquema",
+    },
+    glossary: {
+      eu: "Glosarioa",
+      es: "Glosario",
     },
     addSources: {
       eu: "Gehitu Fitxategiak",
@@ -295,7 +311,91 @@ export class I18nService {
     chat_api_error: {
       eu:"Errorea gertatu da APIarekin komunikatzean.",
       es:"Lo siento, hubo un error comunicándose con la API."
-    }, 
+    },
+    studio_conf_formality: {
+      eu:"Formaltasun Maila",
+      es:"Grado de formalidad"
+    },
+    studio_conf_style: {
+      eu:"Estiloa",
+      es:"Estilo"
+    },
+    studio_conf_detail: {
+      eu:"Xehetasun Maila",
+      es:"Nivel de Detalle"
+    },
+    studio_conf_complexity: {
+      eu:"Konplexutasun Linguistikoa",
+      es:"Complejidad Linguística"
+    },
+    studio_conf_type: {
+      eu:"Mota",
+      es:"Tipo"
+    },
+    studio_conf_create_btn: {
+      eu:"Sortu Oharra",
+      es:"Crear Nota"
+    },
+    studio_conf_opt_formal: {
+      eu:"Formala",
+      es:"Formal"
+    },
+    studio_conf_opt_neutro: {
+      eu:"Neutroa-Estandarra",
+      es:"Neutro-Estandar"
+    },
+    studio_conf_opt_informal: {
+      eu:"Informala",
+      es:"Informal"
+    },
+    studio_conf_opt_academic: {
+      eu:"Akademikoa",
+      es:"Académico"
+    },
+    studio_conf_opt_technical: {
+      eu:"Teknikoa",
+      es:"Técnico"
+    },
+    studio_conf_opt_non_expert: {
+      eu:"Ez-Espertua",
+      es:"No-Experto"
+    },
+    studio_conf_opt_low: {
+      eu:"Baxua",
+      es:"Bajo"
+    },
+    studio_conf_opt_medium: {
+      eu:"Ertaina",
+      es:"Medio"
+    },
+    studio_conf_opt_high: {
+      eu:"Altua",
+      es:"Alto"
+    },
+    studio_conf_opt_simple: {
+      eu:"Sinplea",
+      es:"Simple"
+    },
+    studio_conf_opt_moderate: {
+      eu:"Neurrizkoa",
+      es:"Moderado"
+    },
+    studio_conf_opt_complex: {
+      eu:"Konplexua",
+      es:"Complejo"
+    },
+    studio_conf_opt_conversational: {
+      eu:"Elkarrizketa",
+      es:"Conversaciónal"
+    },
+    studio_conf_opt_narrative: {
+      eu:"Narratzailea",
+      es:"Narrativo"
+    },
+    studio_info_notes: {
+      eu:"Gordetako oharrak hemen agertuko dira",
+      es:"Las notas guardadas aparecerán aquí"
+    },
   }
 
 

@@ -56,7 +56,6 @@ export class ChatService {
 
   convertChatElement(chat: any): Chat{
     try {
-      // TODO: chat.chat_history kudeatu eta formateatu Message modura: role, content
       const chatContent = chat.chat_history
       return {
         id: chat.chat_id,

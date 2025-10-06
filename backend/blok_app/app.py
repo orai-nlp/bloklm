@@ -129,7 +129,7 @@ async def ezabatu_bilduma(request):
     payload = request.json
 
     db.delete_bilduma(payload)
-    # TODO: Rag-en ezabatu bildumari dagokion txata
+    rag.reset_chat(payload['id'])
 
     return json({id:payload['id']})
     
@@ -223,7 +223,7 @@ async def get_chat(request):
 
     try:
         print(rag.chat_history(nt_id))
-        # TODO: hau begiratu
+
         chat_hist = [
             {'role': 'assistant', 'content': message['content']}
             if message['role'].lower() == 'ai' 

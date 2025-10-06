@@ -24,21 +24,8 @@
         <div class="sources-panel">
           <div class="panel-header">
             <h3 class="panel-title">{{ i18n.translate('sources') }}</h3>
-            <!-- <button class="panel-toggle">
-              <span class="material-icons">dock_to_right</span>
-            </button> -->
           </div>
-          
-          <!-- <div class="sources-actions">
-            <button class="add-btn" (click)="showUploadModal = true">
-              <span class="plus-icon">+</span>
-              {{ i18n.translate('add') }}
-            </button>
-            <button class="discover-btn">
-              <span class="material-icons">explore</span>
-              {{ i18n.translate('discover') }}
-            </button>
-          </div> -->
+        
           
           <div class="sources-list" *ngIf="sources.length > 0">
             <div class="source-item" *ngFor="let source of sources">
@@ -64,37 +51,6 @@
           </div>
           
          <div class="chat-content" *ngIf="sources.length > 0">
-            <!-- <div class="notebook-summary">
-              <div class="summary-icon">⏳</div>
-              <h2 class="summary-title">{{ notebook.description }}</h2>
-              <p class="summary-meta">{{ sources.length }} {{i18n.translate('source')}}{{ sources.length !== 1 && i18n.language == 'es'? 's' : '' }}</p>
-              <div class="summary-text">
-                <p>{{ notebook.summary }}</p>
-              </div>
-              <div class="summary-actions">
-                <button class="action-btn save-btn">
-                  <span class="material-icons">bookmark</span>
-                  Save to note
-                </button>
-                <button class="action-btn copy-btn">
-                  <span class="material-icons">content_copy</span>
-                </button>
-              </div>
-              <div class="quick-actions">
-                <button class="quick-action-btn">
-                  <span class="material-icons">note_add</span>
-                  Add note
-                </button>
-                <button class="quick-action-btn">
-                  <span class="material-icons">graphic_eq</span>
-                  Audio Overview
-                </button>
-                <button class="quick-action-btn">
-                  <span class="material-icons">account_tree</span>
-                  Mind Map
-                </button>
-              </div>
-            </div> -->
             <app-chat></app-chat>
           </div> 
           
@@ -107,107 +63,11 @@
               {{ i18n.translate('uploadSource') }}
             </button>
           </div>
-          
-          <!-- <div class="chat-input">
-            <input 
-              type="text" 
-              class="chat-input-field" 
-              [placeholder]="sources.length > 0 ? chat_placeholder : chat_placeholder_empty"
-              [disabled]="sources.length === 0">
-            <div class="input-meta">
-              <span class="source-count">{{ sources.length }} {{ i18n.translate('source') }}</span>
-              <button class="send-btn" [disabled]="sources.length === 0">
-                <span class="material-icons">send</span>
-              </button>
-            </div>
-          </div> -->
-          
-          <!-- <p class="disclaimer">{{ i18n.translate('disclaimer')}}</p> -->
         </div>
         
         <!-- Studio Panel -->
         <div class="studio-panel">
-          <div class="panel-header">
-            <h3 class="panel-title">{{ i18n.translate('studio') }}</h3>
-            <button class="panel-toggle">
-              <span class="material-icons">unfold_less</span>
-            </button>
-          </div>
-          
-          <div class="studio-section">
-            <div class="section-header">
-              <h4 class="section-title">{{ i18n.translate('audioOverview') }}</h4>
-              <button class="info-btn">
-                <span class="material-icons">info</span>
-              </button>
-            </div>
-            
-            <div class="audio-overview-card">
-              <div class="overview-info">
-                <span class="overview-icon">🎙️</span>
-                <span class="overview-text">Create an Audio Overview in more languages!</span>
-                <a href="#" class="overview-link">Lortu informazio gehiago</a>
-              </div>
-            </div>
-            
-            <div class="conversation-card">
-              <div class="conversation-icon">
-                <span class="material-icons">record_voice_over</span>
-              </div>
-              <div class="conversation-info">
-                <h5 class="conversation-title">Deep Dive conversation</h5>
-                <p class="conversation-subtitle">Two hosts</p>
-              </div>
-            </div>
-            
-            <div class="studio-actions">
-              <button class="customize-btn">Customize</button>
-              <button class="generate-btn" [disabled]="sources.length === 0">Generate</button>
-            </div>
-          </div>
-          
-          <div class="studio-section">
-            <div class="section-header">
-              <h4 class="section-title">{{ i18n.translate('notes') }}</h4>
-              <button class="more-btn">
-                <span class="material-icons">more_vert</span>
-              </button>
-            </div>
-            
-            <button class="add-note-btn">
-              <span class="plus-icon">+</span>
-              {{ i18n.translate('addNote') }}
-            </button>
-            
-            <div class="note-templates">
-              <button class="template-btn">
-                <span class="material-icons">school</span>
-                {{ i18n.translate('studyGuide') }}
-              </button>
-              <button class="template-btn">
-                <span class="material-icons">description</span>
-                {{ i18n.translate('briefingDoc') }}
-              </button>
-              <button class="template-btn">
-                <span class="material-icons">help</span>
-                {{ i18n.translate('faq') }}
-              </button>
-              <button class="template-btn">
-                <span class="material-icons">timeline</span>
-                {{ i18n.translate('timeline') }}
-              </button>
-            </div>
-            
-            <div class="notes-empty">
-              <div class="notes-icon">
-                <span class="material-icons">note</span>
-              </div>
-              <p class="notes-empty-text">Saved notes will appear here</p>
-              <p class="notes-empty-subtext">
-                Save a chat message to create a new note, or click Add note above.
-              </p>
-            </div>
-          </div>
+          <app-studio></app-studio>
         </div>
       </div>
     </div>

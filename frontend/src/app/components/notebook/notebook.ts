@@ -8,11 +8,12 @@ import{Source} from '../../interfaces/source.type';
 
 import { UploadModalComponent } from "../upload-modal/upload-modal"
 import { ChatComponent } from "../chat/chat"
+import { StudioComponent } from "../studio/studio"
 
 @Component({
   selector: "app-notebook",
   standalone: true,
-  imports: [CommonModule, UploadModalComponent, ChatComponent],
+  imports: [CommonModule, UploadModalComponent, ChatComponent, StudioComponent],
   templateUrl: "./notebook.html",
   styleUrls: ["./notebook.scss"],
 })
