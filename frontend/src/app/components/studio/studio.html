@@ -13,7 +13,6 @@
                 class="template-btn" 
                 [class.active]="selectedTemplate === template"
                 [title]="i18n.translate(template.labelKey)"
-                [disabled]="isGenerating"
                 (click)="openParameterMenu(template)">
                 <span class="material-icons">{{ template.icon }}</span>
                 <span class="template-label">{{ i18n.translate(template.labelKey) }}</span>
@@ -27,7 +26,6 @@
                 class="template-btn" 
                 [class.active]="selectedTemplate === template"
                 [title]="i18n.translate(template.labelKey)"
-                [disabled]="isGenerating"
                 (click)="openParameterMenu(template)">
                 <span class="material-icons">{{ template.icon }}</span>
                 <span class="template-label">{{ i18n.translate(template.labelKey) }}</span>
@@ -105,8 +103,8 @@
                             @for (option of complexityOptions; track option.value) {
                                 <button 
                                     class="option-btn"
-                                    [class.selected]="isParameterSelected('complexity', option.value)"
-                                    (click)="selectParameter('complexity', option.value)">
+                                    [class.selected]="isParameterSelected('language_complexity', option.value)"
+                                    (click)="selectParameter('language_complexity', option.value)">
                                     {{ i18n.translate(option.label) }}
                                 </button>
                             }
@@ -122,8 +120,8 @@
                             @for (option of typeOptions; track option.value) {
                                 <button 
                                     class="option-btn"
-                                    [class.selected]="isParameterSelected('type', option.value)"
-                                    (click)="selectParameter('type', option.value)">
+                                    [class.selected]="isParameterSelected('podcast_type', option.value)"
+                                    (click)="selectParameter('podcast_type', option.value)">
                                     {{ i18n.translate(option.label) }}
                                 </button>
                             }
@@ -136,7 +134,7 @@
                 <button class="cancel-btn" (click)="closeParameterMenu()">{{ i18n.translate("cancel") }}</button>
                 <button 
                     class="create-note-btn" 
-                    [disabled]="!areAllParametersSelected() || isGenerating"
+                    [disabled]="!areAllParametersSelected()"
                     (click)="createNote()">
                     {{ i18n.translate("studio_conf_create_btn") }}
                 </button>
@@ -144,7 +142,7 @@
         </div>
     }
     
-    <div class="notes-empty" *ngIf="currentNotes.length === 0 && !isGenerating">
+    <div class="notes-empty" *ngIf="currentNotes.length === 0">
         <div class="notes-icon">
             <span class="material-icons">note</span>
         </div>
@@ -156,17 +154,17 @@
     <div class="notes-list" *ngIf="currentNotes.length > 0">
         <div *ngFor="let note of currentNotes"
             class="notes-wrapper">
-            <div class="note-container" [class.loading]="note.isLoading">
+            <div class="note-container" [class.loading]="!note.status_ready">
                 <div class="icon">
-                    <span class="material-icons" *ngIf="!note.isLoading">{{ iconFor(note.type) }}</span>
-                    <span class="material-icons loading-icon" *ngIf="note.isLoading">hourglass_empty</span>
+                    <span class="material-icons" *ngIf="note.status_ready">{{ iconFor(note.type) }}</span>
+                    <span class="material-icons loading-icon" *ngIf="!note.status_ready">hourglass_empty</span>
                 </div>
                 <div class="content">
-                    <span class="note-title" *ngIf="!note.isLoading">{{ note.name }}</span>
-                    <span class="note-title loading-text" *ngIf="note.isLoading">{{ i18n.translate('loading') }}...</span>
+                    <span class="note-title" *ngIf="note.status_ready">{{ note.name }}</span>
+                    <span class="note-title loading-text" *ngIf="!note.status_ready">{{ i18n.translate('loading') }}...</span>
                     
-                    <span class="note-content" *ngIf="!note.isLoading">{{ note.content | slice:0:35 }}...</span>
-                    <span class="note-content loading-text" *ngIf="note.isLoading">{{ i18n.translate('generating_note') }}...</span>
+                    <span class="note-content" *ngIf="note.status_ready">{{ note.content | slice:0:35 }}...</span>
+                    <span class="note-content loading-text" *ngIf="!note.status_ready">{{ i18n.translate('generating_note') }}...</span>
                 </div>
             </div>
         </div>

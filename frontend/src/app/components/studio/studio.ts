@@ -21,7 +21,6 @@ export class StudioComponent implements OnDestroy {
 
   // Data
   currentNotes: Note[] = []
-  isGenerating = false;
   
 
   // Note types
@@ -43,7 +42,7 @@ export class StudioComponent implements OnDestroy {
     },
     { 
       icon: 'timeline', 
-      labelKey: 'chronogram',
+      labelKey: 'timeline',
       parameters: ['detail']
     },
     { 
@@ -110,13 +109,13 @@ export class StudioComponent implements OnDestroy {
         this.cdr.detectChanges();
       });
 
-    // Subscribe to generating state
-    this.noteService.isGenerating$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(isGenerating => {
-        this.isGenerating = isGenerating;
-        this.cdr.detectChanges();
-      });
+    // // Subscribe to generating state
+    // this.noteService.isGenerating$
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe(isGenerating => {
+    //     this.isGenerating = isGenerating;
+    //     this.cdr.detectChanges();
+    //   });
   }
 
   openParameterMenu(template: NoteTemplate) {
@@ -173,8 +172,8 @@ export class StudioComponent implements OnDestroy {
     
     // Call service to create the note
     this.noteService.createNote(noteType, parameters).subscribe({
-      next: (createdNote: Note) => {
-        console.log('Note created successfully in component:', createdNote);
+      next: (id) => {
+        console.log('Note created successfully in component:', id);
         // The note list is automatically updated via the notes$ subscription
       },
       error: (error) => {
@@ -182,7 +181,7 @@ export class StudioComponent implements OnDestroy {
         // Handle error (you might want to show a user notification here)
       }
     });
-    
+
     // Close the parameter menu
     this.closeParameterMenu();
   }

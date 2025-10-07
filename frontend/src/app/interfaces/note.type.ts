@@ -3,7 +3,9 @@ export interface Note {
   name: string;
   content: string;
   type: string;
-  isLoading?: boolean; // Add this optional property for loading state
+  status_ready: boolean | undefined; // Add this optional property for loading state
+  estimatedTime?: number;  // Optional: for displaying time left
+
 }
 
 export interface NoteTemplate {
