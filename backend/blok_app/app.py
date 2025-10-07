@@ -320,7 +320,8 @@ class PodcastModel(BasicResourceModel):
 
 @app.get("/api/notes")
 async def get_notes(request):
-    results = db.get_notes()
+    id = request.args.get("nt_id")
+    results = db.get_notes(id)
     return json(results)
 
 @app.get("/api/note")
@@ -359,7 +360,7 @@ async def create_glossary(request, body: GlossaryModel):
     await task_queue.put((tasks.generate_glossary_task, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({}, status=202)
 
-@app.post("/api/chronogram")
+@app.post("/api/timeline")
 @validate(json=ChronogramModel)
 async def create_chronogram(request, body: ChronogramModel):
     await task_queue.put((tasks.generate_chronogram_task, (llm, db, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))

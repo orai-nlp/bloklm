@@ -229,7 +229,7 @@
     border-color: #1a73e8;
   }
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: #f8f9fa;
     border-color: #1a73e8;
     z-index: 1;
@@ -240,6 +240,11 @@
       opacity: 1;
       margin-left: 4px;
     }
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 
   .material-icons {
@@ -402,8 +407,110 @@
   }
 }
 
+// Notes List Styles
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notes-wrapper {
+  width: 100%;
+}
+
+.note-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.2s;
+
+  &:hover:not(.loading) {
+    background: #f8f9fa;
+    border-color: #1a73e8;
+    cursor: pointer;
+  }
+
+  &.loading {
+    background: #f8f9fa;
+    border: 1px dashed #dadce0;
+    
+    .loading-icon {
+      animation: pulse 1.5s ease-in-out infinite;
+      color: #1a73e8;
+    }
+    
+    .loading-text {
+      animation: fadeInOut 1.5s ease-in-out infinite;
+      color: #5f6368;
+    }
+  }
+
+  .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .material-icons {
+      font-size: 24px;
+      color: #5f6368;
+    }
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+
+    .note-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #202124;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .note-content {
+      font-size: 12px;
+      color: #5f6368;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+// Loading animations
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .notes-empty {
   text-align: center;
+  padding: 32px 16px;
 }
 
 .notes-icon {
@@ -441,5 +548,14 @@
   
   .option-btn {
     width: 100%;
+  }
+  
+  .note-container {
+    .content {
+      .note-title,
+      .note-content {
+        font-size: 13px;
+      }
+    }
   }
 }

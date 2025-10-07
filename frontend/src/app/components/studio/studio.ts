@@ -1,9 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { I18nService } from '../../services/i18n';
 import { NotebookService } from '../../services/notebook';
 import { NoteService } from '../../services/note';
-import { NoteParameters, NoteTemplate } from '../../interfaces/note.type';
+import { NoteParameters, NoteTemplate, Note } from '../../interfaces/note.type';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-studio',
@@ -11,11 +12,19 @@ import { NoteParameters, NoteTemplate } from '../../interfaces/note.type';
   templateUrl: './studio.html',
   styleUrl: './studio.scss'
 })
-export class StudioComponent {
+export class StudioComponent implements OnDestroy {
+  // Services 
   i18n = inject(I18nService);
   notebookService = inject(NotebookService);
   noteService = inject(NoteService);
+  cdr = inject(ChangeDetectorRef)
+
+  // Data
+  currentNotes: Note[] = []
+  isGenerating = false;
   
+
+  // Note types
   noteTemplates: NoteTemplate[] = [
     { 
       icon: 'school', 
@@ -34,7 +43,7 @@ export class StudioComponent {
     },
     { 
       icon: 'timeline', 
-      labelKey: 'timeline',
+      labelKey: 'chronogram',
       parameters: ['detail']
     },
     { 
@@ -83,6 +92,33 @@ export class StudioComponent {
     { value: 'narrative', label: 'studio_conf_opt_narrative' }
   ];
 
+  // Logistics
+  private destroy$ = new Subject<void>();
+  
+
+  constructor(){
+    this.setUpSubscribers()
+    this.noteService.getNotes()
+  }
+
+  setUpSubscribers(){
+    // Subscribe to notes
+    this.noteService.notes$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(notes => {
+        this.currentNotes = notes;
+        this.cdr.detectChanges();
+      });
+
+    // Subscribe to generating state
+    this.noteService.isGenerating$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(isGenerating => {
+        this.isGenerating = isGenerating;
+        this.cdr.detectChanges();
+      });
+  }
+
   openParameterMenu(template: NoteTemplate) {
     if (this.selectedTemplate === template) {
       this.closeParameterMenu();
@@ -120,17 +156,39 @@ export class StudioComponent {
     );
   }
 
+  iconFor(type: string): string {
+    return this.noteTemplates.find(t => t.labelKey === type)?.icon ?? 'note';
+  }
+
   createNote() {
     if (!this.selectedTemplate || !this.areAllParametersSelected()) return;
     
+    const noteType = this.selectedTemplate.labelKey;
+    const parameters = { ...this.selectedParameters };
+    
     console.log('Creating note:', {
-      type: this.selectedTemplate.labelKey,
-      parameters: this.selectedParameters
+      type: noteType,
+      parameters: parameters
     });
     
-    // TODO: Implement note creation logic
-    this.noteService.createNote(this.selectedTemplate.labelKey, this.selectedParameters);
+    // Call service to create the note
+    this.noteService.createNote(noteType, parameters).subscribe({
+      next: (createdNote: Note) => {
+        console.log('Note created successfully in component:', createdNote);
+        // The note list is automatically updated via the notes$ subscription
+      },
+      error: (error) => {
+        console.error('Error creating note in component:', error);
+        // Handle error (you might want to show a user notification here)
+      }
+    });
     
+    // Close the parameter menu
     this.closeParameterMenu();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

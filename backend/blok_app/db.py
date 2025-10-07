@@ -240,11 +240,11 @@ def retrieve_collection_documents(collection_id):
 ###################################################################################
 
 def get_notes(collection_id):
-    sql = f"SELECT id, name, description, type FROM Note WHERE bilduma_key = {collection_id};"
+    sql = f"SELECT id, name, content, type FROM Note WHERE bilduma_key = {collection_id};"
     return query_db_as_dict(sql)
 
 def get_note(note_id):
-    sql = f"SELECT id, name, description, type FROM Note WHERE id = {id};"
+    sql = f"SELECT id, name, content, type FROM Note WHERE id = {note_id};"
     return query_db_as_dict(sql)
 
 def create_note(name, note_type, content, collection_id):

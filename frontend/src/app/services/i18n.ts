@@ -136,7 +136,7 @@ export class I18nService {
       eu: "FAQ",
       es: "FAQ",
     },
-    timeline: {
+    chronogram: {
       eu: "Kronograma",
       es: "Cronograma",
     },

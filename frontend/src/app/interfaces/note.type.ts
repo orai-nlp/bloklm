@@ -3,6 +3,7 @@ export interface Note {
   name: string;
   content: string;
   type: string;
+  isLoading?: boolean; // Add this optional property for loading state
 }
 
 export interface NoteTemplate {

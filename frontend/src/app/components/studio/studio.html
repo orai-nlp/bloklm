@@ -13,6 +13,7 @@
                 class="template-btn" 
                 [class.active]="selectedTemplate === template"
                 [title]="i18n.translate(template.labelKey)"
+                [disabled]="isGenerating"
                 (click)="openParameterMenu(template)">
                 <span class="material-icons">{{ template.icon }}</span>
                 <span class="template-label">{{ i18n.translate(template.labelKey) }}</span>
@@ -26,6 +27,7 @@
                 class="template-btn" 
                 [class.active]="selectedTemplate === template"
                 [title]="i18n.translate(template.labelKey)"
+                [disabled]="isGenerating"
                 (click)="openParameterMenu(template)">
                 <span class="material-icons">{{ template.icon }}</span>
                 <span class="template-label">{{ i18n.translate(template.labelKey) }}</span>
@@ -134,7 +136,7 @@
                 <button class="cancel-btn" (click)="closeParameterMenu()">{{ i18n.translate("cancel") }}</button>
                 <button 
                     class="create-note-btn" 
-                    [disabled]="!areAllParametersSelected()"
+                    [disabled]="!areAllParametersSelected() || isGenerating"
                     (click)="createNote()">
                     {{ i18n.translate("studio_conf_create_btn") }}
                 </button>
@@ -142,13 +144,32 @@
         </div>
     }
     
-    <div class="notes-empty">
+    <div class="notes-empty" *ngIf="currentNotes.length === 0 && !isGenerating">
         <div class="notes-icon">
             <span class="material-icons">note</span>
         </div>
         <p class="notes-empty-text">{{ i18n.translate("studio_info_notes") }}</p>
         <p class="notes-empty-subtext">
         </p>
+    </div>
+
+    <div class="notes-list" *ngIf="currentNotes.length > 0">
+        <div *ngFor="let note of currentNotes"
+            class="notes-wrapper">
+            <div class="note-container" [class.loading]="note.isLoading">
+                <div class="icon">
+                    <span class="material-icons" *ngIf="!note.isLoading">{{ iconFor(note.type) }}</span>
+                    <span class="material-icons loading-icon" *ngIf="note.isLoading">hourglass_empty</span>
+                </div>
+                <div class="content">
+                    <span class="note-title" *ngIf="!note.isLoading">{{ note.name }}</span>
+                    <span class="note-title loading-text" *ngIf="note.isLoading">{{ i18n.translate('loading') }}...</span>
+                    
+                    <span class="note-content" *ngIf="!note.isLoading">{{ note.content | slice:0:35 }}...</span>
+                    <span class="note-content loading-text" *ngIf="note.isLoading">{{ i18n.translate('generating_note') }}...</span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

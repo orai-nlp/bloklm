@@ -36,6 +36,10 @@ export class NotebookService {
   getCurrentNotebook(): Notebook | null {
     return this.currentNotebook()
   }
+  
+  getCurrentId(): string | undefined {
+    return this.currentNotebook()?.id
+  }
 
   setCurrentNotebook(note: Notebook): void {
     this.currentNotebook.set(note)
