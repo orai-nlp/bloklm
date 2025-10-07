@@ -69,13 +69,19 @@ def commit_query_db(query, params = None):
         presql=datetime.datetime.now()
         if params and type(params[0]) in [list, tuple]:
             cur.executemany(query, params)
+            result = None
         else:
             cur.execute(query, params)
+            try:
+                result = cur.fetchone()[0]
+            except Exception:
+                result = None
         conn.commit()
         postsql=datetime.datetime.now()
         print("PostgreSQL: commited succesfully the change: ",postsql-presql) 
         cur.close()
         conn.close()
+        return result
     except Exception as exc:
         conn.rollback()
         print("Query failed:", exc)
@@ -240,14 +246,24 @@ def retrieve_collection_documents(collection_id):
 ###################################################################################
 
 def get_notes(collection_id):
-    sql = f"SELECT id, name, content, type FROM Note WHERE bilduma_key = {collection_id};"
+    sql = f"SELECT id, status_ready, name, content, type FROM Note WHERE bilduma_key = {collection_id};"
     return query_db_as_dict(sql)
 
 def get_note(note_id):
-    sql = f"SELECT id, name, content, type FROM Note WHERE id = {note_id};"
-    return query_db_as_dict(sql)
+    sql = f"SELECT id, status_ready, name, content, type FROM Note WHERE id = {note_id};"
+    res = query_db_as_dict(sql)
+    if len(res) == 0:
+        return None
+    if not res[0]["status_ready"]:
+        return False
+    return res[0]
 
-def create_note(name, note_type, content, collection_id):
-    sql = f"INSERT INTO Note (name, type, content, bilduma_key) VALUES (%s, %s, %s, %s)"
-    data = (name, note_type, content, collection_id)
+def create_empty_note(note_type, collection_id):
+    sql = f"INSERT INTO Note (status_ready, name, type, content, bilduma_key) VALUES (%s, %s, %s, %s, %s) RETURNING id"
+    data = (False, "", note_type, "", collection_id)
+    return commit_query_db(sql, data)
+
+def update_note(note_id, name, content):
+    sql = f"UPDATE Note SET status_ready = %s, name = %s, content = %s WHERE id = %s"
+    data = (True, name, content, note_id)
     commit_query_db(sql, data)

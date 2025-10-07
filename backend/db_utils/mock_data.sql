@@ -28,16 +28,16 @@ INSERT INTO Fitxategia (name, text, charNum, format, bilduma_key) VALUES
 -- 3) Nine notes (3 per collection, different types)
 INSERT INTO Note (name, type, content, bilduma_key) VALUES
   -- Euskal Literatura
-  ('Literatura laburpena', 'summary', 'This note provides a brief summary of Basque literature, highlighting major works and authors.', 1),
-  ('Literatura timeline',  'timeline', 'A chronological overview of significant events and publications in Basque literature.', 1),
-  ('Literatura FAQ',       'FAQ',      'Frequently asked questions about Basque literature, including common terms and authors.', 1),
+  (TRUE, 'Literatura laburpena', 'summary', 'This note provides a brief summary of Basque literature, highlighting major works and authors.', 1),
+  (TRUE, 'Literatura timeline',  'timeline', 'A chronological overview of significant events and publications in Basque literature.', 1),
+  (TRUE, 'Literatura FAQ',       'FAQ',      'Frequently asked questions about Basque literature, including common terms and authors.', 1),
 
   -- Software Dokumentazioa
-  ('API gida',             'outline',  'Step-by-step guide outlining the API endpoints, request formats, and usage examples.', 2),
-  ('Setup mindmap',        'mindmap',  'Visual mindmap showing the setup process for the software, including dependencies and configurations.', 2),
-  ('Release notes',        'summary',  'Summary of the latest software release, including new features, bug fixes, and known issues.', 2),
+  (TRUE, 'API gida',             'outline',  'Step-by-step guide outlining the API endpoints, request formats, and usage examples.', 2),
+  (TRUE, 'Setup mindmap',        'mindmap',  'Visual mindmap showing the setup process for the software, including dependencies and configurations.', 2),
+  (TRUE, 'Release notes',        'summary',  'Summary of the latest software release, including new features, bug fixes, and known issues.', 2),
 
   -- Azterketa-gidak
-  ('DB azterketa-gida',    'outline',  'Comprehensive study guide for database exams, covering key concepts and sample questions.', 3),
-  ('Timeline 2025',        'timeline', 'Timeline of important academic events and deadlines for the year 2025.', 3),
-  ('Ohiko galderak',       'FAQ',      'Common questions and answers related to exam preparation and study techniques.', 3);
+  (TRUE, 'DB azterketa-gida',    'outline',  'Comprehensive study guide for database exams, covering key concepts and sample questions.', 3),
+  (TRUE, 'Timeline 2025',        'timeline', 'Timeline of important academic events and deadlines for the year 2025.', 3),
+  (TRUE, 'Ohiko galderak',       'FAQ',      'Common questions and answers related to exam preparation and study techniques.', 3);
