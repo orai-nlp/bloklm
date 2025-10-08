@@ -116,6 +116,31 @@ def create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, out
         output_key=output_key,
     )
 
+def generate_note_title(llm, db, note_type, note_content, collection_id):
+    collection = db.get_bilduma(collection_id)
+    prompt_template = PromptTemplate(
+        input_variables=["collection_title", "collection_summary", "note_type", "note_content"],
+        template=(
+            "Based on the following note, generate a concise and descriptive title.\n"
+            "The note is part of a collection with the following title and summary. Use this information to create a more relevant title.\n\n"
+            "Return only the requested title. Do not add any explanations, comments, or extra text.\n\n"
+            "Collection title: {collection_title}\n"
+            "Collection summary: {collection_summary}\n"
+            "Note type: {note_type}\n"
+            "Note content:\n"
+            "{note_content}\n\n"
+            "Title:"
+        )
+    )
+    chain = LLMChain(llm=llm, prompt=prompt_template)
+    title = chain.invoke({
+        "collection_title": collection.get("title", ""),
+        "collection_summary": collection.get("summary", ""),
+        "note_type": note_type,
+        "note_content": note_content,
+    })
+    return title["text"].strip().strip('"')
+
 def generate_note(llm, db, collection_id, file_ids, prompter, custom_conf):
     docs = retrieve_docs(db, collection_id, file_ids)
 

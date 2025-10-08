@@ -151,7 +151,7 @@ def get_bildumak():
 
 def get_bilduma(id):
     bilduma_sql = f"SELECT id, name, title, summary, create_date::TEXT AS c_date, update_date::TEXT AS u_date FROM Bilduma WHERE id = {id};"
-    return query_db_as_dict(bilduma_sql)
+    return query_db_as_dict(bilduma_sql)[0]
 
 def create_bilduma(args):
     id = args["id"]

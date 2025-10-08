@@ -134,7 +134,7 @@ export class NotebookService {
     const raw$ = this.call_backend('bilduma', 'GET', { id }, undefined);
     const data = await firstValueFrom(raw$);
 
-    notebook = this.convertBackendNotebook(data[0]);
+    notebook = this.convertBackendNotebook(data);
     this.currentNotebook.set(notebook);
     return notebook;
   }
