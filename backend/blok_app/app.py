@@ -215,6 +215,16 @@ async def create_chat(request):
     except Exception as e:
         error_msg = 'Error while setting chat id in bilduma: ' + str(e)
         raise Exception(error_msg)
+    
+@app.get("/api/delete_chat")
+async def delete_chat(request):
+    id = request.args.get("nt_id")
+    try:
+        rag.reset_chat(id)
+        return json({"chat_id": id, 'ok': True})
+    except Exception as e:
+        error_msg = 'Error while setting chat id in bilduma: ' + str(e)
+        raise Exception(error_msg)
 
 @app.get("/api/get_chat")
 async def get_chat(request):
