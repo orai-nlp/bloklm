@@ -218,7 +218,7 @@ async def create_chat(request):
     
 @app.get("/api/delete_chat")
 async def delete_chat(request):
-    id = request.args.get("nt_id")
+    id = int(request.args.get("nt_id"))
     try:
         rag.reset_chat(id)
         return json({"chat_id": id, 'ok': True})
