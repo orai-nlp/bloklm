@@ -29,6 +29,7 @@
     "@angular/forms": "^20.1.0",
     "@angular/platform-browser": "^20.1.2",
     "@angular/router": "^20.1.0",
+    "cytoscape": "^3.33.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -36,6 +37,7 @@
     "@angular/build": "^20.1.1",
     "@angular/cli": "^20.1.1",
     "@angular/compiler-cli": "^20.1.0",
+    "@types/cytoscape": "^3.21.9",
     "@types/jasmine": "~5.1.0",
     "dotenv": "^17.2.2",
     "jasmine-core": "~5.8.0",

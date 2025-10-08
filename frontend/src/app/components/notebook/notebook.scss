@@ -64,8 +64,33 @@
 .notebook-content {
   flex: 1;
   display: grid;
-  grid-template-columns: 300px 1fr 300px;
+  grid-template-columns: 250px 1fr 400px;
   overflow: hidden;
+  position: relative;
+}
+
+.panel-resizer {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  position: relative;
+  transition: background-color 0.2s;
+  z-index: 10;
+
+  &:hover,
+  &.active {
+    background: #1a73e8;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -2px;
+    right: -2px;
+    background: transparent;
+  }
 }
 
 .sources-panel,
@@ -237,14 +262,13 @@
 
 .chat-content {
   flex: 1;
-  padding: 0; // Remove padding
-  display: flex; // Make it a flex container
+  padding: 0;
+  display: flex;
   flex-direction: column;
-  overflow: hidden; // Prevent overflow
-  min-height: 0; // Important for flex children
+  overflow: hidden;
+  min-height: 0;
 }
 
-// Add this new class to ensure the chat component takes full height
 .chat-content app-chat {
   display: flex;
   flex: 1;

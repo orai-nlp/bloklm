@@ -1,0 +1,26 @@
+@if (isVisible && note) {
+  <div class="modal-backdrop" (click)="onBackdropClick($event)">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">{{ note.name }}</h2>
+        <button class="modal-close-btn" (click)="close()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      
+      <div class="modal-content">
+        @if (isMindmap) {
+          <div id="mindmap-container" class="mindmap-container"></div>
+        } @else {
+          <div class="markdown-content" [innerHTML]="renderedContent"></div>
+        }
+      </div>
+      
+      <div class="modal-footer">
+        <button class="modal-btn-close" (click)="close()">
+          {{ i18n.translate('close') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

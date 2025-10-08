@@ -155,17 +155,22 @@
         <div *ngFor="let note of currentNotes"
             class="notes-wrapper">
             <div class="note-container" [class.loading]="!note.status_ready">
-                <div class="icon">
-                    <span class="material-icons" *ngIf="note.status_ready">{{ iconFor(note.type) }}</span>
-                    <span class="material-icons loading-icon" *ngIf="!note.status_ready">hourglass_empty</span>
+                <div class="note-content-wrapper" (click)="onClickShowContent(note)">
+                    <div class="icon">
+                        <span class="material-icons" *ngIf="note.status_ready">{{ iconFor(note.type) }}</span>
+                        <span class="material-icons loading-icon" *ngIf="!note.status_ready">hourglass_empty</span>
+                    </div>
+                    <div class="content">
+                        <span class="note-title" *ngIf="note.status_ready">{{ note.name }}</span>
+                        <span class="note-title loading-text" *ngIf="!note.status_ready">{{ i18n.translate('loading') }}...</span>
+                        
+                        <span class="note-content" *ngIf="note.status_ready">{{ note.content | slice:0:35 }}...</span>
+                        <span class="note-content loading-text" *ngIf="!note.status_ready">{{i18n.language == 'eu'? i18n.translate(note.type)+ 'ren ' : ''}}{{ i18n.translate('studio_generating_note') }} {{i18n.language == 'es'? i18n.translate(note.type) : ''}}...</span>
+                    </div>
                 </div>
-                <div class="content">
-                    <span class="note-title" *ngIf="note.status_ready">{{ note.name }}</span>
-                    <span class="note-title loading-text" *ngIf="!note.status_ready">{{ i18n.translate('loading') }}...</span>
-                    
-                    <span class="note-content" *ngIf="note.status_ready">{{ note.content | slice:0:35 }}...</span>
-                    <span class="note-content loading-text" *ngIf="!note.status_ready">{{ i18n.translate('generating_note') }}...</span>
-                </div>
+                <button class="delete-note-btn" (click)="deleteNote(note)" [disabled]="!note.status_ready">
+                    <span class="material-icons">delete</span>
+                </button>
             </div>
         </div>
     </div>

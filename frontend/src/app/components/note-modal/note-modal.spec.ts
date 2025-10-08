@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { StudioComponent } from './studio';
+import { NoteModalComponent } from './note-modal';
 
-describe('StudioComponent', () => {
-  let component: StudioComponent;
-  let fixture: ComponentFixture<StudioComponent>;
+describe('NoteModal', () => {
+  let component: NoteModalComponent;
+  let fixture: ComponentFixture<NoteModalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [StudioComponent]
+      imports: [NoteModalComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(StudioComponent);
+    fixture = TestBed.createComponent(NoteModalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

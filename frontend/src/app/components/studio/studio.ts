@@ -71,7 +71,7 @@ export class StudioComponent implements OnDestroy {
   styleOptions = [
     { value: 'academic', label: 'studio_conf_opt_academic' },
     { value: 'technical', label: 'studio_conf_opt_technical' },
-    { value: 'non-technical', label: 'Non-studio_conf_opt_non_expert' }
+    { value: 'non-technical', label: 'studio_conf_opt_non_expert' }
   ];
 
   detailOptions = [
@@ -116,6 +116,12 @@ export class StudioComponent implements OnDestroy {
     //     this.isGenerating = isGenerating;
     //     this.cdr.detectChanges();
     //   });
+  }
+
+  onClickShowContent(note: Note): void {
+    if (note.status_ready) {
+      this.noteService.open(note);
+    }
   }
 
   openParameterMenu(template: NoteTemplate) {
@@ -184,6 +190,20 @@ export class StudioComponent implements OnDestroy {
 
     // Close the parameter menu
     this.closeParameterMenu();
+  }
+
+  deleteNote(note: Note) {
+    if (!note.status_ready) return;
+    
+    this.noteService.deleteNote(note.id).subscribe({
+      next: () => {
+        console.log('Note deleted successfully:', note.id);
+      },
+      error: (error) => {
+        console.error('Error deleting note:', error);
+        // Handle error (you might want to show a user notification here)
+      }
+    });
   }
 
   ngOnDestroy() {

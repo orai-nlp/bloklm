@@ -344,6 +344,16 @@ async def get_note(request):
         return json({}, status=404)
     return json(note)
 
+@app.get("/api/delete_note")
+async def delete_note(request):
+    id = request.args.get("id")
+    try:
+        db.ezabatu_nota(id)
+        return json({"note_id": id, 'ok': True})
+    except Exception as e:
+        error_msg = 'Error while setting note id in bilduma: ' + str(e)
+        raise Exception(error_msg)
+
 @app.post("/api/summary")
 @validate(json=SummaryModel)
 async def create_summary(request, body: SummaryModel):

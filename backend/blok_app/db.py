@@ -258,6 +258,10 @@ def get_note(note_id):
         return False
     return res[0]
 
+def ezabatu_nota(id):
+    q = f"DELETE FROM Note WHERE id = {id};"
+    commit_query_db(q)
+
 def create_empty_note(note_type, collection_id):
     sql = f"INSERT INTO Note (status_ready, name, type, content, bilduma_key) VALUES (%s, %s, %s, %s, %s) RETURNING id"
     data = (False, "", note_type, "", collection_id)

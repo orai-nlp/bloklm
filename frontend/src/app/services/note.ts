@@ -10,6 +10,20 @@ import { NotebookService } from './notebook';
   providedIn: 'root'
 })
 export class NoteService implements OnDestroy{
+
+  // FOR MODAL
+
+  private noteSubject = new BehaviorSubject<Note | null>(null);
+  public note$ = this.noteSubject.asObservable();
+
+  open(note: Note) {
+    this.noteSubject.next(note);
+  }
+
+  close() {
+    this.noteSubject.next(null);
+  }
+  
   // inject 
   http = inject(HttpClient)
   notebookService = inject(NotebookService)
@@ -59,6 +73,27 @@ export class NoteService implements OnDestroy{
 
         // Start polling for this note
         this.startPolling(response.id);
+      })
+    );
+  }
+
+  deleteNote(noteId: string): Observable<void> {
+  return this.call_backend<void>('delete_note', 'GET', { id: noteId }, undefined)
+    .pipe(
+      tap(() => {
+        console.log('Note deleted from backend:', noteId);
+        
+        // Stop polling if active
+        this.stopPolling(noteId);
+        
+        // Remove note from the list
+        const currentNotes = this.notesSubject.value;
+        const updatedNotes = currentNotes.filter(note => note.id !== noteId);
+        this.notesSubject.next(updatedNotes);
+      }),
+      catchError((error) => {
+        console.error('Error deleting note:', error);
+        return throwError(() => error);
       })
     );
   }
@@ -149,7 +184,7 @@ export class NoteService implements OnDestroy{
   }
 
   private updateNoteStatus(noteId: string, noteStatus: Partial<Note>) {
-    debugger
+
     const currentNotes = this.notesSubject.value;
     const updatedNotes = currentNotes.map(note => {
       if (note.id === noteId) {

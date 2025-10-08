@@ -142,7 +142,7 @@ export class I18nService {
     },
     mindmap: {
       eu: "Kontzeptu-mapa",
-      es: "Mapa de Conceptos",
+      es: "Mapa Conceptual",
     },
     outline: {
       eu: "Eskema",
@@ -211,6 +211,10 @@ export class I18nService {
     cancel: {
       eu:"Ezeztatu",
       es:"Anular"
+    },
+    close: {
+      eu:"Itxi",
+      es:"Cerrar"
     },
     confirm_delete: {
       eu:"Ziur zaude hurrengo bilduma ezabatu nahi duzula: ",
@@ -329,8 +333,8 @@ export class I18nService {
       es:"Complejidad Linguística"
     },
     studio_conf_type: {
-      eu:"Mota",
-      es:"Tipo"
+      eu:"Podcast mota",
+      es:"Tipo de podcast"
     },
     studio_conf_create_btn: {
       eu:"Sortu Oharra",
@@ -395,6 +399,10 @@ export class I18nService {
     studio_info_notes: {
       eu:"Gordetako oharrak hemen agertuko dira",
       es:"Las notas guardadas aparecerán aquí"
+    },
+    studio_generating_note: {
+      eu:"edukiak sortzen",
+      es:"Generando el contenido del"
     },
   }
 

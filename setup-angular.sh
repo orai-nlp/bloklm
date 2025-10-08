@@ -446,6 +446,9 @@ install_dependencies(){
     echo
     npm install
     echo
+    npm install cytoscape
+    npm install --save-dev @types/cytoscape
+    echo
     print_success "Installation completed!"
     echo
 }

@@ -431,7 +431,10 @@
   &:hover:not(.loading) {
     background: #f8f9fa;
     border-color: #1a73e8;
-    cursor: pointer;
+    
+    .delete-note-btn {
+      opacity: 1;
+    }
   }
 
   &.loading {
@@ -447,6 +450,15 @@
       animation: fadeInOut 1.5s ease-in-out infinite;
       color: #5f6368;
     }
+  }
+
+  .note-content-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
   }
 
   .icon {
@@ -485,8 +497,38 @@
       white-space: nowrap;
     }
   }
-}
 
+
+  .delete-note-btn {
+    padding: 6px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      background: #fce8e6;
+      
+      .material-icons {
+        color: #d93025;
+      }
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.3;
+    }
+
+    .material-icons {
+      font-size: 20px;
+      color: #5f6368;
+      transition: color 0.2s;
+    }
+  }
+}
 // Loading animations
 @keyframes pulse {
   0%, 100% {

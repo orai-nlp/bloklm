@@ -100,15 +100,6 @@ export class ChatService {
     }
   }
 
-  // loadChat(ntId: string): Chat | null {
-    
-
-  //     this.currentChatSubject.next({ ...chat });
-  //     return { ...chat };
-    
-  //   return null;
-  // }
-
   addMessageToCurrentChat(message: Message): void {
     const currentChat = this.currentChatSubject.value;
     if (!currentChat) return;
@@ -337,11 +328,16 @@ export class ChatService {
   clearAllData(): void {
     try {
       localStorage.clear();
-      this.currentChatSubject.next(null);
-      this.themeSubject.next('light');
+      this.currentChatSubject.next({title: this.currentChatSubject.value?.title || '', messages: this.currentChatSubject.value?.messages.slice(0, 1) ?? []});
       this.isGeneratingSubject.next(false);
+
+      //backend
+
+      this.call_backend('delete_chat', 'GET', {nt_id: this.notebookService.getCurrentId() || ''}, undefined).subscribe(()=>{
+        console.log('Chat deleted in backend!');
+      })
     } catch (error) {
-      console.error('Error clearing localStorage:', error);
+      console.error('Error clearing chat:', error);
       throw error;
     }
   }
