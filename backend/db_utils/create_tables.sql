@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS Note (
     name VARCHAR(255) NOT NULL,
     type VARCHAR(10) CHECK (type IN ('summary', 'outline', 'glossary', 'FAQ', 'timeline', 'mindmap')),
     content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     bilduma_key BIGINT REFERENCES Bilduma(id) ON DELETE CASCADE
 );
 
