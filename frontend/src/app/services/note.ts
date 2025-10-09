@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, tap, finalize, interval, switchMap, takeWh
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { NotebookService } from './notebook';
+import { I18nService } from './i18n';
 
 
 @Injectable({
@@ -27,6 +28,7 @@ export class NoteService implements OnDestroy{
   // inject 
   http = inject(HttpClient)
   notebookService = inject(NotebookService)
+  i18n = inject(I18nService)
   
   // Subjects
   private notesSubject = new BehaviorSubject<Note[]>([])
@@ -37,7 +39,11 @@ export class NoteService implements OnDestroy{
   private pollingIntervals = new Map<string, any>(); // Track active polling
 
   createNote(type: string, parameters: NoteParameters): Observable<{ id: string }> {
-    const ids = this.notebookService.getSources().map(s => s.id);
+    const ids = this.notebookService.getSources().filter(s => s.selected).map(s => s.id);
+    if(ids.length == 0){
+      alert(this.i18n.translate('studio_not_sources_selected'))
+      throw new Error(this.i18n.translate('studio_not_sources_selected'))
+    }
     const collectionId = this.notebookService.getCurrentId() || ''
     
     if (!collectionId) {
@@ -64,7 +70,9 @@ export class NoteService implements OnDestroy{
           type: type,
           name: '',
           content: '',
-          status_ready: false
+          status_ready: false,
+          created_at: new Date(),
+          contained_file_ids: ids
         };
 
         // Add loading note to the list

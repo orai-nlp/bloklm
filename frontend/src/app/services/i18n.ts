@@ -72,6 +72,22 @@ export class I18nService {
       eu: "Ezarpenak",
       es: "Configuración",
     },
+    today: {
+      eu: "Gaur",
+      es: "Hoy",
+    },
+    yestarday: {
+      eu: "Atzo",
+      es: "Ayer",
+    },
+    days_ago_1: {
+      eu: "Duela",
+      es: "Hace",
+    },
+    days_ago_2: {
+      eu: "egun",
+      es: "días",
+    },
     configure: {
       eu: "Konfiguratu",
       es: "Configura",
@@ -304,6 +320,10 @@ export class I18nService {
       eu:"Ezabatu Mezuak",
       es:"Borrar Mensajes"
     },  
+    chat_clear_noti: {
+      eu:"Txateko mezuak ezabatu dira",
+      es:"Se han borrado los mensajes del chat"
+    },  
     chat_loading_message: {
       eu:"Txata kargatzen",
       es:"Cargando el chat"
@@ -403,6 +423,10 @@ export class I18nService {
     studio_generating_note: {
       eu:"edukiak sortzen",
       es:"Generando el contenido del"
+    },
+    studio_not_sources_selected: {
+      eu:"Aukeratu gutxienez fitxategi 1 mesedez",
+      es:"Selecciona, al menos, 1 archivo por favor"
     },
   }
 

@@ -154,7 +154,8 @@ export class NotebookService {
         id: String(b.id),
         name: b.name,
         type: b.format.toLowerCase(),
-        size: b.charNum  
+        size: b.charNum,
+        selected:true
     };
   }
 
@@ -220,6 +221,7 @@ export class NotebookService {
         name: file.name,
         type: this.getFileType(file.name),
         size: file.size,
+        selected:true
       }
       newSources.push(source)
     }

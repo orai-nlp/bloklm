@@ -1,3 +1,34 @@
+// Note color variables
+$note-color-outline: #F5AD8F;
+$note-color-summary: #A1B6CD;
+$note-color-faq: #F2EED5;
+$note-color-timeline: #DFB9DF;
+$note-color-glossary: #ECACB7;
+$note-color-mindmap: #ADF3E6;
+
+// Optional map for easier iteration in SCSS
+$note-colors: (
+  'outline': $note-color-outline,
+  'summary': $note-color-summary,
+  'faq': $note-color-faq,
+  'timeline': $note-color-timeline,
+  'glossary': $note-color-glossary,
+  'mindmap': $note-color-mindmap
+);
+
+@mixin note-background($type, $lighter: false) {
+  @if map-has-key($note-colors, $type) {
+    $base-color: map-get($note-colors, $type);
+    @if $lighter {
+      background-color: rgba($base-color, 0.3);
+      border-color: rgba(darken($base-color, 10%), 0.4);
+    } @else {
+      background-color: $base-color;
+      border-color: darken($base-color, 10%);
+    }
+  }
+}
+
 .panel-header {
   display: flex;
   justify-content: space-between;
@@ -212,33 +243,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 12px;
-  background: white;
+  gap: 6px;
+  padding: 12px 16px;
+  // background: white;
   border: 1px solid #dadce0;
   border-radius: 4px;
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
-  flex: 0 0 calc(20% - 6px);
+  flex: 0 0 calc(33.333% - 3px); // Changed to 3 buttons per row
   min-width: 0;
   transition: all 0.2s;
 
   &.active {
-    background: #e8f0fe;
-    border-color: #1a73e8;
+    border-color: #000000;
   }
 
   &:hover:not(:disabled) {
-    background: #f8f9fa;
-    border-color: #1a73e8;
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     z-index: 1;
-    flex: 0 0 auto;
 
     .template-label {
-      max-width: 200px;
-      opacity: 1;
-      margin-left: 4px;
+      font-weight: 600;
     }
   }
 
@@ -254,13 +281,65 @@
   }
 
   .template-label {
-    max-width: 0;
-    opacity: 0;
     overflow: hidden;
-    transition: all 1s ease;
-    margin-left: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: font-weight 0.2s;
+  }
+  // Type-specific colors using data attributes (more reliable)
+  // Lighter colors for inactive state
+  &[data-template-type="outline"]:not(.active) {
+    @include note-background('outline', true);
+  }
+
+  &[data-template-type="summary"]:not(.active) {
+    @include note-background('summary', true);
+  }
+
+  &[data-template-type="faq"]:not(.active),
+  &[data-template-type="FAQ"]:not(.active) {
+    @include note-background('faq', true);
+  }
+
+  &[data-template-type="timeline"]:not(.active) {
+    @include note-background('timeline', true);
+  }
+
+  &[data-template-type="glossary"]:not(.active) {
+    @include note-background('glossary', true);
+  }
+
+  &[data-template-type="mindmap"]:not(.active) {
+    @include note-background('mindmap', true);
+  }
+
+  // Full color for active state
+  &.active[data-template-type="outline"] {
+    @include note-background('outline');
+  }
+
+  &.active[data-template-type="summary"] {
+    @include note-background('summary');
+  }
+
+  &.active[data-template-type="faq"],
+  &.active[data-template-type="FAQ"] {
+    @include note-background('faq');
+  }
+
+  &.active[data-template-type="timeline"] {
+    @include note-background('timeline');
+  }
+
+  &.active[data-template-type="glossary"] {
+    @include note-background('glossary');
+  }
+
+  &.active[data-template-type="mindmap"] {
+    @include note-background('mindmap');
   }
 }
+
 
 // Parameter Menu Styles
 .parameter-menu {
@@ -428,9 +507,40 @@
   background: white;
   transition: all 0.2s;
 
+  &[data-note-type="outline"] {
+    background-color: lighten($note-color-outline, 10%);
+    border-color: lighten(darken($note-color-outline, 10%), 5%);
+  }
+
+  &[data-note-type="summary"] {
+    background-color: lighten($note-color-summary, 10%);
+    border-color: lighten(darken($note-color-summary, 10%), 5%);
+  }
+
+  &[data-note-type="faq"] {
+    background-color: lighten($note-color-faq, 10%);
+    border-color: lighten(darken($note-color-faq, 10%), 5%);
+  }
+
+  &[data-note-type="timeline"] {
+    background-color: lighten($note-color-timeline, 10%);
+    border-color: lighten(darken($note-color-timeline, 10%), 5%);
+  }
+
+  &[data-note-type="glossary"] {
+    background-color: lighten($note-color-glossary, 10%);
+    border-color: lighten(darken($note-color-glossary, 10%), 5%);
+  }
+
+  &[data-note-type="mindmap"] {
+    background-color: lighten($note-color-mindmap, 10%);
+    border-color: lighten(darken($note-color-mindmap, 10%), 5%);
+  }
+
+  // Keep hover styles but adjust for colored backgrounds
   &:hover:not(.loading) {
-    background: #f8f9fa;
-    border-color: #1a73e8;
+    filter: brightness(0.95);
+    border-width: 2px;
     
     .delete-note-btn {
       opacity: 1;
@@ -489,7 +599,7 @@
       white-space: nowrap;
     }
 
-    .note-content {
+    .note-metadata {
       font-size: 12px;
       color: #5f6368;
       overflow: hidden;
@@ -529,6 +639,7 @@
     }
   }
 }
+
 // Loading animations
 @keyframes pulse {
   0%, 100% {

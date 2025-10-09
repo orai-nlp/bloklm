@@ -9,11 +9,12 @@ import{Source} from '../../interfaces/source.type';
 import { UploadModalComponent } from "../upload-modal/upload-modal"
 import { ChatComponent } from "../chat/chat"
 import { StudioComponent } from "../studio/studio"
+import { FormsModule } from "@angular/forms"
 
 @Component({
   selector: "app-notebook",
   standalone: true,
-  imports: [CommonModule, UploadModalComponent, ChatComponent, StudioComponent],
+  imports: [CommonModule, UploadModalComponent, ChatComponent, StudioComponent, FormsModule],
   templateUrl: "./notebook.html",
   styleUrls: ["./notebook.scss"],
 })

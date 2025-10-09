@@ -3,6 +3,7 @@ export interface Source {
   name: string
   type: "pdf" | "txt" | "doc" | "docx" | "srt" | string
   size: number
+  selected: true
 }
 
 export interface BackendSource {

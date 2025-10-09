@@ -448,6 +448,12 @@ install_dependencies(){
     echo
     npm install cytoscape
     npm install --save-dev @types/cytoscape
+    npm install marked
+    npm install --save-dev @types/marked
+    npm install dompurify
+    npm install --save-dev @types/dompurify
+    npm install @angular/material
+    npm install --save-dev @angular/material
     echo
     print_success "Installation completed!"
     echo

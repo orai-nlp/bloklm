@@ -28,32 +28,38 @@ export class StudioComponent implements OnDestroy {
     { 
       icon: 'school', 
       labelKey: 'outline',
-      parameters: ['detail']
+      parameters: ['detail'],
+      color: '#F5AD8F' // soft coral
     },
     { 
       icon: 'description', 
       labelKey: 'summary',
-      parameters: ['formality', 'style', 'detail', 'language_complexity']
+      parameters: ['formality', 'style', 'detail', 'language_complexity'],
+      color: '#A1B6CD' // cool steel blue
     },
     { 
       icon: 'help', 
       labelKey: 'FAQ',
-      parameters: ['detail', 'language_complexity']
+      parameters: ['detail', 'language_complexity'],
+      color: '#F2EED5' // light sand
     },
     { 
       icon: 'timeline', 
       labelKey: 'timeline',
-      parameters: ['detail']
+      parameters: ['detail'],
+      color: '#DFB9DF' // soft lavender
     },
     { 
       icon: 'menu_book', 
       labelKey: 'glossary',
-      parameters: ['detail', 'language_complexity']
+      parameters: ['detail', 'language_complexity'],
+      color: '#ECACB7' // rose pink
     },
     { 
       icon: 'device_hub', 
       labelKey: 'mindmap',
-      parameters: ['detail']
+      parameters: ['detail'],
+      color: '#ADF3E6' // mint aqua
     }
   ];
 
@@ -121,6 +127,23 @@ export class StudioComponent implements OnDestroy {
   onClickShowContent(note: Note): void {
     if (note.status_ready) {
       this.noteService.open(note);
+    }
+  }
+  
+  getDaysAgo(createdAt: Date | undefined): string {
+    if (!createdAt) return '';
+    
+    const now = new Date();
+    const created = new Date(createdAt);
+    const diffTime = Math.abs(now.getTime() - created.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return this.i18n.translate('today');
+    } else if (diffDays === 1) {
+      return this.i18n.translate('yesterday');
+    } else {
+      return `${this.i18n.translate('days_ago_1')} ${diffDays} ${this.i18n.translate('days_ago_2')}`;
     }
   }
 

@@ -13,6 +13,7 @@
                 class="template-btn" 
                 [class.active]="selectedTemplate === template"
                 [title]="i18n.translate(template.labelKey)"
+                [attr.data-template-type]="template.labelKey"
                 (click)="openParameterMenu(template)">
                 <span class="material-icons">{{ template.icon }}</span>
                 <span class="template-label">{{ i18n.translate(template.labelKey) }}</span>
@@ -26,6 +27,7 @@
                 class="template-btn" 
                 [class.active]="selectedTemplate === template"
                 [title]="i18n.translate(template.labelKey)"
+                [attr.data-template-type]="template.labelKey"
                 (click)="openParameterMenu(template)">
                 <span class="material-icons">{{ template.icon }}</span>
                 <span class="template-label">{{ i18n.translate(template.labelKey) }}</span>
@@ -154,7 +156,9 @@
     <div class="notes-list" *ngIf="currentNotes.length > 0">
         <div *ngFor="let note of currentNotes"
             class="notes-wrapper">
-            <div class="note-container" [class.loading]="!note.status_ready">
+            <div class="note-container" 
+                [class.loading]="!note.status_ready"
+                [attr.data-note-type]="note.type">
                 <div class="note-content-wrapper" (click)="onClickShowContent(note)">
                     <div class="icon">
                         <span class="material-icons" *ngIf="note.status_ready">{{ iconFor(note.type) }}</span>
@@ -164,8 +168,10 @@
                         <span class="note-title" *ngIf="note.status_ready">{{ note.name }}</span>
                         <span class="note-title loading-text" *ngIf="!note.status_ready">{{ i18n.translate('loading') }}...</span>
                         
-                        <span class="note-content" *ngIf="note.status_ready">{{ note.content | slice:0:35 }}...</span>
-                        <span class="note-content loading-text" *ngIf="!note.status_ready">{{i18n.language == 'eu'? i18n.translate(note.type)+ 'ren ' : ''}}{{ i18n.translate('studio_generating_note') }} {{i18n.language == 'es'? i18n.translate(note.type) : ''}}...</span>
+                        <span class="note-metadata" *ngIf="note.status_ready">
+                            {{ i18n.translate(note.type) }} • {{ note.contained_file_ids.length }} {{i18n.translate('source')}}{{ note.contained_file_ids.length !== 1 && i18n.language == 'es' ? 's':''}} • {{ getDaysAgo(note.created_at) }}
+                        </span>
+                        <span class="note-metadata loading-text" *ngIf="!note.status_ready">{{i18n.language == 'eu'? i18n.translate(note.type)+ 'ren ' : ''}}{{ i18n.translate('studio_generating_note') }} {{i18n.language == 'es'? i18n.translate(note.type) : ''}}...</span>
                     </div>
                 </div>
                 <button class="delete-note-btn" (click)="deleteNote(note)" [disabled]="!note.status_ready">

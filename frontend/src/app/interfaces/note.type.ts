@@ -4,14 +4,15 @@ export interface Note {
   content: string;
   type: string;
   status_ready: boolean | undefined; // Add this optional property for loading state
-  estimatedTime?: number;  // Optional: for displaying time left
-
+  created_at?: Date;  // Optional: for displaying time left
+  contained_file_ids: string[];
 }
 
 export interface NoteTemplate {
   icon: string;
   labelKey: string;
   parameters: string[]; // Which parameters this note type needs
+  color: string;
 }
 
 export interface NoteParameters {

@@ -246,11 +246,11 @@ def retrieve_collection_documents(collection_id):
 ###################################################################################
 
 def get_notes(collection_id):
-    sql = f"SELECT id, status_ready, name, content, type FROM Note WHERE bilduma_key = {collection_id};"
+    sql = f"SELECT id, status_ready, name, content, type, contained_file_ids, created_at::TEXT AS created_at FROM Note WHERE bilduma_key = {collection_id};"
     return query_db_as_dict(sql)
 
 def get_note(note_id):
-    sql = f"SELECT id, status_ready, name, content, type FROM Note WHERE id = {note_id};"
+    sql = f"SELECT id, status_ready, name, content, type, contained_file_ids, created_at::TEXT AS created_at FROM Note WHERE id = {note_id};"
     res = query_db_as_dict(sql)
     if len(res) == 0:
         return None
@@ -262,9 +262,10 @@ def ezabatu_nota(id):
     q = f"DELETE FROM Note WHERE id = {id};"
     commit_query_db(q)
 
-def create_empty_note(note_type, collection_id):
-    sql = f"INSERT INTO Note (status_ready, name, type, content, bilduma_key) VALUES (%s, %s, %s, %s, %s) RETURNING id"
-    data = (False, "", note_type, "", collection_id)
+def create_empty_note(note_type, collection_id, file_ids):
+    print('NOTEEEEE: ', str(file_ids))
+    sql = f"INSERT INTO Note (status_ready, name, type, content, contained_file_ids, bilduma_key) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id"
+    data = (False, "", note_type, "", file_ids, collection_id)
     return commit_query_db(sql, data)
 
 def update_note(note_id, name, content):

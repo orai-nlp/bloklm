@@ -5,6 +5,8 @@ import { Subject, takeUntil } from 'rxjs';
 import { I18nService } from '../../services/i18n';
 import { NoteService } from '../../services/note';
 import cytoscape from 'cytoscape';
+import { marked, Tokens } from 'marked';
+import DOMPurify from 'dompurify';
 
 @Component({
   selector: 'app-note-modal',
@@ -24,6 +26,28 @@ export class NoteModalComponent implements OnInit, OnDestroy {
   
   private destroy$ = new Subject<void>();
   private cy: any = null; // Cytoscape instance
+
+  constructor() {
+    // Configure marked options for better markdown rendering
+    marked.setOptions({
+      gfm: true,           // GitHub Flavored Markdown
+      breaks: false         // Convert \n to <br>
+    });
+
+    // Custom renderer to preserve whitespace in code blocks
+    const renderer = new marked.Renderer();
+    
+    renderer.code = ({ text, lang }: Tokens.Code): string => {
+      const language = lang || 'text';
+      return `<pre><code class="language-${language}">${this.escapeHtml(text)}</code></pre>`;
+    };
+
+    renderer.codespan = ({ text }: Tokens.Codespan): string => {
+      return `<code>${this.escapeHtml(text)}</code>`;
+    };
+
+    marked.use({ renderer });
+  }
 
   ngOnInit() {
     this.modalService.note$
@@ -45,44 +69,36 @@ export class NoteModalComponent implements OnInit, OnDestroy {
       // Parse and render mindmap with Cytoscape
       setTimeout(() => this.renderMindmap(note.content), 0);
     } else {
-      // Render markdown
-      this.renderedContent = this.parseMarkdown(note.content);
+      // Render markdown with marked and sanitize with DOMPurify
+      const rawHtml = marked.parse(note.content || '') as string;
+      this.renderedContent = DOMPurify.sanitize(rawHtml, {
+        ADD_ATTR: ['target'],
+        ALLOWED_TAGS: [
+          'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+          'p', 'br', 'strong', 'em', 'u', 's', 'del',
+          'ul', 'ol', 'li',
+          'a', 'img',
+          'pre', 'code',
+          'blockquote',
+          'table', 'thead', 'tbody', 'tr', 'th', 'td',
+          'hr'
+        ]
+      });
     }
   }
 
-  parseMarkdown(markdown: string): string {
-    if (!markdown) return '';
-    
-    let html = markdown;
-    
-    // Headers
-    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-    
-    // Bold
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
-    // Italic
-    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
-    // Links
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-    
-    // Line breaks
-    html = html.replace(/\n\n/g, '</p><p>');
-    html = html.replace(/\n/g, '<br>');
-    
-    // Lists
-    html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-    
-    // Wrap in paragraphs if not already wrapped
-    if (!html.startsWith('<h') && !html.startsWith('<ul')) {
-      html = '<p>' + html + '</p>';
-    }
-    
-    return html;
+  /**
+   * Escape HTML entities for code blocks
+   */
+  private escapeHtml(text: string): string {
+    const map: { [key: string]: string } = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
   }
 
   renderMindmap(content: string) {

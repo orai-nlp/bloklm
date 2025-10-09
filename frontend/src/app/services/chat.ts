@@ -328,7 +328,7 @@ export class ChatService {
   clearAllData(): void {
     try {
       localStorage.clear();
-      this.currentChatSubject.next({title: this.currentChatSubject.value?.title || '', messages: this.currentChatSubject.value?.messages.slice(0, 1) ?? []});
+      this.currentChatSubject.next({title: this.currentChatSubject.value?.title || '', messages: []});
       this.isGeneratingSubject.next(false);
 
       //backend

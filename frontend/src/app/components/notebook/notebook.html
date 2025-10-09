@@ -29,7 +29,11 @@
           
           <div class="sources-list" *ngIf="sources.length > 0">
             <div class="source-item" *ngFor="let source of sources">
-              <label [for]="source.id" class="source-label">
+              <label class="source-label">
+                <input type="checkbox"
+                      [(ngModel)]="source.selected"
+                      [id]="source.id"
+                      class="source-check" />
                 <span class="material-icons source-icon">description</span>
                 <span class="source-name">{{ source.name }}</span>
               </label>

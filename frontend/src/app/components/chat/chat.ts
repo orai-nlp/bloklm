@@ -7,6 +7,8 @@ import { ChatService } from '../../services/chat';
 import { ActivatedRoute } from '@angular/router';
 import { NotebookService } from '../../services/notebook';
 import { I18nService } from '../../services/i18n';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
 
 @Component({
   selector: 'app-chat',
@@ -41,7 +43,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   private shouldScrollToBottom: boolean = false;
   placeholder_input:string = this.i18n.translate('chat_input_placeholder') + '...'
 
-  constructor(private chatService: ChatService) {}
+  constructor(private chatService: ChatService, private snackBar: MatSnackBar ) {}
 
   async ngOnInit() {
     this.subscribeToServiceData();
@@ -301,10 +303,12 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       
       // Show success message
       if (this.currentChat) {
-        this.chatService.addMessageToCurrentChat({
-          role: 'assistant',
-          content: 'All chat history and settings have been cleared successfully.'
+        this.snackBar.open(this.i18n.translate('chat_clear_noti'), '', {
+          duration: 2000, // disappears after 3 seconds
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
         });
+        
       }
     } catch (error) {
       console.error('Error clearing data:', error);
