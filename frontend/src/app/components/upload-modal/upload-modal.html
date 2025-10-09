@@ -37,12 +37,12 @@
         <p class="upload-description">
           {{ i18n.translate('dragDropOrChoose') }}
         </p>
-        <p class="file-types">{{ i18n.translate('supported') }}: PDF, TXT, SRT, DOC, DOCX</p>
+        <p class="file-types">{{ i18n.translate('supported') }}: PDF, TXT, SRT, DOC, DOCX, MP3, WAV</p>
         
         <input #fileInput 
                type="file" 
                multiple 
-               accept=".pdf,.txt,.md,.doc,.docx"
+               accept=".pdf,.txt,.md,.doc,.docx,.mp3,.wav"
                (change)="onFileSelected($event)"
                [disabled]="isUploading"
                style="display: none;">

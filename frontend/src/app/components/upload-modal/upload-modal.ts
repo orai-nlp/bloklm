@@ -42,7 +42,7 @@ export class UploadModalComponent {
   isUploading = false
 
   // Allowed file extensions
-  private allowedExtensions = ['.pdf', '.txt', '.srt', '.doc', '.docx']
+  private allowedExtensions = ['.pdf', '.txt', '.srt', '.doc', '.docx', '.wav', '.mp3']
 
   closeModal() {
     // Prevent closing if upload is in progress

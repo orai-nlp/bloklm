@@ -63,7 +63,7 @@ class SanicFileAdapter:
     
 def extract_from_documents(files) -> list[dict]:
     """
-    Extract text from various document types (PDF, DOC/DOCX, TXT, SRT)
+    Extract text from various document types (PDF, DOC/DOCX, TXT, SRT, WAV, MP3)
     
     Args:
         file: FileStorage object from Flask request.files
@@ -79,6 +79,7 @@ def extract_from_documents(files) -> list[dict]:
     """
     ocr_list = []
     doc_list = []
+    audio_list = []
     manual_list = []
     for f in files:
         f_type = f.type.lower().split('/')[-1]
@@ -86,6 +87,8 @@ def extract_from_documents(files) -> list[dict]:
             ocr_list.append(f)
         elif f_type in ['ms-doc', 'doc', 'msword']:
             doc_list.append(f)
+        elif f_type in ['mp3', 'wav']:
+            audio_list.append(f)
         else:
             manual_list.append(f)
 

@@ -168,6 +168,10 @@ export class I18nService {
       eu: "Glosarioa",
       es: "Glosario",
     },
+    podcast: {
+      eu: "Podcast-a",
+      es: "Podcast",
+    },
     addSources: {
       eu: "Gehitu Fitxategiak",
       es: "Añadir fuentes",
@@ -356,6 +360,10 @@ export class I18nService {
       eu:"Podcast mota",
       es:"Tipo de podcast"
     },
+    studio_conf_voice: {
+      eu:"Ahotsa",
+      es:"Voz"
+    },
     studio_conf_create_btn: {
       eu:"Sortu Oharra",
       es:"Crear Nota"
@@ -415,6 +423,14 @@ export class I18nService {
     studio_conf_opt_narrative: {
       eu:"Narratzailea",
       es:"Narrativo"
+    },
+    studio_conf_opt_nerea: {
+      eu:"Nerea",
+      es:"Nerea"
+    },
+    studio_conf_opt_mikel: {
+      eu:"Mikel",
+      es:"Mikel"
     },
     studio_info_notes: {
       eu:"Gordetako oharrak hemen agertuko dira",

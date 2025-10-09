@@ -22,11 +22,15 @@ format_mapping = {
     "application/doc": "DOC",
     "application/docx": "DOCX",
     "application/srt": "SRT",
+    "application/wav": "WAV",
+    "application/mp3": "MP3",
     }
 
 file_type = {
     ".docx":"DOCX",
     ".pdf":"PDF",
+    ".wav":"WAV",
+    ".mp3":"MP3",
 }
 
 ###################################################################################

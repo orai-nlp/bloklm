@@ -60,6 +60,12 @@ export class StudioComponent implements OnDestroy {
       labelKey: 'mindmap',
       parameters: ['detail'],
       color: '#ADF3E6' // mint aqua
+    },
+    { 
+      icon: 'mic', 
+      labelKey: 'podcast',
+      parameters: ['formality', 'style', 'detail', 'language_complexity', 'podcast_type', 'voice_type'],
+      color: '#ADF3E6' // mint aqua
     }
   ];
 
@@ -95,6 +101,11 @@ export class StudioComponent implements OnDestroy {
   typeOptions = [
     { value: 'conversational', label: 'studio_conf_opt_conversational' },
     { value: 'narrative', label: 'studio_conf_opt_narrative' }
+  ];
+
+  voiceOptions = [
+    { value: 'nerea', label: 'studio_conf_opt_nerea' },
+    { value: 'mikel', label: 'studio_conf_opt_mikel' }
   ];
 
   // Logistics

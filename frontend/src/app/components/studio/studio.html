@@ -7,6 +7,17 @@
         <h4 class="section-title">{{ i18n.translate('notes') }}</h4>
     </div>
     
+    <div class="note-templates">
+        <button 
+            class="template-btn" 
+            [class.active]="selectedTemplate === noteTemplates.at(-1)"
+            [title]="i18n.translate(noteTemplates.at(-1)?.labelKey ?? '') ?? ''"
+            [attr.data-template-type]="noteTemplates.at(-1)?.labelKey ?? ''"
+            (click)="openParameterMenu(noteTemplates.at(-1)!);">
+            <span class="material-icons">{{ noteTemplates.at(-1)!.icon }}</span>
+            <span class="template-label">{{ i18n.translate(noteTemplates.at(-1)!.labelKey) }}</span>
+        </button>
+    </div>
     <div class="note-templates" style="margin-bottom: 2px;">
         @for (template of noteTemplates.slice(0, 3); track template.labelKey) {
             <button 
@@ -22,7 +33,7 @@
     </div>
 
     <div class="note-templates">
-        @for (template of noteTemplates.slice(3); track template.labelKey) {
+        @for (template of noteTemplates.slice(3,6); track template.labelKey) {
             <button 
                 class="template-btn" 
                 [class.active]="selectedTemplate === template"
@@ -130,6 +141,22 @@
                         </div>
                     </div>
                 }
+                <!-- Voice -->
+                @if (needsParameter('voice_type')) {
+                    <div class="parameter-group">
+                        <label class="parameter-label">{{ i18n.translate("studio_conf_voice") }}</label>
+                        <div class="parameter-options">
+                            @for (option of voiceOptions; track option.value) {
+                                <button 
+                                    class="option-btn"
+                                    [class.selected]="isParameterSelected('voice_type', option.value)"
+                                    (click)="selectParameter('voice_type', option.value)">
+                                    {{ i18n.translate(option.label) }}
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
 
             <div class="parameter-menu-actions">
@@ -182,7 +209,7 @@
     </div>
 </div>
 
-<div class="studio-section">
+<!-- <div class="studio-section">
     <div class="section-header">
         <h4 class="section-title">{{ i18n.translate('audioOverview') }}</h4>
         <button class="info-btn">
@@ -212,4 +239,4 @@
         <button class="customize-btn">Customize</button>
         <button class="generate-btn" [disabled]="notebookService.getSources()?.length === 0">Generate</button>
     </div>
-</div>
+</div> -->

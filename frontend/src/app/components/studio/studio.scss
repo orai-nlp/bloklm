@@ -1,10 +1,11 @@
 // Note color variables
 $note-color-outline: #F5AD8F;
-$note-color-summary: #A1B6CD;
+$note-color-summary: #c4c4c4;
 $note-color-faq: #F2EED5;
-$note-color-timeline: #DFB9DF;
+$note-color-timeline: #b9c8df;
 $note-color-glossary: #ECACB7;
 $note-color-mindmap: #ADF3E6;
+$note-color-podcast: #c2adf3;
 
 // Optional map for easier iteration in SCSS
 $note-colors: (
@@ -13,7 +14,8 @@ $note-colors: (
   'faq': $note-color-faq,
   'timeline': $note-color-timeline,
   'glossary': $note-color-glossary,
-  'mindmap': $note-color-mindmap
+  'mindmap': $note-color-mindmap,
+  'podcast': $note-color-podcast
 );
 
 @mixin note-background($type, $lighter: false) {
@@ -255,6 +257,11 @@ $note-colors: (
   min-width: 0;
   transition: all 0.2s;
 
+  &[data-template-type="podcast"] {
+    flex:auto;
+    font-size: 16px;
+  }
+
   &.active {
     border-color: #000000;
   }
@@ -313,6 +320,10 @@ $note-colors: (
     @include note-background('mindmap', true);
   }
 
+  &[data-template-type="podcast"]:not(.active) {
+    @include note-background('podcast', true);
+  }
+
   // Full color for active state
   &.active[data-template-type="outline"] {
     @include note-background('outline');
@@ -337,6 +348,10 @@ $note-colors: (
 
   &.active[data-template-type="mindmap"] {
     @include note-background('mindmap');
+  }
+
+  &.active[data-template-type="podcast"] {
+    @include note-background('podcast');
   }
 }
 
@@ -508,33 +523,31 @@ $note-colors: (
   transition: all 0.2s;
 
   &[data-note-type="outline"] {
-    background-color: lighten($note-color-outline, 10%);
-    border-color: lighten(darken($note-color-outline, 10%), 5%);
+    @include note-background('outline', true)
   }
 
   &[data-note-type="summary"] {
-    background-color: lighten($note-color-summary, 10%);
-    border-color: lighten(darken($note-color-summary, 10%), 5%);
+    @include note-background('summary', true)
   }
 
   &[data-note-type="faq"] {
-    background-color: lighten($note-color-faq, 10%);
-    border-color: lighten(darken($note-color-faq, 10%), 5%);
+    @include note-background('faq', true)
   }
 
   &[data-note-type="timeline"] {
-    background-color: lighten($note-color-timeline, 10%);
-    border-color: lighten(darken($note-color-timeline, 10%), 5%);
+    @include note-background('timeline', true)
   }
 
   &[data-note-type="glossary"] {
-    background-color: lighten($note-color-glossary, 10%);
-    border-color: lighten(darken($note-color-glossary, 10%), 5%);
+    @include note-background('glossary', true)
   }
 
   &[data-note-type="mindmap"] {
-    background-color: lighten($note-color-mindmap, 10%);
-    border-color: lighten(darken($note-color-mindmap, 10%), 5%);
+    @include note-background('mindmap', true)
+  }
+
+  &[data-note-type="podcast"] {
+    @include note-background('podcast', true)
   }
 
   // Keep hover styles but adjust for colored backgrounds
