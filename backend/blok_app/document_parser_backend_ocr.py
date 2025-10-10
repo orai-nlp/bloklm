@@ -4,7 +4,7 @@ import io
 # from werkzeug.datastructures import FileStorage
 import chardet
 import tempfile
-
+from pdb import set_trace as d
 import subprocess
 
 
@@ -87,7 +87,7 @@ def extract_from_documents(files) -> list[dict]:
             ocr_list.append(f)
         elif f_type in ['ms-doc', 'doc', 'msword']:
             doc_list.append(f)
-        elif f_type in ['mp3', 'wav']:
+        elif f_type in ['audio/mpeg', 'audio/x-mpeg-3', 'audio/wav', 'audio/x-wav']:
             audio_list.append(f)
         else:
             manual_list.append(f)
@@ -95,8 +95,70 @@ def extract_from_documents(files) -> list[dict]:
     return_list = list(map(extract_text_from_document, manual_list))
     return_list += extract_text_from_documents_DOC(doc_list)
     return_list += extract_text_from_documents_with_ocr(ocr_list)
+    return_list += list(map(extract_text_from_audio, audio_list))
 
     return return_list
+
+
+def extract_text_from_audio(file_obj):
+    """
+    Process an uploaded audio file (from Sanic request) and prepare it for ASR.
+
+    Args:
+        file_obj (sanic.request.form.File): Uploaded audio file.
+
+    Returns:
+        dict: {
+            'success': bool,
+            'text': str,
+            'filename': str,
+            'file_type': str,
+            'error': str
+        }
+    """
+
+    try:
+        # Extract basic info
+        filename = file_obj.name
+        file_type = Path(filename).suffix.lower()  # e.g., '.mp3'
+        audio_bytes = file_obj.body
+
+        # Save to a temporary file so the ASR model can read it
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_type) as tmp:
+            tmp.write(audio_bytes)
+            tmp_path = Path(tmp.name)
+
+        # === Send to ASR model ===
+        # Example placeholder:
+        # md = asr_model.transcribe(tmp_path)
+        md = "This is a dummy transcription from ASR."
+
+        # === Cleanup temporary file (optional) ===
+        tmp_path.unlink(missing_ok=True)
+
+        # === Return structured result ===
+        return {
+            'success': True,
+            'text': md,
+            'filename': filename,
+            'file_type': file_type,
+            'error': ''
+        }
+
+    except Exception as e:
+        return {
+            'success': False,
+            'text': '',
+            'filename': getattr(file_obj, 'name', ''),
+            'file_type': getattr(Path(file_obj.name), 'suffix', '').lower(),
+            'error': str(e)
+        }
+
+
+
+
+
+
 
 
 def extract_text_from_documents_DOC(files):

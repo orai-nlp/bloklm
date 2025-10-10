@@ -7,8 +7,19 @@ Backend-a lehen aldiz erabiltzen hasteko sortu dut `backend/db_utils/setup.sh`, 
 * Sortu databasea eta erabiltzailea
 * Sortu taula hutsak databasearen barruan
 
-## DOC fitxategiak
+## APARTEKOAK
+### DOC fitxategiak
 DOC fitxategi motak parseatzeko 'libreoffice' programa erabiltzen dugu (`setup.sh`-ean gehitua). Instalatzeko egin: `sudo apt install libreoffice` 
+
+### Audioa prozesatzeko
+#### Aplikazioak eta paketeak
+pip install nemo_toolkit['all']
+pip install pydub
+pip install torchaudio
+pip install speechbrain
+ffmpeg for pydub: sudo apt-get install ffmpeg → GPU4n badago
+#### ASR modeloa
+git clone https://username:token@huggingface.co/HiTZ/stt_eu_conformer_transducer_large
 
 ## FRONTEND
 ### SETUP
