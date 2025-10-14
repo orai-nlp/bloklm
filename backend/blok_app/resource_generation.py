@@ -227,7 +227,7 @@ def generate_glossary(llm, db, collection_id, file_ids, custom_conf):
 
 def generate_outline(llm, db, collection_id, file_ids, custom_conf):
     prompter = PromptBuilder(
-        map_main_prompt="Build an outline of the following passage.",
+        map_main_prompt="Build a concise outline of the following passage in markdown format.",
         name_singular="outline",
         name_plural="outlines",
         custom_conf=custom_conf,
