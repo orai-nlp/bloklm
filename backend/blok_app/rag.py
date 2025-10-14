@@ -20,6 +20,7 @@ from langchain_core.messages import BaseMessage
 
 RETRIEVE_FAISS_K = 5
 THREAD_ID = "default"
+MAX_CONTEXT_MSGS = 10  # Number of previous messages (human+ai) to include in context
 
 embedding_model = None
 llm = None
@@ -98,7 +99,7 @@ def generate(state: MessagesState):
         if message.type in ("human", "system")
         or (message.type == "ai" and not message.tool_calls)
     ]
-    prompt = [ SystemMessage(system_message_content) ] + conversation_messages
+    prompt = [ SystemMessage(system_message_content) ] + conversation_messages[-MAX_CONTEXT_MSGS:]
 
     # Run
     response = llm.invoke(prompt)
