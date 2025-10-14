@@ -236,9 +236,13 @@ def generate_outline(llm, db, collection_id, file_ids, custom_conf):
 
 def generate_chronogram(llm, db, collection_id, file_ids, custom_conf):
     prompter = PromptBuilder(
-        map_main_prompt="Build a chronogram from the following passage.",
-        name_singular="chronogram",
-        name_plural="chronograms",
+        map_main_prompt=(
+            "Build a timeline from the following passage. List the most important events in chronological order, with their actual dates. "
+            "Only include events for which at least the year is known (e.g., 'March 2020' or 'Q1 2020'). "
+            "Use the same date format for all events, preferably ISO 8601 (e.g., '2020-03-01'). Never invent dates."
+        ),
+        name_singular="timeline",
+        name_plural="timelines",
         custom_conf=custom_conf,
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
