@@ -90,7 +90,7 @@ async def load_chatgpt_llm(app, _):
     llm = ChatOpenAI(
         model_name=MODEL_ID,
         temperature=0.7,
-        max_tokens=1024,
+        max_tokens=8192,
         **api_key_arg
     )
     rag.llm = llm

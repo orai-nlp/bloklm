@@ -96,16 +96,19 @@ def create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, out
     map_chain = LLMChain(llm=llm, prompt=map_prompt, verbose=True)
     reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt, verbose=True)
     combine_documents_chain = StuffDocumentsChain(
-        llm_chain=reduce_chain, document_variable_name="text", verbose=True,
+        llm_chain=reduce_chain,
+        document_variable_name="text",
+        verbose=True,
     )
     collapse_chain = LLMChain(llm=llm, prompt=collapse_prompt, verbose=True)
     collapse_documents_chain = StuffDocumentsChain(
-        llm_chain=collapse_chain, document_variable_name="text", verbose=True
+        llm_chain=collapse_chain,
+        document_variable_name="text",
+        verbose=True
     )
     reduce_documents_chain = ReduceDocumentsChain(
         combine_documents_chain=combine_documents_chain,
         collapse_documents_chain=collapse_documents_chain,
-        token_max=8192,
         verbose=True,
     )
     return MapReduceDocumentsChain(
@@ -244,7 +247,8 @@ def generate_chronogram(llm, db, collection_id, file_ids, custom_conf):
 def generate_mind_map(llm, db, collection_id, file_ids, custom_conf):
     main_prompt = (
         "Build a mind map of the following passage.\n"
-        "Provide the graph representation of the mind map following the JSON structure provided below.\n\n"
+        "Provide the graph representation of the mind map following the JSON structure provided below. "
+        "The graph should not contain more than 30 nodes.\n\n"
         "JSON structure of the output:\n"
         "{{\n"
         "  \"nodes\": [\n"
@@ -258,8 +262,13 @@ def generate_mind_map(llm, db, collection_id, file_ids, custom_conf):
         "  ]\n"
         "}}"
     )
+    reduce_main_prompt = (
+        f"Combine and refine the following mind maps into a cohesive and concise global mind map. "
+        "If the content is too long, shorten it to be as brief as possible while keeping the main content."
+    )
     prompter = PromptBuilder(
         map_main_prompt=main_prompt,
+        reduce_main_prompt=reduce_main_prompt,
         name_singular="mind map",
         name_plural="mind maps",
         custom_conf=custom_conf,
