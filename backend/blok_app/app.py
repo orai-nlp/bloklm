@@ -11,8 +11,10 @@ from sanic import Sanic, response, json
 from sanic.exceptions import BadRequest
 from sanic.worker.manager import WorkerManager
 from sanic_ext import Extend, validate
+from langchain_openai import OpenAIEmbeddings
+from langchain_openai.chat_models import ChatOpenAI
 
-from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, BACKEND_PORT
+from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, BACKEND_PORT, MODEL_ID
 import backend.blok_app.tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
@@ -81,15 +83,20 @@ async def setup_asr(app, loop):
 #     hf_llm = build_hf_llm(LLM_MODEL_ID, device=LLM_DEVICE)
 #     llm = CustomHuggingFacePipeline(pipeline=hf_llm)
 
-from langchain_openai.chat_models import ChatOpenAI
-
 @app.listener("before_server_start")
 async def load_chatgpt_llm(app, _):
     global llm
+    api_key_arg = {"openai_api_key": os.getenv("HF_TOKEN")} if os.getenv("HF_TOKEN") else {}
     llm = ChatOpenAI(
-        model_name="gpt-4o-mini",
+        model_name=MODEL_ID,
         temperature=0.7,
         max_tokens=1024,
+        **api_key_arg
+    )
+    rag.llm = llm
+    rag.embedding_model = OpenAIEmbeddings(
+        openai_api_base="https://api.openai.com/v1",
+        model="text-embedding-3-small",
     )
 
 # ------------------------------------------------------------------

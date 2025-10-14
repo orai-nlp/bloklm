@@ -16,12 +16,13 @@ from langchain_core.messages import SystemMessage
 from langgraph.graph import END
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.messages import BaseMessage
 
 RETRIEVE_FAISS_K = 5
 THREAD_ID = "default"
 
-embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
-llm = init_chat_model("gpt-4o-mini", model_provider="openai")
+embedding_model = None
+llm = None
 
 collection_graphs = {}
 
@@ -74,17 +75,16 @@ def _load_vector_store(data: List[dict]):
 
 def generate(state: MessagesState):
     """Generate answer."""
-    # Get generated ToolMessages
-    recent_tool_messages = []
+    recent_retrieval_messages = []
     for message in reversed(state["messages"]):
-        if message.type == "tool":
-            recent_tool_messages.append(message)
+        if message.type == "retrieval":
+            recent_retrieval_messages.append(message)
         else:
             break
-    tool_messages = recent_tool_messages[::-1]
+    retrieval_messages = recent_retrieval_messages[::-1]
 
     # Format into prompt
-    docs_content = "\n\n".join(doc.content for doc in tool_messages)
+    docs_content = "\n\n".join(doc.content for doc in retrieval_messages)
     system_message_content = (
         "You are an assistant for question-answering tasks. "
         "Use the following pieces of retrieved context to answer "
@@ -108,7 +108,6 @@ def init_collection_graph(collection_id, data):
     collection_vector_store = _load_vector_store(data)
     graph_builder = StateGraph(MessagesState)
 
-    @tool(response_format="content_and_artifact")
     def retrieve(query: str):
         """Retrieve information related to a query."""
         retrieved_docs = collection_vector_store.similarity_search(query, k=RETRIEVE_FAISS_K)
@@ -119,25 +118,29 @@ def init_collection_graph(collection_id, data):
         return serialized, retrieved_docs
     
     def query_or_respond(state: MessagesState):
-        """Generate tool call for retrieval or respond."""
-        llm_with_tools = llm.bind_tools([retrieve])
-        response = llm_with_tools.invoke(state["messages"])
-        # MessagesState appends messages to state instead of overwriting
-        return {"messages": [response]}
+        """Always run retrieval in Python, append to state."""
+        # Extract latest user query
+        last_user_message = next(
+            (m for m in reversed(state["messages"]) if m.type == "human"), None
+        )
+        query_text = last_user_message.content if last_user_message else ""
 
-    tools = ToolNode([retrieve])
+        # Run retrieval
+        retrieved_text, retrieved_docs = retrieve(query_text)
+
+        # Append as a BaseMessage for generate() to consume
+        base_message = BaseMessage(
+            type="retrieval",
+            content=retrieved_text,
+            metadata={"retrieved_docs": retrieved_docs},
+        )
+        return {"messages": [base_message]}
 
     graph_builder.add_node(query_or_respond)
-    graph_builder.add_node(tools)
     graph_builder.add_node(generate)
 
     graph_builder.set_entry_point("query_or_respond")
-    graph_builder.add_conditional_edges(
-        "query_or_respond",
-        tools_condition,
-        {END: END, "tools": "tools"},
-    )
-    graph_builder.add_edge("tools", "generate")
+    graph_builder.add_edge("query_or_respond", "generate")
     graph_builder.add_edge("generate", END)
 
     collection_graphs[collection_id] = graph_builder.compile(checkpointer=MemorySaver())
@@ -150,7 +153,7 @@ async def query(query, collection_id):
         config={"configurable": {"thread_id": THREAD_ID}},
     ):
         if metadata["langgraph_node"] in ["generate", "query_or_respond"]:
-            if msg.content:
+            if msg.content and msg.type != "retrieval":
                 yield msg.content
                 await asyncio.sleep(0)
 
@@ -165,10 +168,11 @@ def chat_history(collection_id):
         return []
     history = []
     for msg in state.values["messages"]:
-        history.append({
-            "role": msg.type,
-            "content": msg.content,
-        })
+        if msg.type in ["human", "ai"]:
+            history.append({
+                "role": msg.type,
+                "content": msg.content,
+            })
     return history
 
 def reset_chat(collection_id):
