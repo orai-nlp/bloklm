@@ -90,8 +90,10 @@ def generate(state: MessagesState):
         "You are an assistant for question-answering tasks. "
         "Use the following pieces of retrieved context to answer "
         "the question. If you don't know the answer, say that you "
-        "don't know. Keep the answer concise."
-        "\n\n"
+        "don't know. Keep the answer concise.\n"
+        "Always cite the relevant sources in the answer, "
+        "including the Source IDs. Insert in-line citations like [SID:Source_ID].\n"
+        "\n"
         f"{docs_content}"
     )
     conversation_messages = [
@@ -113,7 +115,7 @@ def init_collection_graph(collection_id, data):
         """Retrieve information related to a query."""
         retrieved_docs = collection_vector_store.similarity_search(query, k=RETRIEVE_FAISS_K)
         serialized = "\n\n".join(
-            (f"Source: {doc.id}\nContent: {doc.page_content}")
+            (f"Source ID: {doc.id}\nContent: {doc.page_content}")
             for doc in retrieved_docs
         )
         return serialized, retrieved_docs
