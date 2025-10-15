@@ -21,6 +21,7 @@ from langchain_core.messages import BaseMessage
 RETRIEVE_FAISS_K = 5
 THREAD_ID = "default"
 MAX_CONTEXT_MSGS = 10  # Number of previous messages (human+ai) to include in context
+MAX_CONTEXT_MSGS_QR = 6  # Number of previous messages (human+system) to include in context for query rewriting
 
 embedding_model = None
 llm = None
@@ -73,63 +74,45 @@ def _load_vector_store(data: List[dict]):
     return vector_store
 
 # RAG graph
-
-def generate(state: MessagesState):
-    """Generate answer."""
-    recent_retrieval_messages = []
-    for message in reversed(state["messages"]):
-        if message.type == "retrieval":
-            recent_retrieval_messages.append(message)
-        else:
-            break
-    retrieval_messages = recent_retrieval_messages[::-1]
-
-    # Format into prompt
-    docs_content = "\n\n".join(doc.content for doc in retrieval_messages)
-    system_message_content = (
-        "You are an assistant for question-answering tasks. "
-        "Use the following pieces of retrieved context to answer "
-        "the question. If you don't know the answer, say that you "
-        "don't know. Keep the answer concise.\n"
-        "Always cite the relevant sources in the answer, "
-        "including the Source IDs. Insert in-line citations like [SID:Source_ID].\n"
-        "\n"
-        f"{docs_content}"
-    )
-    conversation_messages = [
-        message for message in state["messages"]
-        if message.type in ("human", "system")
-        or (message.type == "ai" and not message.tool_calls)
-    ]
-    prompt = [ SystemMessage(system_message_content) ] + conversation_messages[-MAX_CONTEXT_MSGS:]
-
-    # Run
-    response = llm.invoke(prompt)
-    return {"messages": [response]}
     
 def init_collection_graph(collection_id, data):
     collection_vector_store = _load_vector_store(data)
     graph_builder = StateGraph(MessagesState)
-
-    def retrieve(query: str):
-        """Retrieve information related to a query."""
-        retrieved_docs = collection_vector_store.similarity_search(query, k=RETRIEVE_FAISS_K)
-        serialized = "\n\n".join(
-            (f"Source ID: {doc.id}\nContent: {doc.page_content}")
-            for doc in retrieved_docs
-        )
-        return serialized, retrieved_docs
     
-    def query_or_respond(state: MessagesState):
+    def rewrite_query(state: MessagesState):
+        """Add context to the latest user query."""
+        system_message_content = (
+            "You are a query rewriter for a retrieval-augmented generation (RAG) system. "
+            "Your task is to rewrite the user's latest query into a self-contained, "
+            "contextually complete question that captures all relevant details from the conversation history. "
+            "The rewritten query should be clear, concise, and optimized for document retrieval — not for answering directly."
+        )
+        conversation_messages = [
+            message for message in state["messages"]
+            if message.type in ("human", "ai")
+        ]
+        prompt = [ SystemMessage(system_message_content) ] + conversation_messages[-MAX_CONTEXT_MSGS_QR:]
+        response = llm.invoke(prompt)
+        message = BaseMessage(
+            type="query_rewriting",
+            content=response.content
+        )
+        return {"messages": [message]}
+
+    def retrieve(state: MessagesState):
         """Always run retrieval in Python, append to state."""
-        # Extract latest user query
+        # Extract latest user query (rewritten)
         last_user_message = next(
-            (m for m in reversed(state["messages"]) if m.type == "human"), None
+            (m for m in reversed(state["messages"]) if m.type == "query_rewriting"), None
         )
         query_text = last_user_message.content if last_user_message else ""
 
         # Run retrieval
-        retrieved_text, retrieved_docs = retrieve(query_text)
+        retrieved_docs = collection_vector_store.similarity_search(query_text, k=RETRIEVE_FAISS_K)
+        retrieved_text = "\n\n".join(
+            (f"Source ID: {doc.id}\nContent: {doc.page_content}")
+            for doc in retrieved_docs
+        )
 
         # Append as a BaseMessage for generate() to consume
         base_message = BaseMessage(
@@ -139,11 +122,38 @@ def init_collection_graph(collection_id, data):
         )
         return {"messages": [base_message]}
 
-    graph_builder.add_node(query_or_respond)
+    def generate(state: MessagesState):
+        """Generate answer."""
+        context = next(
+            (m for m in reversed(state["messages"]) if m.type == "retrieval"), None
+        )
+        context = context.content if context else ""
+        system_message_content = (
+            "You are an assistant for question-answering tasks. "
+            "Use the following pieces of retrieved context to answer "
+            "the question. If you don't know the answer, say that you "
+            "don't know. Keep the answer concise.\n"
+            "Always cite the relevant sources in the answer, "
+            "including the Source IDs. Insert inline citations like [SID:Source_ID].\n"
+            "\n"
+            f"{context}\n"
+        )
+        conversation_messages = [
+            message for message in state["messages"]
+            if message.type == "human" or (message.type == "ai" and not message.tool_calls)
+        ]
+        prompt = [ SystemMessage(system_message_content) ] + conversation_messages[-MAX_CONTEXT_MSGS:]
+
+        response = llm.invoke(prompt)
+        return {"messages": [response]}
+    
+    graph_builder.add_node(rewrite_query)
+    graph_builder.add_node(retrieve)
     graph_builder.add_node(generate)
 
-    graph_builder.set_entry_point("query_or_respond")
-    graph_builder.add_edge("query_or_respond", "generate")
+    graph_builder.set_entry_point("rewrite_query")
+    graph_builder.add_edge("rewrite_query", "retrieve")
+    graph_builder.add_edge("retrieve", "generate")
     graph_builder.add_edge("generate", END)
 
     collection_graphs[collection_id] = graph_builder.compile(checkpointer=MemorySaver())
