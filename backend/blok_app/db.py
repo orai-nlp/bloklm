@@ -241,6 +241,16 @@ def store_documents(docs):
     params = [ (d['content'], d['embedding'], d['start_index'], d['file_id']) for d in docs ]
     commit_query_db(q, params)
 
+def get_document(doc_id):
+    q = (
+        f"SELECT doc.id as id, doc.content as text, doc.start_index as offset, file.id as file_id, file.name as file_title, file.text as file_text "
+        "FROM Document as doc INNER JOIN Fitxategia as file ON doc.file_id = file.id WHERE doc.id=%s;"
+    )
+    res = query_db_as_dict(q, (doc_id,))
+    if len(res) == 0:
+        return None
+    return res[0]
+
 def retrieve_collection_documents(collection_id):
     q = "SELECT doc.id AS id, doc.content AS content, doc.embedding AS emb, f.bilduma_key AS collection_id FROM Document AS doc INNER JOIN Fitxategia as f ON doc.file_id = f.id WHERE f.bilduma_key=%s"
     return query_db_as_dict(q, (collection_id,))

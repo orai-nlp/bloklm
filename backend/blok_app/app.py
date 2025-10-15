@@ -209,6 +209,13 @@ def upload_fitxategiak(request):
 
     return json({"id": nt_id, "title": name, "description": title, "summary": summary, "status": "ok"})
 
+@app.get("/api/chunk")
+async def get_chunk(request):
+    print("Received request to /api/chunk:", str(request))
+    cid = request.args.get("id")
+    chunk = db.get_document(cid)
+    return json(chunk)
+
 
 # ------------------------------------------------------------------
 # RAG
