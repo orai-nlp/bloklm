@@ -429,6 +429,23 @@ async def create_podcast(request, body: PodcastModel):
     await task_queue.put((tasks.generate_podcast_task, (llm, db, note_id, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
     return json({"id": note_id}, status=202)
 
+@app.get("/api/podcast")
+async def get_podcast(request):
+    note_id = request.args.get("id")
+    fpath = None  # TODO
+    if not os.path.exists(fpath):
+        return response.json({"error": "File not found"}, status=404)
+    with open(fpath, 'rb') as f:
+        audio_bytes = f.read()
+
+    return raw(
+        audio_bytes,
+        content_type="audio/mpeg",
+        headers={
+            "Content-Disposition": f'inline; filename="{os.path.basename(fpath)}"',
+        },
+    )
+
 # ------------------------------------------------------------------
 # MAIN
 # ------------------------------------------------------------------
