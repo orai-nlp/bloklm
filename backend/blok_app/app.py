@@ -33,6 +33,7 @@ Extend(app, config={
     "cors": True,
     "cors_origins": "*",
 })
+app.config.RESPONSE_TIMEOUT = 300  # 5 min
 log = logging.getLogger(__name__)   # <-- use this logger
 ASR_MODEL_PATH_EU = "/mnt/nfs/proiektuak/bloklm/ereduak/stt_eu_conformer_transducer_large/stt_eu_conformer_transducer_large.nemo"
 ASR_MODEL_PATH_ES = "/mnt/nfs/proiektuak/bloklm/ereduak/stt_ca-es_conformer_transducer_large/stt_ca-es_conformer_transducer_large.nemo"
@@ -50,6 +51,8 @@ async def worker():
         try:
             # Run the blocking function in a thread
             await loop.run_in_executor(executor, func, *args)
+        except Exception as e:
+            logging.error(f"Error in task {func.__name__}: {e}")
         finally:
             task_queue.task_done()
 
