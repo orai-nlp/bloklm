@@ -18,7 +18,7 @@ export class FileModalComponent implements OnInit, OnDestroy  {
   i18n = inject(I18nService);
   cdr = inject(ChangeDetectorRef)
   
-  source: Source | null = null;
+  source: Source | undefined = undefined;
   isVisible = false;
   renderedContent: string = '';
   
@@ -61,15 +61,27 @@ export class FileModalComponent implements OnInit, OnDestroy  {
   }
 
   prepareContent(source: Source) {
-    debugger
     console.log('Source modal', source)
-    const text = this.modalService.text
+    let text = this.modalService.text || ''
     console.log('Source modal', text)
 
+    // If in chunk mode, highlight the chunk text
+    if (this.modalService.isChunkMode && this.modalService.chunk_text && this.modalService.offset !== undefined) {
+      const offset = this.modalService.offset;
+      const chunkLength = this.modalService.chunk_text.length;
+      
+      // Insert highlight markers
+      const before = text.substring(0, offset);
+      const highlighted = text.substring(offset, offset + chunkLength);
+      const after = text.substring(offset + chunkLength);
+      
+      text = before + '<mark class="highlight-chunk">' + highlighted + '</mark>' + after;
+    }
+
     // Render markdown with marked and sanitize with DOMPurify
-    const rawHtml = marked.parse(text || '') as string;
+    const rawHtml = marked.parse(text) as string;
     this.renderedContent = DOMPurify.sanitize(rawHtml, {
-      ADD_ATTR: ['target'],
+      ADD_ATTR: ['target', 'class'],
       ALLOWED_TAGS: [
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'p', 'br', 'strong', 'em', 'u', 's', 'del',
@@ -78,10 +90,20 @@ export class FileModalComponent implements OnInit, OnDestroy  {
         'pre', 'code',
         'blockquote',
         'table', 'thead', 'tbody', 'tr', 'th', 'td',
-        'hr'
+        'hr',
+        'mark'  // Add this
       ]
     });
-    
+
+    // Scroll to highlighted content after render
+    if (this.modalService.isChunkMode) {
+      setTimeout(() => {
+        const highlighted = document.querySelector('.highlight-chunk');
+        if (highlighted) {
+          highlighted.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
   }
 
   /**

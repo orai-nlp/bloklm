@@ -1,4 +1,4 @@
-import { inject, Injectable, OnDestroy } from '@angular/core';
+import { inject, Injectable, OnDestroy, NgZone } from '@angular/core';
 import { Note, NoteParameters } from '../interfaces/note.type';
 import { BehaviorSubject, Observable, tap, finalize, interval, switchMap, takeWhile, catchError, of, EMPTY, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -29,6 +29,7 @@ export class NoteService implements OnDestroy{
   http = inject(HttpClient)
   notebookService = inject(NotebookService)
   i18n = inject(I18nService)
+  ngZone = inject(NgZone)
   
   // Subjects
   private notesSubject = new BehaviorSubject<Note[]>([])
@@ -75,9 +76,9 @@ export class NoteService implements OnDestroy{
           contained_file_ids: ids
         };
 
-        // Add loading note to the list
+        // Add loading note at the beginning of the list
         const currentNotes = this.notesSubject.value;
-        this.notesSubject.next([...currentNotes, loadingNote]);
+        this.notesSubject.next([loadingNote, ...currentNotes]);
 
         // Start polling for this note
         this.startPolling(response.id);
@@ -198,20 +199,22 @@ export class NoteService implements OnDestroy{
   }
 
   private updateNoteStatus(noteId: string, noteStatus: Partial<Note>) {
-
-    const currentNotes = this.notesSubject.value;
-    const updatedNotes = currentNotes.map(note => {
-      if (note.id === noteId) {
-        return {
-          ...note,
-          ...noteStatus,
-          status: noteStatus.status ?? 1
-        };
-      }
-      return note;
+    this.ngZone.run(() => {
+      const currentNotes = this.notesSubject.value;
+      const updatedNotes = currentNotes.map(note => {
+        if (note.id === noteId) {
+          return {
+            ...note,
+            ...noteStatus,
+            status: noteStatus.status ?? 1
+          };
+        }
+        return note;
+      });
+      
+      // Create a new array reference to trigger change detection
+      this.notesSubject.next([...updatedNotes]);
     });
-    
-    this.notesSubject.next(updatedNotes);
   }
 
 

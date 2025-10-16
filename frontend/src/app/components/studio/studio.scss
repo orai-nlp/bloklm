@@ -513,7 +513,15 @@ $note-colors: (
 // Notes List Styles
 
 .templates-area { padding-bottom: 8px; }
-.notes-area      { padding-top:    8px; }
+
+.notes-area {
+  padding-top: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+  // max-height: 500px;
+}
 
 .notes-list {
   display: flex;
@@ -543,7 +551,7 @@ $note-colors: (
     @include note-background('summary', true)
   }
 
-  &[data-note-type="faq"] {
+  &[data-note-type="faq"],&[data-note-type="FAQ"] {
     @include note-background('faq', true)
   }
 

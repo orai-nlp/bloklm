@@ -81,6 +81,25 @@ export class NotebookService {
     }
   }
 
+  updateLocalSourcesIds(file_ids: string[]) {
+    debugger
+    this.sources.update(currentSources => {
+      // Create a copy and sort alphabetically by name
+      const sortedSources = [...currentSources].sort((a, b) => 
+        a.name.localeCompare(b.name)
+      );
+      
+      // Assign IDs in order
+      sortedSources.forEach((source, index) => {
+        if (index < file_ids.length) {
+          source.id = file_ids[index];
+        }
+      });
+      
+      return sortedSources;
+    });
+  }
+
   createNotebook(): Observable<Notebook> {
     const newNotebook: Notebook = {
       id: Date.now().toString(),
@@ -145,7 +164,7 @@ export class NotebookService {
     const raw$ = this.call_backend('fitxategiak', 'GET', {id: notebookId}, undefined);
     const raw_fitxaegiak = await firstValueFrom(raw$);
     const fitxategiak: Source[] = (raw_fitxaegiak as BackendSource[]).map(this.convertBackendSource)
-
+    debugger
     this.sources.set(fitxategiak)
   }
 

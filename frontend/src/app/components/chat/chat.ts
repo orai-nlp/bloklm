@@ -8,6 +8,7 @@ import { ActivatedRoute } from '@angular/router';
 import { NotebookService } from '../../services/notebook';
 import { I18nService } from '../../services/i18n';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 
 @Component({
@@ -43,7 +44,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   private shouldScrollToBottom: boolean = false;
   placeholder_input:string = this.i18n.translate('chat_input_placeholder') + '...'
 
-  constructor(private chatService: ChatService, private snackBar: MatSnackBar ) {}
+  constructor(private chatService: ChatService, private snackBar: MatSnackBar, private sanitizer: DomSanitizer ) {}
 
   async ngOnInit() {
     this.subscribeToServiceData();
@@ -121,6 +122,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       // Use setTimeout to ensure DOM is fully updated
       setTimeout(() => {
         this.scrollToBottom();
+        this.attachCitationListeners();
       }, 0);
       this.shouldScrollToBottom = false;
     }
@@ -157,6 +159,43 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     // Hide welcome screen once we have data
     this.showWelcomeScreen = !this.currentChat && !this.isLoading;
   }
+
+  onCitationClick(event: Event): void {
+    const target = event.target as HTMLElement;
+  
+    if (target.classList.contains('citation')) {
+      const chunkId = target.getAttribute('data-chunk-id');
+
+      if (chunkId) {
+        this.chatService.onCitationClicked(chunkId);
+      }
+    }
+  }
+
+    private attachCitationListeners(): void {
+    const citations = this.chatContainer?.nativeElement.querySelectorAll('.citation');
+    if (citations) {
+      citations.forEach((citation: HTMLElement) => {
+        citation.removeEventListener('click', this.citationClickHandler);
+        citation.addEventListener('click', this.citationClickHandler.bind(this));
+      });
+    }
+  }
+
+  private citationClickHandler(event: Event): void {
+    const target = event.target as HTMLElement;
+    const chunkId = target.getAttribute('data-chunk-id');
+    
+    if (chunkId) {
+      this.chatService.onCitationClicked(chunkId);
+    }
+  }
+
+  formatMarkdownWithSafeHtml(content: string): SafeHtml {
+    const formatted = this.chatService.formatMarkdown(content);
+    return this.sanitizer.bypassSecurityTrustHtml(formatted);
+  }
+
 
   // Message Management
   getDisplayMessages(): Message[] {
@@ -308,8 +347,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
           horizontalPosition: 'center',
           verticalPosition: 'top',
         });
-        
       }
+      
     } catch (error) {
       console.error('Error clearing data:', error);
       if (this.currentChat) {

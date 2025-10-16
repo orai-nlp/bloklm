@@ -123,6 +123,7 @@ export class StudioComponent implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(notes => {
         this.currentNotes = notes;
+        this.cdr.markForCheck();
         this.cdr.detectChanges();
       });
 
@@ -201,6 +202,7 @@ export class StudioComponent implements OnDestroy {
   }
 
   createNote() {
+
     if (!this.selectedTemplate || !this.areAllParametersSelected()) return;
     
     const noteType = this.selectedTemplate.labelKey;
@@ -216,6 +218,8 @@ export class StudioComponent implements OnDestroy {
       next: (id) => {
         console.log('Note created successfully in component:', id);
         // The note list is automatically updated via the notes$ subscription
+        // Scroll to the newly created note after a short delay to ensure DOM is updated
+        setTimeout(() => this.scrollToNote(id.id), 100);
       },
       error: (error) => {
         console.error('Error creating note in component:', error);
@@ -225,6 +229,14 @@ export class StudioComponent implements OnDestroy {
 
     // Close the parameter menu
     this.closeParameterMenu();
+  }
+
+  private scrollToNote(noteId: string) {
+    const notesArea = document.querySelector('.notes-area');
+    if (notesArea) {
+      // Scroll to bottom to show the newly created note
+      notesArea.scrollTop = 0;
+    }
   }
 
   deleteNote(note: Note) {

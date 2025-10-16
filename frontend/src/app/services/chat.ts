@@ -6,6 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { HttpClient, HttpErrorResponse, HttpResponse } from "@angular/common/http"
 import { I18nService } from './i18n';
+import { SourceService } from './source';
 
 
 @Injectable({
@@ -25,7 +26,11 @@ export class ChatService {
   // Extra
   private currentNtId;
   route = inject(ActivatedRoute)
+  sourcService = inject(SourceService);
   i18n = inject(I18nService)
+
+  // Track citations in current message
+  private citationMap: Map<string, number> = new Map();
 
   constructor(private notebookService: NotebookService, private http: HttpClient) {
 
@@ -328,6 +333,7 @@ export class ChatService {
   clearAllData(): void {
     try {
       localStorage.clear();
+      this.resetCitationMap()
       this.currentChatSubject.next({title: this.currentChatSubject.value?.title || '', messages: []});
       this.isGeneratingSubject.next(false);
 
@@ -348,24 +354,28 @@ export class ChatService {
       return '';
     }
     
+    // Process citations first
+    const { processed: textWithCitations } = this.processCitations(text);
+    let text_work = textWithCitations;
+    
     // Handle code blocks
-    text = text.replace(/```(\w*)([\s\S]*?)```/g, (match, language, code) => {
+    text_work = text_work.replace(/```(\w*)([\s\S]*?)```/g, (match, language, code) => {
       return `<pre><code class="language-${language}">${this.escapeHtml(code.trim())}</code></pre>`;
     });
     
     // Handle inline code
-    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+    text_work = text_work.replace(/`([^`]+)`/g, '<code>$1</code>');
     
     // Handle bold text
-    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    text_work = text_work.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     
     // Handle italic text
-    text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    text_work = text_work.replace(/\*([^*]+)\*/g, '<em>$1</em>');
     
     // Handle line breaks
-    text = text.replace(/\n/g, '<br>');
+    text_work = text_work.replace(/\n/g, '<br>');
     
-    return text;
+    return text_work;
   }
 
   private escapeHtml(unsafe: string): string {
@@ -389,6 +399,42 @@ export class ChatService {
   isCurrentlyGenerating(): boolean {
     return this.isGeneratingSubject.value;
   }
+
+  onCitationClicked(chunkId: string): void {
+    console.log('Citation clicked! Chunk ID:', chunkId);
+    this.call_backend("chunk", 'GET', {id: chunkId}, undefined).subscribe({
+      next: (res:any) => {
+        this.sourcService.openFromChunk(res.file_id, res.file_text, res.offset, res.text)
+      },
+      error: (err) => {
+        console.error('chunk error', err);
+      }
+    }
+    )
+  }
+
+  private processCitations(text: string): { processed: string; citations: Map<string, number> } {
+    const citationRegex = /\[SID:(\d+)\]/g;
+    let citationCounter = 1;
+    const localCitationMap = new Map<string, number>();
+    
+    const processed = text.replace(citationRegex, (match, chunkId) => {
+      if (!localCitationMap.has(chunkId)) {
+        localCitationMap.set(chunkId, citationCounter);
+        citationCounter++;
+      }
+      const citationNumber = localCitationMap.get(chunkId)!;
+      return `<span class="citation" data-chunk-id="${chunkId}" data-citation-number="${citationNumber}">${citationNumber}</span>`;
+    });
+
+    
+    return { processed, citations: localCitationMap };
+  }
+
+  private resetCitationMap(): void {
+    this.citationMap.clear();
+  }
+
 
 
   private call_backend(

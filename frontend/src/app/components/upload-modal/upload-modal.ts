@@ -260,21 +260,19 @@ export class UploadModalComponent {
 
     // Backend call
     try {
-
-      await this.callBackend(formData)
-      await this.createChat()
-
-      
       // Create a FileList-like object for saving them locally
       const fileList = this.createFileList()
       
       // Notify parent component
       this.notebookService.uploadFiles(fileList).subscribe(() => {
-
-        this.filesUploaded.emit(fileList)
-        this.resetModal()
-        this.close.emit()
+        console.log('Local files uploaded');
       })
+      await this.callBackend(formData)
+      await this.createChat()
+      this.filesUploaded.emit(fileList)
+      this.resetModal()
+      this.close.emit()
+
     } catch (error) {
       console.error('Upload failed:', error)
       alert(this.i18n.translate('modal_alertUploadFailed'))
@@ -311,6 +309,7 @@ export class UploadModalComponent {
       this.notebookService.uploadFilesToBackend(notebookId, formData)
     );
     this.notebookService.updateLocalNotebook(response.id, response.title, response.description, response.summary)
+    this.notebookService.updateLocalSourcesIds(response.file_ids)
   }
 
   private async createChat(): Promise<void> {

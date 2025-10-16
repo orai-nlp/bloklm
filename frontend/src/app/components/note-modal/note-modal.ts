@@ -30,11 +30,10 @@ export class NoteModalComponent implements OnInit, OnDestroy {
   constructor() {
     // Configure marked options for better markdown rendering
     marked.setOptions({
-      gfm: true,           // GitHub Flavored Markdown
-      breaks: false         // Convert \n to <br>
+      gfm: false,
+      breaks: true  // Change this to false to only create <br> for double spaces + newline
     });
 
-    // Custom renderer to preserve whitespace in code blocks
     const renderer = new marked.Renderer();
     
     renderer.code = ({ text, lang }: Tokens.Code): string => {
@@ -64,6 +63,7 @@ export class NoteModalComponent implements OnInit, OnDestroy {
 
   prepareContent(note: Note) {
     this.isMindmap = note.type.toLowerCase() === 'mindmap';
+    console.log('Nota edukia:' , note.content);
     
     if (this.isMindmap) {
       // Parse and render mindmap with Cytoscape
@@ -71,6 +71,8 @@ export class NoteModalComponent implements OnInit, OnDestroy {
     } else {
       // Render markdown with marked and sanitize with DOMPurify
       const rawHtml = marked.parse(note.content || '') as string;
+      console.log(rawHtml);
+      
       this.renderedContent = DOMPurify.sanitize(rawHtml, {
         ADD_ATTR: ['target'],
         ALLOWED_TAGS: [

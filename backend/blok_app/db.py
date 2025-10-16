@@ -247,6 +247,7 @@ def get_document(doc_id):
         "FROM Document as doc INNER JOIN Fitxategia as file ON doc.file_id = file.id WHERE doc.id=%s;"
     )
     res = query_db_as_dict(q, (doc_id,))
+    print(res)
     if len(res) == 0:
         return None
     return res[0]

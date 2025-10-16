@@ -52,7 +52,7 @@
                     </div>
                     
                     <!-- Regular message content -->
-                    <div *ngIf="!message.isVirtual" class="message-content markdown" [innerHTML]="formatMarkdown(message.content)">
+                    <div *ngIf="!message.isVirtual" class="message-content markdown" [innerHTML]="formatMarkdownWithSafeHtml(message.content)" (click)="onCitationClick($event)">
                     </div>
                     
                     <!-- Notebook summary content -->

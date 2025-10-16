@@ -532,6 +532,36 @@ code {
   }
 }
 
+/* Citation Styling */
+::ng-deep .citation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  margin: 0 2px;
+  border-radius: 50%;
+  background-color: rgba(128, 128, 128, 0.3);
+  color: #555;
+  font-size: 0.75em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  vertical-align: super;
+
+  &:hover {
+    background-color: rgba(128, 128, 128, 0.6);
+    color: #333;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+
 @keyframes typing-dot {
   0%, 80%, 100% { transform: scale(0); }
   40% { transform: scale(1); }

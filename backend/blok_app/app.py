@@ -208,16 +208,20 @@ def upload_fitxategiak(request):
     db.store_documents(docs)
 
     file_ids = [ f['id'] for f in files ]
+    file_ids_ordered = [f['id'] for f in sorted(files, key=lambda d: d['name'].lower())]
+
     name, title, summary = generate_headings(llm, db, nt_id, file_ids)
     db.set_descriptors_to_bilduma(nt_id, name, title, summary)
 
-    return json({"id": nt_id, "title": name, "description": title, "summary": summary, "status": "ok"})
+    return json({"id": nt_id, "title": name, "description": title, "summary": summary, "file_ids": file_ids_ordered, "status": "ok"})
 
 @app.get("/api/chunk")
 async def get_chunk(request):
     print("Received request to /api/chunk:", str(request))
     cid = request.args.get("id")
+    print('ID of the chunk', cid)
     chunk = db.get_document(cid)
+    print('Chunk: ', chunk)
     return json(chunk)
 
 

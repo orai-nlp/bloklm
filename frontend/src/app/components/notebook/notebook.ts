@@ -22,7 +22,7 @@ import { SourceService } from "../../services/source"
 export class NotebookComponent implements OnInit, AfterViewInit {
   i18n = inject(I18nService)
   notebookService = inject(NotebookService)
-  fileService = inject(SourceService)
+  sourceService = inject(SourceService)
   route = inject(ActivatedRoute)
   private cdr = inject(ChangeDetectorRef)
   private elementRef = inject(ElementRef)
@@ -38,7 +38,7 @@ export class NotebookComponent implements OnInit, AfterViewInit {
 
   // Panel widths
   sourcesPanelWidth = 250
-  studioPanelWidth = 400
+  studioPanelWidth = 500
 
   constructor(){
     effect(() => {
@@ -57,86 +57,19 @@ export class NotebookComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.setupResizers();
-  }
-
-  private setupResizers() {
-    const container = this.elementRef.nativeElement.querySelector('.notebook-content');
-    if (!container) return;
-
-    // Create resizers
-    const sourcesResizer = this.createResizer('sources');
-    const studioResizer = this.createResizer('studio');
-
-    // Insert resizers
-    const sourcesPanel = container.querySelector('.sources-panel');
-    const studioPanel = container.querySelector('.studio-panel');
-    
-    if (sourcesPanel) {
-      sourcesPanel.insertAdjacentElement('afterend', sourcesResizer);
-    }
-    if (studioPanel) {
-      studioPanel.insertAdjacentElement('beforebegin', studioResizer);
-    }
-  }
-
-  private createResizer(type: 'sources' | 'studio'): HTMLElement {
-    const resizer = document.createElement('div');
-    resizer.className = `panel-resizer ${type}-resizer`;
-    
-    let startX = 0;
-    let startWidth = 0;
-
-    const onMouseDown = (e: MouseEvent) => {
-      e.preventDefault();
-      startX = e.clientX;
-      startWidth = type === 'sources' ? this.sourcesPanelWidth : this.studioPanelWidth;
-      
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-      resizer.classList.add('active');
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      const diff = e.clientX - startX;
-      let newWidth: number;
-
-      if (type === 'sources') {
-        newWidth = Math.max(200, Math.min(500, startWidth + diff));
-        this.sourcesPanelWidth = newWidth;
-      } else {
-        newWidth = Math.max(300, Math.min(600, startWidth - diff));
-        this.studioPanelWidth = newWidth;
-      }
-
-      this.updatePanelWidths();
-    };
-
-    const onMouseUp = () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      resizer.classList.remove('active');
-    };
-
-    resizer.addEventListener('mousedown', onMouseDown);
-    
-    return resizer;
-  }
-
-  private updatePanelWidths() {
-    const container = this.elementRef.nativeElement.querySelector('.notebook-content');
-    if (container) {
-      container.style.gridTemplateColumns = `${this.sourcesPanelWidth}px 1fr ${this.studioPanelWidth}px`;
-    }
   }
 
   onFilesUploaded(files: FileList) {
     this.sources = this.notebookService.getSources()
   }
 
+  get gridTemplateColumns(): string {
+    return `${this.sourcesPanelWidth}px 1fr ${this.studioPanelWidth}px`;
+  }
+
 
   async onClickShowContent(source: Source): Promise<void> {
-    await this.fileService.open(source);
+    await this.sourceService.open(source);
     console.log('Klikatu da');
   }
 }
