@@ -10,6 +10,7 @@ import { UploadModalComponent } from "../upload-modal/upload-modal"
 import { ChatComponent } from "../chat/chat"
 import { StudioComponent } from "../studio/studio"
 import { FormsModule } from "@angular/forms"
+import { SourceService } from "../../services/source"
 
 @Component({
   selector: "app-notebook",
@@ -21,6 +22,7 @@ import { FormsModule } from "@angular/forms"
 export class NotebookComponent implements OnInit, AfterViewInit {
   i18n = inject(I18nService)
   notebookService = inject(NotebookService)
+  fileService = inject(SourceService)
   route = inject(ActivatedRoute)
   private cdr = inject(ChangeDetectorRef)
   private elementRef = inject(ElementRef)
@@ -130,5 +132,11 @@ export class NotebookComponent implements OnInit, AfterViewInit {
 
   onFilesUploaded(files: FileList) {
     this.sources = this.notebookService.getSources()
+  }
+
+
+  async onClickShowContent(source: Source): Promise<void> {
+    await this.fileService.open(source);
+    console.log('Klikatu da');
   }
 }

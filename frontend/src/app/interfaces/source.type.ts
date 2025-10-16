@@ -11,4 +11,5 @@ export interface BackendSource {
   name: string
   format: "PDF" | "TXT" | "DOC" | "DOCX" | "SRT" | "WAV" | "MP3"
   charNum: number
+  text?: string
 }
