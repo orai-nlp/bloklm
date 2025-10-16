@@ -8,6 +8,7 @@ from typing import List
 
 import json as p_json
 from sanic import Sanic, response, json
+from sanic.response import raw
 from sanic.exceptions import BadRequest
 from sanic.worker.manager import WorkerManager
 from sanic_ext import Extend, validate
@@ -66,9 +67,10 @@ def ensure_collection_rag_loaded(collection_id):
 async def start_worker(app, _):
     asyncio.create_task(worker())
 
-# @app.listener("before_server_start")
-# async def setup_asr(app, loop):
-#     initialize_asr_models(ASR_MODEL_PATH_EU, ASR_MODEL_PATH_ES)
+@app.listener("before_server_start")
+async def setup_asr(app, loop):
+    pass
+    #initialize_asr_models(ASR_MODEL_PATH_EU, ASR_MODEL_PATH_ES)
 
 # Load local LLM
 
