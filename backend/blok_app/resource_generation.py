@@ -14,10 +14,12 @@ CHUNK_OVERLAP = 500
 
 class PromptBuilder:
 
-    def __init__(self, map_main_prompt, name_singular, name_plural, custom_conf=None, reduce_main_prompt=None):
+    def __init__(self, map_main_prompt, name_singular, name_plural, language, custom_conf=None, reduce_main_prompt=None):
         self.map_main_prompt = map_main_prompt
         self.name_singular = name_singular
         self.name_plural = name_plural
+        self.language = language
+        self.language_name = "Basque" if language == "eu" else "Spanish"
         self.customization_params = {}
         self.customization_prompt = ""
         if custom_conf:
@@ -39,7 +41,7 @@ class PromptBuilder:
             input_variables=list(self.customization_params.keys()),
             template=(
                 f"{self.map_main_prompt}\n"
-                "Preserve the language of the original text and strictly follow the customization parameters listed below, if provided.\n\n"
+                f"Generate the content in {self.language_name} and strictly follow the customization parameters listed below, if provided.\n\n"
                 f"{self.customization_prompt}\n\n"
                 f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 "Passage:\n"
@@ -53,7 +55,7 @@ class PromptBuilder:
             input_variables=list(self.customization_params.keys()),
             template=(
                 f"{self.reduce_main_prompt}\n"
-                "Preserve the language of the original text and strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
+                f"Generate the content in {self.language_name} and strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
                 f"{self.customization_prompt}\n\n"
                 f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 f"{self.name_plural.capitalize()}:\n"
@@ -67,7 +69,7 @@ class PromptBuilder:
             input_variables=list(self.customization_params.keys()),
             template=(
                 f"Shrink the following {self.name_plural} into a more concise {self.name_singular}.\n"
-                "Preserve the language of the original text and strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
+                f"Generate the content in {self.language_name} and strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
                 f"{self.customization_prompt}\n\n"
                 f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 f"{self.name_plural.capitalize()}:\n"
@@ -119,12 +121,13 @@ def create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, out
         output_key=output_key,
     )
 
-def generate_note_title(llm, db, note_type, note_content, collection_id):
+def generate_note_title(llm, db, note_type, note_content, language, collection_id):
+    lang_name = "Basque" if language == "eu" else "Spanish"
     collection = db.get_bilduma(collection_id)
     prompt_template = PromptTemplate(
         input_variables=["collection_title", "collection_summary", "note_type", "note_content"],
         template=(
-            "Based on the following note, generate a concise and descriptive title.\n"
+            f"Based on the following note, generate a concise and descriptive title in {lang_name}.\n"
             "The note is part of a collection with the following title and summary. Use this information to create a more relevant title.\n\n"
             "Return only the requested title. Do not add any explanations, comments, or extra text.\n\n"
             "Collection title: {collection_title}\n"
@@ -198,43 +201,47 @@ def generate_headings(llm, db, collection_id, file_ids):
     result = chain.invoke({"input_documents": docs})
     return result["name"].strip('"'), result["title"].strip('"'), result["summary"].strip('"')
 
-def generate_summary(llm, db, collection_id, file_ids, custom_conf):
+def generate_summary(llm, db, collection_id, file_ids, lang, custom_conf):
     prompter = PromptBuilder(
         map_main_prompt="Summarize the following passage.",
         name_singular="summary",
         name_plural="summaries",
         custom_conf=custom_conf,
+        language=lang,
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
-def generate_faq(llm, db, collection_id, file_ids, custom_conf):
+def generate_faq(llm, db, collection_id, file_ids, lang, custom_conf):
     prompter = PromptBuilder(
         map_main_prompt="Build a FAQ from the following passage.",
         name_singular="FAQ",
         name_plural="FAQs",
         custom_conf=custom_conf,
+        language=lang,
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
-def generate_glossary(llm, db, collection_id, file_ids, custom_conf):
+def generate_glossary(llm, db, collection_id, file_ids, lang, custom_conf):
     prompter = PromptBuilder(
         map_main_prompt="Build a glossary from the following passage, where the most significant terms are listed along with their descriptions.",
         name_singular="glossary",
         name_plural="glossaries",
         custom_conf=custom_conf,
+        language=lang,
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
-def generate_outline(llm, db, collection_id, file_ids, custom_conf):
+def generate_outline(llm, db, collection_id, file_ids, lang, custom_conf):
     prompter = PromptBuilder(
         map_main_prompt="Build a very concise outline of the following passage in markdown format. Only include the main topics and subtopics.",
         name_singular="outline",
         name_plural="outlines",
         custom_conf=custom_conf,
+        language=lang,
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
-def generate_chronogram(llm, db, collection_id, file_ids, custom_conf):
+def generate_chronogram(llm, db, collection_id, file_ids, lang, custom_conf):
     prompter = PromptBuilder(
         map_main_prompt=(
             "Build a timeline from the following passage. List the most important events in chronological order, with their actual dates. "
@@ -245,11 +252,12 @@ def generate_chronogram(llm, db, collection_id, file_ids, custom_conf):
         name_singular="timeline",
         name_plural="timelines",
         custom_conf=custom_conf,
+        language=lang,
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
 # TODO: validate created mindmap's JSON structure
-def generate_mind_map(llm, db, collection_id, file_ids, custom_conf):
+def generate_mind_map(llm, db, collection_id, file_ids, lang, custom_conf):
     main_prompt = (
         "Build a mind map of the following passage.\n"
         "Provide the graph representation of the mind map following the JSON structure provided below. "
@@ -277,11 +285,12 @@ def generate_mind_map(llm, db, collection_id, file_ids, custom_conf):
         name_singular="mind map",
         name_plural="mind maps",
         custom_conf=custom_conf,
+        language=lang,
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
 
 # TODO: validate created podcast's JSON structure
-def generate_podcast_script(llm, db, collection_id, file_ids, custom_conf):
+def generate_podcast_script(llm, db, collection_id, file_ids, lang, custom_conf):
     podcast_type = custom_conf.to_name_value_dict()['podcast_type']
     main_prompt = (
         f"Generate a {podcast_type} podcast script from the contents of the following passage.\n"
@@ -299,5 +308,6 @@ def generate_podcast_script(llm, db, collection_id, file_ids, custom_conf):
         name_singular=f"{podcast_type} podcast script",
         name_plural=f"{podcast_type} podcast scripts",
         custom_conf=custom_conf,
+        language=lang,
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)

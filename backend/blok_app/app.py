@@ -319,6 +319,7 @@ async def rag_query(request, body: QueryModel):
 class BasicResourceModel(BaseModel):
     collection_id: int
     file_ids: List[int]
+    language: str = "eu"  # "eu" or "es"
 
 class SummaryModel(BasicResourceModel):
     formality: custom.Formality
@@ -380,42 +381,42 @@ async def delete_note(request):
 @validate(json=SummaryModel)
 async def create_summary(request, body: SummaryModel):
     note_id = db.create_empty_note("summary", body.collection_id, body.file_ids)
-    await task_queue.put((tasks.generate_summary_task, (llm, db, note_id, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_summary_task, (llm, db, note_id, body.collection_id, body.file_ids, body.language, CustomizationConfig.from_sanic_body(body))))
     return json({"id": note_id}, status=202)
 
 @app.post("/api/faq")
 @validate(json=FAQModel)
 async def create_faq(request, body: FAQModel):
     note_id = db.create_empty_note("FAQ", body.collection_id, body.file_ids)
-    await task_queue.put((tasks.generate_faq_task, (llm, db, note_id, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_faq_task, (llm, db, note_id, body.collection_id, body.file_ids, body.language, CustomizationConfig.from_sanic_body(body))))
     return json({"id": note_id}, status=202)
 
 @app.post("/api/outline")
 @validate(json=OutlineModel)
 async def create_outline(request, body: OutlineModel):
     note_id = db.create_empty_note("outline", body.collection_id, body.file_ids)
-    await task_queue.put((tasks.generate_outline_task, (llm, db, note_id, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_outline_task, (llm, db, note_id, body.collection_id, body.file_ids, body.language, CustomizationConfig.from_sanic_body(body))))
     return json({"id": note_id}, status=202)
 
 @app.post("/api/mindmap")
 @validate(json=MindMapModel)
 async def create_mind_map(request, body: MindMapModel):
     note_id = db.create_empty_note("mindmap", body.collection_id, body.file_ids)
-    await task_queue.put((tasks.generate_mind_map_task, (llm, db, note_id, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_mind_map_task, (llm, db, note_id, body.collection_id, body.file_ids, body.language, CustomizationConfig.from_sanic_body(body))))
     return json({"id": note_id}, status=202)
 
 @app.post("/api/glossary")
 @validate(json=GlossaryModel)
 async def create_glossary(request, body: GlossaryModel):
     note_id = db.create_empty_note("glossary", body.collection_id, body.file_ids)
-    await task_queue.put((tasks.generate_glossary_task, (llm, db, note_id, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_glossary_task, (llm, db, note_id, body.collection_id, body.file_ids, body.language, CustomizationConfig.from_sanic_body(body))))
     return json({"id": note_id}, status=202)
 
 @app.post("/api/timeline")
 @validate(json=ChronogramModel)
 async def create_chronogram(request, body: ChronogramModel):
     note_id = db.create_empty_note("timeline", body.collection_id, body.file_ids)
-    await task_queue.put((tasks.generate_chronogram_task, (llm, db, note_id, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_chronogram_task, (llm, db, note_id, body.collection_id, body.file_ids, body.language, CustomizationConfig.from_sanic_body(body))))
     return json({"id": note_id}, status=202)
 
 # ------------------------------------------------------------------
@@ -426,7 +427,7 @@ async def create_chronogram(request, body: ChronogramModel):
 @validate(json=PodcastModel)
 async def create_podcast(request, body: PodcastModel):
     note_id = db.create_empty_note("podcast", body.collection_id, body.file_ids)
-    await task_queue.put((tasks.generate_podcast_task, (llm, db, note_id, body.collection_id, body.file_ids, CustomizationConfig.from_sanic_body(body))))
+    await task_queue.put((tasks.generate_podcast_task, (llm, db, note_id, body.collection_id, body.file_ids, body.language, CustomizationConfig.from_sanic_body(body))))
     return json({"id": note_id}, status=202)
 
 @app.get("/api/podcast")
