@@ -14,12 +14,15 @@ CHUNK_OVERLAP = 500
 
 class PromptBuilder:
 
-    def __init__(self, map_main_prompt, name_singular, name_plural, language, custom_conf=None, reduce_main_prompt=None):
+    def __init__(self, map_main_prompt, name_singular, name_plural, language=None, custom_conf=None, reduce_main_prompt=None):
         self.map_main_prompt = map_main_prompt
         self.name_singular = name_singular
         self.name_plural = name_plural
-        self.language = language
-        self.language_name = "Basque" if language == "eu" else "Spanish"
+        self.language_prompt = ""
+        if language == "eu":
+            self.language_prompt = "Generate the content in Basque. "
+        elif language == "es":
+            self.language_prompt = "Generate the content in Spanish."
         self.customization_params = {}
         self.customization_prompt = ""
         if custom_conf:
@@ -41,7 +44,8 @@ class PromptBuilder:
             input_variables=list(self.customization_params.keys()),
             template=(
                 f"{self.map_main_prompt}\n"
-                f"Generate the content in {self.language_name} and strictly follow the customization parameters listed below, if provided.\n\n"
+                f"{self.language_prompt}"
+                "Strictly follow the customization parameters listed below, if provided.\n\n"
                 f"{self.customization_prompt}\n\n"
                 f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 "Passage:\n"
@@ -55,7 +59,8 @@ class PromptBuilder:
             input_variables=list(self.customization_params.keys()),
             template=(
                 f"{self.reduce_main_prompt}\n"
-                f"Generate the content in {self.language_name} and strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
+                f"{self.language_prompt}"
+                f"Strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
                 f"{self.customization_prompt}\n\n"
                 f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 f"{self.name_plural.capitalize()}:\n"
@@ -69,7 +74,8 @@ class PromptBuilder:
             input_variables=list(self.customization_params.keys()),
             template=(
                 f"Shrink the following {self.name_plural} into a more concise {self.name_singular}.\n"
-                f"Generate the content in {self.language_name} and strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
+                f"{self.language_prompt}"
+                f"Strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
                 f"{self.customization_prompt}\n\n"
                 f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 f"{self.name_plural.capitalize()}:\n"
