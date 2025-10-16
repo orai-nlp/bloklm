@@ -141,16 +141,16 @@
                         </div>
                     </div>
                 }
-                <!-- Voice -->
-                @if (needsParameter('voice_type')) {
+                <!-- Lang -->
+                @if (needsParameter('language')) {
                     <div class="parameter-group">
-                        <label class="parameter-label">{{ i18n.translate("studio_conf_voice") }}</label>
+                        <label class="parameter-label">{{ i18n.translate("studio_conf_lang") }}</label>
                         <div class="parameter-options">
-                            @for (option of voiceOptions; track option.value) {
+                            @for (option of langOptions; track option.value) {
                                 <button 
                                     class="option-btn"
-                                    [class.selected]="isParameterSelected('voice_type', option.value)"
-                                    (click)="selectParameter('voice_type', option.value)">
+                                    [class.selected]="isParameterSelected('language', option.value)"
+                                    (click)="selectParameter('language', option.value)">
                                     {{ i18n.translate(option.label) }}
                                 </button>
                             }

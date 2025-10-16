@@ -76,7 +76,7 @@ export class I18nService {
       eu: "Gaur",
       es: "Hoy",
     },
-    yestarday: {
+    yesterday: {
       eu: "Atzo",
       es: "Ayer",
     },
@@ -360,9 +360,9 @@ export class I18nService {
       eu:"Podcast mota",
       es:"Tipo de podcast"
     },
-    studio_conf_voice: {
-      eu:"Ahotsa",
-      es:"Voz"
+    studio_conf_lang: {
+      eu:"Hizkuntza",
+      es:"Idioma"
     },
     studio_conf_create_btn: {
       eu:"Sortu Oharra",
@@ -424,13 +424,13 @@ export class I18nService {
       eu:"Narratzailea",
       es:"Narrativo"
     },
-    studio_conf_opt_nerea: {
-      eu:"Nerea",
-      es:"Nerea"
+    studio_conf_opt_eu: {
+      eu:"Euskera",
+      es:"Euskera"
     },
-    studio_conf_opt_mikel: {
-      eu:"Mikel",
-      es:"Mikel"
+    studio_conf_opt_es: {
+      eu:"Gaztelera",
+      es:"Castellano"
     },
     studio_info_notes: {
       eu:"Gordetako oharrak hemen agertuko dira",

@@ -28,43 +28,43 @@ export class StudioComponent implements OnDestroy {
     { 
       icon: 'school', 
       labelKey: 'outline',
-      parameters: ['detail'],
+      parameters: ['detail', 'language'],
       color: '#F5AD8F' // soft coral
     },
     { 
       icon: 'description', 
       labelKey: 'summary',
-      parameters: ['formality', 'style', 'detail', 'language_complexity'],
+      parameters: ['formality', 'style', 'detail', 'language_complexity', 'language'],
       color: '#A1B6CD' // cool steel blue
     },
     { 
       icon: 'help', 
       labelKey: 'FAQ',
-      parameters: ['detail', 'language_complexity'],
+      parameters: ['detail', 'language_complexity', 'language'],
       color: '#F2EED5' // light sand
     },
     { 
       icon: 'timeline', 
       labelKey: 'timeline',
-      parameters: ['detail'],
+      parameters: ['detail', 'language'],
       color: '#DFB9DF' // soft lavender
     },
     { 
       icon: 'menu_book', 
       labelKey: 'glossary',
-      parameters: ['detail', 'language_complexity'],
+      parameters: ['detail', 'language_complexity', 'language'],
       color: '#ECACB7' // rose pink
     },
     { 
       icon: 'device_hub', 
       labelKey: 'mindmap',
-      parameters: ['detail'],
+      parameters: ['detail', 'language'],
       color: '#ADF3E6' // mint aqua
     },
     { 
       icon: 'mic', 
       labelKey: 'podcast',
-      parameters: ['formality', 'style', 'detail', 'language_complexity', 'podcast_type', 'voice_type'],
+      parameters: ['formality', 'style', 'detail', 'language_complexity', 'podcast_type', 'voice_type', 'language'],
       color: '#ADF3E6' // mint aqua
     }
   ];
@@ -103,9 +103,9 @@ export class StudioComponent implements OnDestroy {
     { value: 'narrative', label: 'studio_conf_opt_narrative' }
   ];
 
-  voiceOptions = [
-    { value: 'nerea', label: 'studio_conf_opt_nerea' },
-    { value: 'mikel', label: 'studio_conf_opt_mikel' }
+  langOptions = [
+    { value: 'eu', label: 'studio_conf_opt_eu' },
+    { value: 'es', label: 'studio_conf_opt_es' }
   ];
 
   // Logistics
