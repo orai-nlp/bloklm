@@ -260,16 +260,18 @@ def retrieve_collection_documents(collection_id):
 ###################################################################################
 
 def get_notes(collection_id):
-    sql = f"SELECT id, status_ready, name, content, type, contained_file_ids, created_at::TEXT AS created_at FROM Note WHERE bilduma_key = {collection_id};"
+    sql = f"SELECT id, status, name, content, type, contained_file_ids, created_at::TEXT AS created_at FROM Note WHERE bilduma_key = {collection_id};"
     return query_db_as_dict(sql)
 
 def get_note(note_id):
-    sql = f"SELECT id, status_ready, name, content, type, contained_file_ids, created_at::TEXT AS created_at FROM Note WHERE id = {note_id};"
+    sql = f"SELECT id, status, name, content, type, contained_file_ids, created_at::TEXT AS created_at FROM Note WHERE id = {note_id};"
     res = query_db_as_dict(sql)
     if len(res) == 0:
         return None
-    if not res[0]["status_ready"]:
+    if res[0]["status"] == 0:
         return False
+    elif res[0]["status"] == 2:
+        raise RuntimeError("Note generation failed")
     return res[0]
 
 def ezabatu_nota(id):
@@ -278,11 +280,16 @@ def ezabatu_nota(id):
 
 def create_empty_note(note_type, collection_id, file_ids):
     print('NOTEEEEE: ', str(file_ids))
-    sql = f"INSERT INTO Note (status_ready, name, type, content, contained_file_ids, bilduma_key) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id"
-    data = (False, "", note_type, "", file_ids, collection_id)
+    sql = f"INSERT INTO Note (status, name, type, content, contained_file_ids, bilduma_key) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id"
+    data = (0, "", note_type, "", file_ids, collection_id)
     return commit_query_db(sql, data)
 
 def update_note(note_id, name, content):
-    sql = f"UPDATE Note SET status_ready = %s, name = %s, content = %s WHERE id = %s"
-    data = (True, name, content, note_id)
+    sql = f"UPDATE Note SET status = %s, name = %s, content = %s WHERE id = %s"
+    data = (1, name, content, note_id)
+    commit_query_db(sql, data)
+
+def fail_note(note_id):
+    sql = f"UPDATE Note SET status = %s WHERE id = %s"
+    data = (2, note_id)
     commit_query_db(sql, data)

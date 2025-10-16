@@ -53,6 +53,7 @@ async def worker():
             await loop.run_in_executor(executor, func, *args)
         except Exception as e:
             logging.error(f"Error in task {func.__name__}: {e}")
+            db.fail_note(args[2])  # args[2]: note_id
         finally:
             task_queue.task_done()
 
@@ -363,12 +364,15 @@ async def get_notes(request):
 @app.get("/api/note")
 async def get_note(request):
     note_id = request.args.get("id")
-    note = db.get_note(note_id)
-    if note == False:
-        return json({}, status=409)
-    elif note is None:
-        return json({}, status=404)
-    return json(note)
+    try:
+        note = db.get_note(note_id)
+        if note == False:
+            return json({}, status=409)
+        elif note is None:
+            return json({}, status=404)
+        return json(note)
+    except RuntimeError as e:
+        return json({"error": str(e)}, status=500)
 
 @app.get("/api/delete_note")
 async def delete_note(request):
