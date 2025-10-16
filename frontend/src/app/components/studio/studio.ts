@@ -136,11 +136,12 @@ export class StudioComponent implements OnDestroy {
   }
 
   onClickShowContent(note: Note): void {
-    if (note.status_ready) {
+    if (note.status === 1) {
       this.noteService.open(note);
     }
   }
-  
+
+
   getDaysAgo(createdAt: Date | undefined): string {
     if (!createdAt) return '';
     
@@ -227,7 +228,7 @@ export class StudioComponent implements OnDestroy {
   }
 
   deleteNote(note: Note) {
-    if (!note.status_ready) return;
+    if (note.status === 0) return;
     
     this.noteService.deleteNote(note.id).subscribe({
       next: () => {
@@ -235,7 +236,6 @@ export class StudioComponent implements OnDestroy {
       },
       error: (error) => {
         console.error('Error deleting note:', error);
-        // Handle error (you might want to show a user notification here)
       }
     });
   }

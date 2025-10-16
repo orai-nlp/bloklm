@@ -18,6 +18,7 @@ export class SourceService {
       this.call_backend('fitxategia', 'GET', { id: source.id }, undefined)
         .subscribe({
           next: (res:any) => {
+            debugger
             this.text = res?.text ?? '';
             console.log('fitxategia jasota backendetik:', res);
             this.sourceSubject.next(source);

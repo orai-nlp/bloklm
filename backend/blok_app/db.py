@@ -206,7 +206,7 @@ def get_fitxategiak(collection_id, content=False, file_ids=[]):
 
 def get_fitxategia(id):
     notak_sql = f"SELECT id, name, text, charNum, format FROM Fitxategia WHERE id = {id};"
-    return query_db_as_dict(notak_sql)
+    return query_db_as_dict(notak_sql)[0]
 
 def upload_fitxategiak(id: str, files):
     """

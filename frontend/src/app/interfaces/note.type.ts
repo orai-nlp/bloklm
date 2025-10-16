@@ -3,7 +3,7 @@ export interface Note {
   name: string;
   content: string;
   type: string;
-  status_ready: boolean | undefined; // Add this optional property for loading state
+  status: number; // Changed from boolean to number (0, 1, or 2)
   created_at?: Date;  // Optional: for displaying time left
   contained_file_ids: string[];
 }

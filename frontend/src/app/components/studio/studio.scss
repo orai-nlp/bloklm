@@ -72,6 +72,15 @@ $note-colors: (
   }
 }
 
+.section-divider {
+  border: none;
+  height: 2px;
+  background: #cccdcf;   // same colour used for borders
+  margin-top: 13px;        // same horizontal padding as sections
+  margin-bottom: 13px;        // same horizontal padding as sections
+}
+
+
 .section-header {
   display: flex;
   padding-left: 7px;
@@ -502,10 +511,14 @@ $note-colors: (
 }
 
 // Notes List Styles
+
+.templates-area { padding-bottom: 8px; }
+.notes-area      { padding-top:    8px; }
+
 .notes-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
 }
 
 .notes-wrapper {

@@ -444,6 +444,18 @@ export class I18nService {
       eu:"Aukeratu gutxienez fitxategi 1 mesedez",
       es:"Selecciona, al menos, 1 archivo por favor"
     },
+    studio_error_generating_note: {
+      eu:"Errorea oharra sortzean.",
+      es:"Error al crear la nota."
+    },
+    studio_error_note_title: {
+      eu:"Errorea",
+      es:"Error"
+    },
+    studio_error_note_description: {
+      eu:"Nota akatsduna, ez da egoki sortu.",
+      es:"Nota problematica, no se ha creado correctamente."
+    },
   }
 
 

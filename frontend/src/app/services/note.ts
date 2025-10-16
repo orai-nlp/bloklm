@@ -70,7 +70,7 @@ export class NoteService implements OnDestroy{
           type: type,
           name: '',
           content: '',
-          status_ready: false,
+          status: 0,
           created_at: new Date(),
           contained_file_ids: ids
         };
@@ -122,7 +122,7 @@ export class NoteService implements OnDestroy{
           
           // Start polling for notes that are not yet created
           notes.forEach(note => {
-            if (!note.status_ready) {
+            if (!note.status) {
               this.startPolling(note.id);
             }
           });
@@ -141,16 +141,19 @@ export class NoteService implements OnDestroy{
       return;
     }
 
-    // Poll every 3 seconds
+    // Poll every 6 seconds
     const polling = interval(6000).pipe(
       switchMap(() => this.checkNoteStatus(noteId)),
-      takeWhile((noteStatus) => !noteStatus.status_ready, true) // Continue until created, include final emission
+      takeWhile((noteStatus) => noteStatus.status === 0, true) // Continue while status is 0, include final emission
     ).subscribe({
       next: (noteStatus) => {
-        
-        
-        // If note is created, stop polling
-        if (noteStatus.status_ready) {
+        // If note is created (status 1), update and stop polling
+        if (noteStatus.status === 1) {
+          this.updateNoteStatus(noteId, noteStatus);
+          this.stopPolling(noteId);
+        }
+        // If note has error (status 2), update status and stop polling
+        else if (noteStatus.status === 2) {
           this.updateNoteStatus(noteId, noteStatus);
           this.stopPolling(noteId);
         }
@@ -176,16 +179,19 @@ export class NoteService implements OnDestroy{
     return this.call_backend<Partial<Note>>('note', 'GET', { id: noteId }, undefined).pipe(
       catchError((error) => {
         if (error.status === 409) {
-          // Note not ready yet → treat as partial response
-          return of({ id: noteId, status_ready: false });
+          // Note not ready yet → treat as partial response with status 0
+          return of({ id: noteId, status: 0 });
         } else if (error.status === 404) {
           // Note does not exist → stop polling
           console.warn(`Note ${noteId} not found (404).`);
           this.stopPolling(noteId);
-          return EMPTY; // stop emitting further values
+          return EMPTY;
+        } else if (error.status === 500) {
+          // Error in note generation → status 2
+          return of({ id: noteId, status: 2 });
         } else {
           console.error(`Unexpected error for note ${noteId}:`, error);
-          return throwError(() => error); // rethrow for outer handler
+          return throwError(() => error);
         }
       })
     );
@@ -199,7 +205,7 @@ export class NoteService implements OnDestroy{
         return {
           ...note,
           ...noteStatus,
-          status_ready: noteStatus.status_ready
+          status: noteStatus.status ?? 1
         };
       }
       return note;

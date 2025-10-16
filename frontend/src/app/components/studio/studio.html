@@ -1,209 +1,220 @@
 <div class="panel-header">
-    <h3 class="panel-title">{{ i18n.translate('studio') }}</h3>
+    <h3 class="panel-title">{{ i18n.translate('notes') }}</h3>
 </div>
 
 <div class="studio-section">
-    <div class="section-header">
+    <!-- <div class="section-header">
         <h4 class="section-title">{{ i18n.translate('notes') }}</h4>
-    </div>
-    
-    <div class="note-templates">
-        <button 
-            class="template-btn" 
-            [class.active]="selectedTemplate === noteTemplates.at(-1)"
-            [title]="i18n.translate(noteTemplates.at(-1)?.labelKey ?? '') ?? ''"
-            [attr.data-template-type]="noteTemplates.at(-1)?.labelKey ?? ''"
-            (click)="openParameterMenu(noteTemplates.at(-1)!);">
-            <span class="material-icons">{{ noteTemplates.at(-1)!.icon }}</span>
-            <span class="template-label">{{ i18n.translate(noteTemplates.at(-1)!.labelKey) }}</span>
-        </button>
-    </div>
-    <div class="note-templates" style="margin-bottom: 2px;">
-        @for (template of noteTemplates.slice(0, 3); track template.labelKey) {
+    </div> -->
+    <div class="templates-area">
+        <div class="note-templates">
             <button 
                 class="template-btn" 
-                [class.active]="selectedTemplate === template"
-                [title]="i18n.translate(template.labelKey)"
-                [attr.data-template-type]="template.labelKey"
-                (click)="openParameterMenu(template)">
-                <span class="material-icons">{{ template.icon }}</span>
-                <span class="template-label">{{ i18n.translate(template.labelKey) }}</span>
+                [class.active]="selectedTemplate === noteTemplates.at(-1)"
+                [title]="i18n.translate(noteTemplates.at(-1)?.labelKey ?? '') ?? ''"
+                [attr.data-template-type]="noteTemplates.at(-1)?.labelKey ?? ''"
+                (click)="openParameterMenu(noteTemplates.at(-1)!);">
+                <span class="material-icons">{{ noteTemplates.at(-1)!.icon }}</span>
+                <span class="template-label">{{ i18n.translate(noteTemplates.at(-1)!.labelKey) }}</span>
             </button>
-        }
-    </div>
-
-    <div class="note-templates">
-        @for (template of noteTemplates.slice(3,6); track template.labelKey) {
-            <button 
-                class="template-btn" 
-                [class.active]="selectedTemplate === template"
-                [title]="i18n.translate(template.labelKey)"
-                [attr.data-template-type]="template.labelKey"
-                (click)="openParameterMenu(template)">
-                <span class="material-icons">{{ template.icon }}</span>
-                <span class="template-label">{{ i18n.translate(template.labelKey) }}</span>
-            </button>
-        }
-    </div>
-
-    <!-- Parameter Selection Menu -->
-    @if (selectedTemplate) {
-        <div class="parameter-menu">
-            <div class="parameter-menu-header">
-                <h5 class="parameter-menu-title">{{ i18n.translate("configure") }} {{ i18n.translate(selectedTemplate.labelKey) }}</h5>
-                <button class="close-menu-btn" (click)="closeParameterMenu()">
-                    <span class="material-icons">close</span>
-                </button>
-            </div>
-
-            <div class="parameter-list">
-                <!-- Formality -->
-                @if (needsParameter('formality')) {
-                    <div class="parameter-group">
-                        <label class="parameter-label">{{ i18n.translate("studio_conf_formality") }}</label>
-                        <div class="parameter-options">
-                            @for (option of formalityOptions; track option.value) {
-                                <button 
-                                    class="option-btn"
-                                    [class.selected]="isParameterSelected('formality', option.value)"
-                                    (click)="selectParameter('formality', option.value)">
-                                    {{ i18n.translate(option.label) }}
-                                </button>
-                            }
-                        </div>
-                    </div>
-                }
-
-                <!-- Style -->
-                @if (needsParameter('style')) {
-                    <div class="parameter-group">
-                        <label class="parameter-label">{{ i18n.translate("studio_conf_style") }}</label>
-                        <div class="parameter-options">
-                            @for (option of styleOptions; track option.value) {
-                                <button 
-                                    class="option-btn"
-                                    [class.selected]="isParameterSelected('style', option.value)"
-                                    (click)="selectParameter('style', option.value)">
-                                    {{ i18n.translate(option.label) }}
-                                </button>
-                            }
-                        </div>
-                    </div>
-                }
-
-                <!-- Detail Level -->
-                @if (needsParameter('detail')) {
-                    <div class="parameter-group">
-                        <label class="parameter-label">{{ i18n.translate("studio_conf_detail") }}</label>
-                        <div class="parameter-options">
-                            @for (option of detailOptions; track option.value) {
-                                <button 
-                                    class="option-btn"
-                                    [class.selected]="isParameterSelected('detail', option.value)"
-                                    (click)="selectParameter('detail', option.value)">
-                                    {{ i18n.translate(option.label) }}
-                                </button>
-                            }
-                        </div>
-                    </div>
-                }
-
-                <!-- Linguistic Complexity -->
-                @if (needsParameter('language_complexity')) {
-                    <div class="parameter-group">
-                        <label class="parameter-label">{{ i18n.translate("studio_conf_complexity") }}</label>
-                        <div class="parameter-options">
-                            @for (option of complexityOptions; track option.value) {
-                                <button 
-                                    class="option-btn"
-                                    [class.selected]="isParameterSelected('language_complexity', option.value)"
-                                    (click)="selectParameter('language_complexity', option.value)">
-                                    {{ i18n.translate(option.label) }}
-                                </button>
-                            }
-                        </div>
-                    </div>
-                }
-
-                <!-- Type -->
-                @if (needsParameter('podcast_type')) {
-                    <div class="parameter-group">
-                        <label class="parameter-label">{{ i18n.translate("studio_conf_type") }}</label>
-                        <div class="parameter-options">
-                            @for (option of typeOptions; track option.value) {
-                                <button 
-                                    class="option-btn"
-                                    [class.selected]="isParameterSelected('podcast_type', option.value)"
-                                    (click)="selectParameter('podcast_type', option.value)">
-                                    {{ i18n.translate(option.label) }}
-                                </button>
-                            }
-                        </div>
-                    </div>
-                }
-                <!-- Lang -->
-                @if (needsParameter('language')) {
-                    <div class="parameter-group">
-                        <label class="parameter-label">{{ i18n.translate("studio_conf_lang") }}</label>
-                        <div class="parameter-options">
-                            @for (option of langOptions; track option.value) {
-                                <button 
-                                    class="option-btn"
-                                    [class.selected]="isParameterSelected('language', option.value)"
-                                    (click)="selectParameter('language', option.value)">
-                                    {{ i18n.translate(option.label) }}
-                                </button>
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <div class="parameter-menu-actions">
-                <button class="cancel-btn" (click)="closeParameterMenu()">{{ i18n.translate("cancel") }}</button>
+        </div>
+        <div class="note-templates" style="margin-bottom: 2px;">
+            @for (template of noteTemplates.slice(0, 3); track template.labelKey) {
                 <button 
-                    class="create-note-btn" 
-                    [disabled]="!areAllParametersSelected()"
-                    (click)="createNote()">
-                    {{ i18n.translate("studio_conf_create_btn") }}
+                    class="template-btn" 
+                    [class.active]="selectedTemplate === template"
+                    [title]="i18n.translate(template.labelKey)"
+                    [attr.data-template-type]="template.labelKey"
+                    (click)="openParameterMenu(template)">
+                    <span class="material-icons">{{ template.icon }}</span>
+                    <span class="template-label">{{ i18n.translate(template.labelKey) }}</span>
                 </button>
+            }
+        </div>
+
+        <div class="note-templates">
+            @for (template of noteTemplates.slice(3,6); track template.labelKey) {
+                <button 
+                    class="template-btn" 
+                    [class.active]="selectedTemplate === template"
+                    [title]="i18n.translate(template.labelKey)"
+                    [attr.data-template-type]="template.labelKey"
+                    (click)="openParameterMenu(template)">
+                    <span class="material-icons">{{ template.icon }}</span>
+                    <span class="template-label">{{ i18n.translate(template.labelKey) }}</span>
+                </button>
+            }
+        </div>
+
+        <!-- Parameter Selection Menu -->
+        @if (selectedTemplate) {
+            <div class="parameter-menu">
+                <div class="parameter-menu-header">
+                    <h5 class="parameter-menu-title">{{ i18n.translate("configure") }} {{ i18n.translate(selectedTemplate.labelKey) }}</h5>
+                    <button class="close-menu-btn" (click)="closeParameterMenu()">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+
+                <div class="parameter-list">
+                    <!-- Formality -->
+                    @if (needsParameter('formality')) {
+                        <div class="parameter-group">
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_formality") }}</label>
+                            <div class="parameter-options">
+                                @for (option of formalityOptions; track option.value) {
+                                    <button 
+                                        class="option-btn"
+                                        [class.selected]="isParameterSelected('formality', option.value)"
+                                        (click)="selectParameter('formality', option.value)">
+                                        {{ i18n.translate(option.label) }}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Style -->
+                    @if (needsParameter('style')) {
+                        <div class="parameter-group">
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_style") }}</label>
+                            <div class="parameter-options">
+                                @for (option of styleOptions; track option.value) {
+                                    <button 
+                                        class="option-btn"
+                                        [class.selected]="isParameterSelected('style', option.value)"
+                                        (click)="selectParameter('style', option.value)">
+                                        {{ i18n.translate(option.label) }}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Detail Level -->
+                    @if (needsParameter('detail')) {
+                        <div class="parameter-group">
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_detail") }}</label>
+                            <div class="parameter-options">
+                                @for (option of detailOptions; track option.value) {
+                                    <button 
+                                        class="option-btn"
+                                        [class.selected]="isParameterSelected('detail', option.value)"
+                                        (click)="selectParameter('detail', option.value)">
+                                        {{ i18n.translate(option.label) }}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Linguistic Complexity -->
+                    @if (needsParameter('language_complexity')) {
+                        <div class="parameter-group">
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_complexity") }}</label>
+                            <div class="parameter-options">
+                                @for (option of complexityOptions; track option.value) {
+                                    <button 
+                                        class="option-btn"
+                                        [class.selected]="isParameterSelected('language_complexity', option.value)"
+                                        (click)="selectParameter('language_complexity', option.value)">
+                                        {{ i18n.translate(option.label) }}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Type -->
+                    @if (needsParameter('podcast_type')) {
+                        <div class="parameter-group">
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_type") }}</label>
+                            <div class="parameter-options">
+                                @for (option of typeOptions; track option.value) {
+                                    <button 
+                                        class="option-btn"
+                                        [class.selected]="isParameterSelected('podcast_type', option.value)"
+                                        (click)="selectParameter('podcast_type', option.value)">
+                                        {{ i18n.translate(option.label) }}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                    <!-- Lang -->
+                    @if (needsParameter('language')) {
+                        <div class="parameter-group">
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_lang") }}</label>
+                            <div class="parameter-options">
+                                @for (option of langOptions; track option.value) {
+                                    <button 
+                                        class="option-btn"
+                                        [class.selected]="isParameterSelected('language', option.value)"
+                                        (click)="selectParameter('language', option.value)">
+                                        {{ i18n.translate(option.label) }}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="parameter-menu-actions">
+                    <button class="cancel-btn" (click)="closeParameterMenu()">{{ i18n.translate("cancel") }}</button>
+                    <button 
+                        class="create-note-btn" 
+                        [disabled]="!areAllParametersSelected()"
+                        (click)="createNote()">
+                        {{ i18n.translate("studio_conf_create_btn") }}
+                    </button>
+                </div>
             </div>
-        </div>
-    }
-    
-    <div class="notes-empty" *ngIf="currentNotes.length === 0">
-        <div class="notes-icon">
-            <span class="material-icons">note</span>
-        </div>
-        <p class="notes-empty-text">{{ i18n.translate("studio_info_notes") }}</p>
-        <p class="notes-empty-subtext">
-        </p>
+        }
     </div>
 
-    <div class="notes-list" *ngIf="currentNotes.length > 0">
-        <div *ngFor="let note of currentNotes"
-            class="notes-wrapper">
-            <div class="note-container" 
-                [class.loading]="!note.status_ready"
-                [attr.data-note-type]="note.type">
-                <div class="note-content-wrapper" (click)="onClickShowContent(note)">
-                    <div class="icon">
-                        <span class="material-icons" *ngIf="note.status_ready">{{ iconFor(note.type) }}</span>
-                        <span class="material-icons loading-icon" *ngIf="!note.status_ready">hourglass_empty</span>
+    <!-- visible divider -->
+    <hr class="section-divider" />
+
+
+    <div class="notes-area">
+        <div class="notes-empty" *ngIf="currentNotes.length === 0">
+            <div class="notes-icon">
+                <span class="material-icons">note</span>
+            </div>
+            <p class="notes-empty-text">{{ i18n.translate("studio_info_notes") }}</p>
+            <p class="notes-empty-subtext">
+            </p>
+        </div>
+
+        <div class="notes-list" *ngIf="currentNotes.length > 0">
+            <div *ngFor="let note of currentNotes"
+                class="notes-wrapper">
+                <div class="note-container" 
+                    [class.loading]="note.status === 0"
+                    [class.error]="note.status === 2"
+                    [attr.data-note-type]="note.type">
+                    <div class="note-content-wrapper" (click)="onClickShowContent(note)">
+                        <div class="icon">
+                            <span class="material-icons" *ngIf="note.status === 1">{{ iconFor(note.type) }}</span>
+                            <span class="material-icons loading-icon" *ngIf="note.status === 0">hourglass_empty</span>
+                            <span class="material-icons error-icon" *ngIf="note.status === 2">error</span>
+                        </div>
+                        <div class="content">
+                            <span class="note-title" *ngIf="note.status === 1">{{ note.name }}</span>
+                            <span class="note-title loading-text" *ngIf="note.status === 0">{{ i18n.translate('loading') }}...</span>
+                            <span class="note-title error-text" *ngIf="note.status === 2">{{ i18n.translate('studio_error_note_title') }}</span>
+                            
+                            <span class="note-metadata" *ngIf="note.status === 1">
+                                {{ i18n.translate(note.type) }} • {{ note.contained_file_ids.length }} {{i18n.translate('source')}}{{ note.contained_file_ids.length !== 1 && i18n.language == 'es' ? 's':''}} • {{ getDaysAgo(note.created_at) }}
+                            </span>
+                            <span class="note-metadata loading-text" *ngIf="note.status === 0">{{i18n.language == 'eu'? i18n.translate(note.type)+ 'ren ' : ''}}{{ i18n.translate('studio_generating_note') }} {{i18n.language == 'es'? i18n.translate(note.type) : ''}}...</span>
+                            <span class="note-metadata error-text" *ngIf="note.status === 2">{{ i18n.translate('studio_error_note_description') }}</span>
+                        </div>
                     </div>
-                    <div class="content">
-                        <span class="note-title" *ngIf="note.status_ready">{{ note.name }}</span>
-                        <span class="note-title loading-text" *ngIf="!note.status_ready">{{ i18n.translate('loading') }}...</span>
-                        
-                        <span class="note-metadata" *ngIf="note.status_ready">
-                            {{ i18n.translate(note.type) }} • {{ note.contained_file_ids.length }} {{i18n.translate('source')}}{{ note.contained_file_ids.length !== 1 && i18n.language == 'es' ? 's':''}} • {{ getDaysAgo(note.created_at) }}
-                        </span>
-                        <span class="note-metadata loading-text" *ngIf="!note.status_ready">{{i18n.language == 'eu'? i18n.translate(note.type)+ 'ren ' : ''}}{{ i18n.translate('studio_generating_note') }} {{i18n.language == 'es'? i18n.translate(note.type) : ''}}...</span>
-                    </div>
+                    <button class="delete-note-btn" (click)="deleteNote(note)" [disabled]="note.status === 0">
+                        <span class="material-icons">delete</span>
+                    </button>
                 </div>
-                <button class="delete-note-btn" (click)="deleteNote(note)" [disabled]="!note.status_ready">
-                    <span class="material-icons">delete</span>
-                </button>
             </div>
         </div>
     </div>

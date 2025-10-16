@@ -19,7 +19,7 @@ import backend.blok_app.tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
 from backend.blok_app.resource_generation import generate_headings
-from  backend.blok_app.audio_process import initialize_asr_models
+# from  backend.blok_app.audio_process import initialize_asr_models
 
 #from backend.blok_app.llm_factory import build_hf_llm
 import backend.blok_app.rag as rag
@@ -66,9 +66,9 @@ def ensure_collection_rag_loaded(collection_id):
 async def start_worker(app, _):
     asyncio.create_task(worker())
 
-@app.listener("before_server_start")
-async def setup_asr(app, loop):
-    initialize_asr_models(ASR_MODEL_PATH_EU, ASR_MODEL_PATH_ES)
+# @app.listener("before_server_start")
+# async def setup_asr(app, loop):
+#     initialize_asr_models(ASR_MODEL_PATH_EU, ASR_MODEL_PATH_ES)
 
 # Load local LLM
 
@@ -373,6 +373,7 @@ async def get_note(request):
         return json(note)
     except RuntimeError as e:
         return json({"error": str(e)}, status=500)
+    
 
 @app.get("/api/delete_note")
 async def delete_note(request):
