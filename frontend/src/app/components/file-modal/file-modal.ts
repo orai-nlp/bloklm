@@ -75,7 +75,12 @@ export class FileModalComponent implements OnInit, OnDestroy  {
       const highlighted = text.substring(offset, offset + chunkLength);
       const after = text.substring(offset + chunkLength);
       
-      text = before + '<mark class="highlight-chunk">' + highlighted + '</mark>' + after;
+      const markedLines = highlighted
+        .split('\n')
+        .map(line => `<mark class="highlight-chunk">${line}</mark>`)
+        .join('\n');
+
+      text = before + markedLines + after;
     }
 
     // Render markdown with marked and sanitize with DOMPurify
