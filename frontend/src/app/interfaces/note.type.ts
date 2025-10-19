@@ -6,6 +6,8 @@ export interface Note {
   status: number; // Changed from boolean to number (0, 1, or 2)
   created_at?: Date;  // Optional: for displaying time left
   contained_file_ids: string[];
+  audioData?: Uint8Array; // podcast audio bytes
+  audioUrl?: string; // blob URL to play audio
 }
 
 export interface NoteTemplate {

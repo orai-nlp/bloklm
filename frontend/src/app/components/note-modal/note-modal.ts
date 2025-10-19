@@ -23,6 +23,8 @@ export class NoteModalComponent implements OnInit, OnDestroy {
   isVisible = false;
   renderedContent: string = '';
   isMindmap = false;
+  isPodcast = false;
+
   
   private destroy$ = new Subject<void>();
   private cy: any = null; // Cytoscape instance
@@ -63,18 +65,25 @@ export class NoteModalComponent implements OnInit, OnDestroy {
 
   prepareContent(note: Note) {
     this.isMindmap = note.type.toLowerCase() === 'mindmap';
+    this.isPodcast = note.type.toLowerCase() === 'podcast';
     console.log('Nota edukia:' , note.content);
     
     if (this.isMindmap) {
       // Parse and render mindmap with Cytoscape
       setTimeout(() => this.renderMindmap(note.content), 0);
     } else {
+      let contentToRender = note.content || '';
+      
+      // If it's a podcast, try to parse JSON format first
+      if (this.isPodcast) {
+        contentToRender = this.parsePodcastContent(contentToRender);
+      }
+      
       // Render markdown with marked and sanitize with DOMPurify
-      const rawHtml = marked.parse(note.content || '') as string;
+      const rawHtml = marked.parse(contentToRender) as string;
       console.log(rawHtml);
       
       this.renderedContent = DOMPurify.sanitize(rawHtml, {
-        ADD_ATTR: ['target'],
         ALLOWED_TAGS: [
           'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
           'p', 'br', 'strong', 'em', 'u', 's', 'del',
@@ -83,8 +92,9 @@ export class NoteModalComponent implements OnInit, OnDestroy {
           'pre', 'code',
           'blockquote',
           'table', 'thead', 'tbody', 'tr', 'th', 'td',
-          'hr'
-        ]
+          'hr', 'div', 'span'
+        ],
+        ADD_ATTR: ['target', 'class']
       });
     }
   }
@@ -220,6 +230,65 @@ export class NoteModalComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Error rendering mindmap:', error);
       container.innerHTML = '<p style="color: red; padding: 20px;">Error rendering mindmap</p>';
+    }
+  }
+
+  /**
+   * Parse podcast content from JSON format to markdown
+   * If content is not valid JSON, return it as-is
+   */
+   private parsePodcastContent(content: string): string {
+    try {
+      let jsonContent;
+      
+      // First, try to parse as a standard JSON array
+      try {
+        jsonContent = JSON.parse(content);
+      } catch (e) {
+        // If that fails, assume it's comma-separated objects: {...}, {...}, {...}
+        // Wrap in brackets to make it a valid JSON array
+        const trimmedContent = content.trim();
+        
+        // Remove trailing comma if present
+        const cleanContent = trimmedContent.replace(/,\s*$/, '');
+        
+        // Wrap in array brackets
+        jsonContent = JSON.parse(`[${cleanContent}]`);
+      }
+      
+      // Check if it's a valid array of speaker objects
+      if (Array.isArray(jsonContent) && jsonContent.length > 0) {
+        // Convert JSON array to markdown format with speaker styling
+        let markdown = '';
+        let currentSpeaker = '';
+        
+        jsonContent.forEach((entry: any) => {
+          if (!entry.speaker || !entry.text) {
+            return; // Skip invalid entries
+          }
+          
+          const speaker = entry.speaker.toString();
+          const text = entry.text;
+          
+          // Add speaker label when speaker changes
+          if (speaker !== currentSpeaker) {
+            currentSpeaker = speaker;
+            if (markdown) markdown += '\n'; // Add spacing between speakers
+            markdown += `**Speaker ${speaker}:**\n\n`;
+          }
+          
+          markdown += `${text}\n\n`;
+        });
+        
+        return markdown.trim();
+      }
+      
+      // If not a valid array, return original content
+      return content;
+    } catch (error) {
+      console.warn('Failed to parse podcast JSON content, treating as markdown:', error);
+      // If JSON parsing fails completely, return original content (it's already markdown)
+      return content;
     }
   }
 

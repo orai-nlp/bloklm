@@ -118,6 +118,7 @@ export class NoteService implements OnDestroy{
     this.call_backend<Note[]>('notes', 'GET', { nt_id: notebookId }, undefined)
       .subscribe({
         next: (notes) => {
+          // First, set the notes without audio data
           this.notesSubject.next(notes);
           console.log('Notes loaded from backend:', notes);
           
@@ -125,6 +126,35 @@ export class NoteService implements OnDestroy{
           notes.forEach(note => {
             if (!note.status) {
               this.startPolling(note.id);
+            }
+            
+            // Fetch audio for podcast notes that are ready (status === 1)
+            if (note.type === 'podcast' && note.status === 1) {
+              note.status = 0
+              this.fetchPodcastAudio(note.id).subscribe({
+                next: (audioData) => {
+                  const blob = new Blob([audioData], { type: 'audio/mpeg' });
+                  const audioUrl = URL.createObjectURL(blob);
+                  
+                  const currentNotes = this.notesSubject.value;
+                  const updatedNotes = currentNotes.map(n => {
+                    if (n.id === note.id) {
+                      return {
+                        ...n,
+                        status:1,
+                        audioData: new Uint8Array(audioData),
+                        audioUrl: audioUrl
+                      };
+                    }
+                    return n;
+                  });
+                  
+                  this.notesSubject.next(updatedNotes);
+                },
+                error: (error) => {
+                  console.error(`Error fetching podcast audio for note ${note.id}:`, error);
+                }
+              });
             }
           });
         },
@@ -198,22 +228,76 @@ export class NoteService implements OnDestroy{
     );
   }
 
+  private fetchPodcastAudio(noteId: string): Observable<ArrayBuffer> {
+    return this.call_backend<ArrayBuffer>('podcast', 'GET', { id: noteId }, undefined, 'arraybuffer');
+  }
+
   private updateNoteStatus(noteId: string, noteStatus: Partial<Note>) {
     this.ngZone.run(() => {
       const currentNotes = this.notesSubject.value;
-      const updatedNotes = currentNotes.map(note => {
-        if (note.id === noteId) {
-          return {
-            ...note,
-            ...noteStatus,
-            status: noteStatus.status ?? 1
-          };
-        }
-        return note;
-      });
+      const noteIndex = currentNotes.findIndex(note => note.id === noteId);
       
-      // Create a new array reference to trigger change detection
-      this.notesSubject.next([...updatedNotes]);
+      if (noteIndex === -1) return;
+      
+      const note = currentNotes[noteIndex];
+
+      // If it's a podcast and status is ready (1), fetch the audio
+      if (note.type === 'podcast' && noteStatus.status === 1) {
+        // Keep status as 0 (loading) while fetching audio
+        const loadingNote = {
+          ...note,
+          ...noteStatus,
+          status: 0  // Keep loading state
+        };
+        
+        const updatedNotes = [...currentNotes];
+        updatedNotes[noteIndex] = loadingNote;
+        this.notesSubject.next(updatedNotes);
+        
+        this.fetchPodcastAudio(noteId).subscribe({
+          next: (audioData) => {
+            const blob = new Blob([audioData], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(blob);
+            
+            const completeNote = {
+              ...loadingNote,
+              status: 1,  // Now set to ready
+              audioData: new Uint8Array(audioData),
+              audioUrl: audioUrl
+            };
+            
+            const finalNotes = [...this.notesSubject.value];
+            const finalIndex = finalNotes.findIndex(n => n.id === noteId);
+            if (finalIndex !== -1) {
+              finalNotes[finalIndex] = completeNote;
+              this.notesSubject.next(finalNotes);
+            }
+          },
+          error: (error) => {
+            console.error(`Error fetching podcast audio for note ${noteId}:`, error);
+            const errorNote = {
+              ...loadingNote,
+              status: 2  // Error state
+            };
+            const finalNotes = [...this.notesSubject.value];
+            const finalIndex = finalNotes.findIndex(n => n.id === noteId);
+            if (finalIndex !== -1) {
+              finalNotes[finalIndex] = errorNote;
+              this.notesSubject.next(finalNotes);
+            }
+          }
+        });
+      } else {
+        // For non-podcast notes or non-ready status, just update normally
+        const updatedNote = {
+          ...note,
+          ...noteStatus,
+          status: noteStatus.status ?? 1
+        };
+        const updatedNotes = [...currentNotes];
+        updatedNotes[noteIndex] = updatedNote;
+        this.notesSubject.next(updatedNotes);
+      }
     });
   }
 
@@ -222,18 +306,33 @@ export class NoteService implements OnDestroy{
   ngOnDestroy() {
     this.pollingIntervals.forEach(polling => polling.unsubscribe());
     this.pollingIntervals.clear();
+    
+    // Clean up any blob URLs
+    const notes = this.notesSubject.value;
+    notes.forEach(note => {
+      if (note.audioUrl) {
+        URL.revokeObjectURL(note.audioUrl);
+      }
+    });
   }
 
   private call_backend<T>(
     id: string,
     method: 'GET' | 'POST',
     args_get?: Record<string, string | number | boolean | readonly (string | number | boolean)[]>,
-    args_post?: Record<string, string | number | boolean | readonly (string | number | boolean)[] | FormDataEntryValue | null> | FormData
+    args_post?: Record<string, string | number | boolean | readonly (string | number | boolean)[] | FormDataEntryValue | null> | FormData,
+    responseType?: 'json' | 'arraybuffer'
   ): Observable<T> {
     const url = `${environment.apiBaseUrl}/${id}`;
 
     switch (method) {
       case 'GET':
+        if (responseType === 'arraybuffer') {
+          return this.http.get(url, { 
+            params: args_get,
+            responseType: 'arraybuffer' 
+          }) as Observable<T>;
+        }
         return this.http.get<T>(url, { params: args_get });
       case 'POST':
         return this.http.post<T>(url, args_post);

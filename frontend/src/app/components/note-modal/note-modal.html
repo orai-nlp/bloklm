@@ -9,13 +9,21 @@
       </div>
       
       <div class="modal-content">
+        
         @if (isMindmap) {
           <div id="mindmap-container" class="mindmap-container"></div>
         } @else {
           <div class="markdown-content" [innerHTML]="renderedContent"></div>
         }
       </div>
-      
+      @if (isPodcast && note.audioUrl) {
+        <div class="audio-player-container">
+          <audio controls class="audio-player">
+            <source [src]="note.audioUrl" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+      }
       <div class="modal-footer">
         <button class="modal-btn-close" (click)="close()">
           {{ i18n.translate('close') }}

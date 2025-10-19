@@ -64,7 +64,7 @@ export class StudioComponent implements OnDestroy {
     { 
       icon: 'mic', 
       labelKey: 'podcast',
-      parameters: ['formality', 'style', 'detail', 'language_complexity', 'podcast_type', 'voice_type', 'language'],
+      parameters: ['formality', 'style', 'detail', 'language_complexity', 'podcast_type', 'language'],
       color: '#ADF3E6' // mint aqua
     }
   ];
@@ -251,8 +251,14 @@ export class StudioComponent implements OnDestroy {
       }
     });
   }
-
   ngOnDestroy() {
+    // Clean up podcast audio URLs
+    this.currentNotes.forEach(note => {
+      if (note.audioUrl) {
+        URL.revokeObjectURL(note.audioUrl);
+      }
+    });
+    
     this.destroy$.next();
     this.destroy$.complete();
   }
