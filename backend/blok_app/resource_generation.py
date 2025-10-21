@@ -239,7 +239,7 @@ def generate_glossary(llm, db, collection_id, file_ids, lang, custom_conf):
 
 def generate_outline(llm, db, collection_id, file_ids, lang, custom_conf):
     prompter = PromptBuilder(
-        map_main_prompt="Build a very concise outline of the following passage in markdown format. Only include the main topics and subtopics.",
+        map_main_prompt="Build a very concise outline of the following passage in markdown format. Only include the main topics and subtopics. Only use 1st level headings (#) and bullet points (-).",
         name_singular="outline",
         name_plural="outlines",
         custom_conf=custom_conf,
@@ -253,6 +253,7 @@ def generate_chronogram(llm, db, collection_id, file_ids, lang, custom_conf):
             "Build a timeline from the following passage. List the most important events in chronological order, with their actual dates. "
             "Only include events for which at least the year is known (e.g., 'March 2020' or 'Q1 2020'). "
             "Use the same date format for all events, preferably ISO 8601 (e.g., '2020-03-01'). Never invent dates.\n"
+            "Don't include citations or references in the timeline.\n"
             "If there are no events with known dates, return the text 'No dated events found' in the proper language.\n\n"
         ),
         name_singular="timeline",
@@ -298,10 +299,15 @@ def generate_mind_map(llm, db, collection_id, file_ids, lang, custom_conf):
 # TODO: validate created podcast's JSON structure
 def generate_podcast_script(llm, db, collection_id, file_ids, lang, custom_conf):
     podcast_type = custom_conf.to_name_value_dict()['podcast_type']
+    if podcast_type == "conversational":
+        speaker_prompt = "Have two speakers (1 and 2) engage in a conversation."
+    else:
+        speaker_prompt = "Use a single speaker (1) narrating the content."
     main_prompt = (
         f"Generate a {podcast_type} podcast script from the contents of the following passage.\n"
+        f"{speaker_prompt}\n"
         "In order to represent the script, you must follow the JSON structure provided below.\n\n"
-        "Script format:\n"
+        "Script JSON format:\n"
         "[\n"
         "  {{ \"speaker\": \"1\", \"text\": \"...\" }},\n"
         "  {{ \"speaker\": \"2\", \"text\": \"...\" }},\n"
