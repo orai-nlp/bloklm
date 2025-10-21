@@ -304,7 +304,7 @@ def generate_podcast_script(llm, db, collection_id, file_ids, lang, custom_conf)
     else:
         speaker_prompt = "Use a single speaker (1) narrating the content."
     main_prompt = (
-        f"Generate a {podcast_type} podcast script from the contents of the following passage.\n"
+        f"Generate a short {podcast_type} podcast script from the contents of the following passage.\n"
         f"{speaker_prompt}\n"
         "In order to represent the script, you must follow the JSON structure provided below.\n\n"
         "Script JSON format:\n"

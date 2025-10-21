@@ -1,4 +1,5 @@
 import backend.blok_app.resource_generation as resgen
+import backend.blok_app.tts as tts
 
 def generate_summary_task(llm, db, note_id, collection_id, file_ids, lang, custom_conf):
     res_content = resgen.generate_summary(llm, db, collection_id, file_ids, lang, custom_conf)
@@ -33,5 +34,7 @@ def generate_mind_map_task(llm, db, note_id, collection_id, file_ids, lang, cust
 def generate_podcast_task(llm, db, note_id, collection_id, file_ids, lang, custom_conf):
     res_content = resgen.generate_podcast_script(llm, db, collection_id, file_ids, lang, custom_conf)
     title = resgen.generate_note_title(llm, db, "podcast", res_content, lang, collection_id)
+    ###
+    tts.generate_podcast_audio(res_content, note_id)
+    ###
     db.update_note(note_id, title, res_content)
-    # TODO: Audioa sortu, TTS bidez

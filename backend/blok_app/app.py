@@ -447,8 +447,7 @@ async def create_podcast(request, body: PodcastModel):
 @app.get("/api/podcast")
 async def get_podcast(request):
     note_id = request.args.get("id")
-    fpath = None  # TODO
-    fpath =  "backend/wazemank.mp3" # Mock audio for frontend testing
+    fpath =  f"podcasts/{note_id}.wav"
     if not os.path.exists(fpath):
         return response.json({"error": "File not found"}, status=404)
     with open(fpath, 'rb') as f:
