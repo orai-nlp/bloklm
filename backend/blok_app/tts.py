@@ -35,17 +35,22 @@ def podcast_extract_turns(script):
             turns[-1] += " " + text
     return turns
 
-def create_turn_audio(text, speaker, output_wav):
-    voice_fname = "marina_eu" if speaker == 0 else "alex_eu"
+def create_turn_audio(text, lang, speaker, output_wav):
+    if lang == "eu":
+        voice_fname = "marina_eu" if speaker == 0 else "alex_eu"
+        dic_fname = "eu_dicc"
+    else: # lang == es
+        voice_fname = "laura_es"
+        dic_fname = "es_dicc"
     cmd = [
         os.path.join(TTSDIR, "tts"),
-        "-Lang=eu",
+        f"-Lang={lang}",
         "-Method=Vits",
         f"-voice_path={os.path.join(TTSDIR, voice_fname)}",
-        f"-HDic={os.path.join(TTSDIR, 'eu_dicc')}",
+        f"-HDic={os.path.join(TTSDIR, dic_fname)}",
         output_wav
     ]
-    subprocess.run(cmd, input=text.encode("iso-8859-1"), check=True)
+    subprocess.run(cmd, input=text.encode("iso-8859-1", errors="ignore"), check=True)
 
 def join_audio_files(audio_files, output_fpath):
     combined = AudioSegment.empty()
@@ -54,13 +59,13 @@ def join_audio_files(audio_files, output_fpath):
         combined += audio
     combined.export(output_fpath, format="wav")
 
-def generate_podcast_audio(script, note_id):
+def generate_podcast_audio(script, lang, note_id):
     turns = podcast_extract_turns(script)
     audio_files = []
     with tempfile.TemporaryDirectory() as tmpdir:
         for i, turn in enumerate(turns):
             output_wav = f"{tmpdir}/turn_{i}.wav"
-            create_turn_audio(turn, i % 2, output_wav)
+            create_turn_audio(turn, lang, i % 2, output_wav)
             audio_files.append(output_wav)
 
         os.makedirs(PODCAST_DIR, exist_ok=True)

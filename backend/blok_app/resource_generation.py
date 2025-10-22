@@ -75,7 +75,7 @@ class PromptBuilder:
             template=(
                 f"Shrink the following {self.name_plural} into a more concise {self.name_singular}.\n"
                 f"{self.language_prompt}"
-                f"Strictly follow the customization parameters listed below, if provided. Also, maintain the format of the input content.\n\n"
+                f"Strictly maintain the format of the input content, specially if the input is in JSON format. Also, strictly follow the customization parameters listed below, if provided.\n"
                 f"{self.customization_prompt}\n\n"
                 f"Return only the requested {self.name_singular}. Do not add any explanations, comments, or extra text.\n\n"
                 f"{self.name_plural.capitalize()}:\n"
@@ -284,7 +284,8 @@ def generate_mind_map(llm, db, collection_id, file_ids, lang, custom_conf):
     )
     reduce_main_prompt = (
         f"Combine and refine the following mind maps into a cohesive and concise global mind map. "
-        "If the content is too long, shorten it to be as brief as possible while keeping the main content."
+        "If the content is too long, shorten it to be as brief as possible while keeping the main content. "
+        "Maintain the JSON structure of the input mind maps."
     )
     prompter = PromptBuilder(
         map_main_prompt=main_prompt,
@@ -300,14 +301,14 @@ def generate_mind_map(llm, db, collection_id, file_ids, lang, custom_conf):
 def generate_podcast_script(llm, db, collection_id, file_ids, lang, custom_conf):
     podcast_type = custom_conf.to_name_value_dict()['podcast_type']
     if podcast_type == "conversational":
-        speaker_prompt = "Have two speakers (1 and 2) engage in a conversation."
+        speaker_prompt = "Have two speakers (1 and 2) engage in a conversation. They must interact with each other, asking questions and responding to each other. They can include subjective opinions and points of view."
     else:
-        speaker_prompt = "Use a single speaker (1) narrating the content."
+        speaker_prompt = "Use a single speaker (1) narrating the content. The speaker should add subjective opinions and points of view, and should engage the listener directly."
     main_prompt = (
         f"Generate a short {podcast_type} podcast script from the contents of the following passage.\n"
         f"{speaker_prompt}\n"
-        "In order to represent the script, you must follow the JSON structure provided below.\n\n"
-        "Script JSON format:\n"
+        "You must follow the JSON structure exactly as shown below. Respond with valid JSON only.\n"
+        "JSON structure of the output:\n"
         "[\n"
         "  {{ \"speaker\": \"1\", \"text\": \"...\" }},\n"
         "  {{ \"speaker\": \"2\", \"text\": \"...\" }},\n"
@@ -315,11 +316,23 @@ def generate_podcast_script(llm, db, collection_id, file_ids, lang, custom_conf)
         "  ...\n"
         "]"
     )
+    reduce_main_prompt = (
+        f"Combine the following podcast scripts into a cohesive global podcast script. "
+        "Maintain the JSON structure of the input scripts.\n"
+    )
+    if podcast_type == "conversational":
+        reduce_main_prompt += (
+            "Each podcast script is designed to be engaging and conversational. "
+            "You must maintain the format and the essence of the scripts, but you can simplify each script to make overall script shorter if needed. "
+            "However, if one speaker asks the question and the other responds in the original script, you must preserve that interaction. "
+            "The same speaker cannot ask and respond to their own question."
+        )
     prompter = PromptBuilder(
         map_main_prompt=main_prompt,
         name_singular=f"{podcast_type} podcast script",
         name_plural=f"{podcast_type} podcast scripts",
         custom_conf=custom_conf,
         language=lang,
+        reduce_main_prompt=reduce_main_prompt,
     )
     return generate_note(llm, db, collection_id, file_ids, prompter, custom_conf)
