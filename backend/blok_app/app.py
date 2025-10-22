@@ -36,8 +36,8 @@ Extend(app, config={
 })
 app.config.RESPONSE_TIMEOUT = 300  # 5 min
 log = logging.getLogger(__name__)   # <-- use this logger
-ASR_MODEL_PATH_EU = "/mnt/nfs/proiektuak/bloklm/ereduak/stt_eu_conformer_transducer_large/stt_eu_conformer_transducer_large.nemo"
-ASR_MODEL_PATH_ES = "/mnt/nfs/proiektuak/bloklm/ereduak/stt_ca-es_conformer_transducer_large/stt_ca-es_conformer_transducer_large.nemo"
+#ASR_MODEL_PATH_EU = "/mnt/nfs/proiektuak/bloklm/ereduak/stt_eu_conformer_transducer_large/stt_eu_conformer_transducer_large.nemo"
+#ASR_MODEL_PATH_ES = "/mnt/nfs/proiektuak/bloklm/ereduak/stt_ca-es_conformer_transducer_large/stt_ca-es_conformer_transducer_large.nemo"
 
 # Shared asyncio queue: avoid concurrent tasks of note/podcast generation
 task_queue = asyncio.Queue()

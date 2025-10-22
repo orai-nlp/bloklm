@@ -1,6 +1,7 @@
+from backend.config import ASR_EU_PATH, ASR_ES_PATH, ASR_DEVICE
+
 import tempfile
 from pathlib import Path
-import nemo.collections.asr as nemo_asr
 from pydub import AudioSegment
 import librosa
 import numpy as np
@@ -10,7 +11,7 @@ import io
 _asr_model_eu = None
 _asr_model_es = None
 
-def initialize_asr_models(model_path_eu, model_path_es):
+def initialize_asr_models():
     """
     Initialize both ASR models (Basque and Spanish) once at application startup.
     
@@ -19,10 +20,12 @@ def initialize_asr_models(model_path_eu, model_path_es):
         model_path_es (str): Path to the Spanish .nemo model file
     """
     global _asr_model_eu, _asr_model_es
+    # Nemo is imported here to avoid the error "Start method 'spawn' was requested, but 'fork' was already set"
+    import nemo.collections.asr as nemo_asr
     if _asr_model_eu is None:
-        _asr_model_eu = nemo_asr.models.EncDecRNNTBPEModel.restore_from(model_path_eu)
+        _asr_model_eu = nemo_asr.models.EncDecRNNTBPEModel.restore_from(ASR_EU_PATH, map_location=ASR_DEVICE)
     if _asr_model_es is None:
-        _asr_model_es = nemo_asr.models.EncDecRNNTBPEModel.restore_from(model_path_es)
+        _asr_model_es = nemo_asr.models.EncDecRNNTBPEModel.restore_from(ASR_ES_PATH, map_location=ASR_DEVICE)
     return _asr_model_eu, _asr_model_es
 
 
@@ -37,7 +40,7 @@ def detect_language_from_file(audio_file_path):
         str: Language code ('eu' for Basque or 'es' for Spanish)
     """
     # TODO: Implement actual language detection logic
-    pass
+    return "eu"
 
 
 def detect_language_from_array(audio_array, sample_rate):
@@ -65,7 +68,7 @@ def convert_audio_to_wav(audio_bytes, source_format):
         source_format (str): Source audio format (e.g., 'mp3', 'wav', 'ogg')
     
     Returns:
-        bytes: WAV audio bytes at 16kHz mono
+        chunks_bytes: a list of WAV audio bytes at 16kHz mono (split into 30s chunks)
     """
     try:
         # Remove the dot if present (e.g., '.mp3' -> 'mp3')
@@ -76,19 +79,26 @@ def convert_audio_to_wav(audio_bytes, source_format):
         
         # Convert to 16kHz mono (even for WAV files to ensure correct format)
         audio = audio.set_frame_rate(16000).set_channels(1)
+
+        # Split audio into chunks
+        CHUNK_LENGTH = 30  # seconds
+        chunk_length_ms = CHUNK_LENGTH * 1000
+        chunks = [audio[i:i + chunk_length_ms] for i in range(0, len(audio), chunk_length_ms)]
         
         # Export to WAV format
-        wav_buffer = io.BytesIO()
-        audio.export(wav_buffer, format='wav')
-        wav_buffer.seek(0)
-        
-        return wav_buffer.read()
-    
+        chunks_bytes = []
+        for chunk in chunks:
+            wav_buffer = io.BytesIO()
+            chunk.export(wav_buffer, format='wav')
+            wav_buffer.seek(0)
+            chunks_bytes.append(wav_buffer.read())
+
+        return chunks_bytes
+
     except Exception as e:
         raise Exception(f"Audio conversion failed: {str(e)}")
 
-
-def extract_text_from_audio(file_obj, model_path_eu=None, model_path_es=None):
+def extract_text_from_audio(file_obj):
     """
     Process an uploaded audio file (from Sanic request) and transcribe it using NeMo ASR.
 
@@ -113,9 +123,7 @@ def extract_text_from_audio(file_obj, model_path_eu=None, model_path_es=None):
     try:
         # Initialize models if not already loaded
         if _asr_model_eu is None or _asr_model_es is None:
-            if model_path_eu is None or model_path_es is None:
-                raise ValueError("Models not initialized. Provide model paths or call initialize_asr_models() first.")
-            initialize_asr_models(model_path_eu, model_path_es)
+            initialize_asr_models()
         
         # Extract basic info
         filename = file_obj.name
@@ -123,45 +131,45 @@ def extract_text_from_audio(file_obj, model_path_eu=None, model_path_es=None):
         audio_bytes = file_obj.body
         
         # Convert audio to required format (16kHz mono WAV)
-        wav_bytes = convert_audio_to_wav(audio_bytes, file_type)
+        wavs_bytes = convert_audio_to_wav(audio_bytes, file_type)
         
-        # Save converted audio to a temporary WAV file
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp:
-            tmp.write(wav_bytes)
-            tmp_path = Path(tmp.name)
-        
-        # Language detection - Option 1: Using temporary file path
-        detected_language = detect_language_from_file(str(tmp_path))
-        
-        # Language detection - Option 2: Using numpy array with librosa (commented)
-        # audio_array, sample_rate = librosa.load(str(tmp_path), sr=16000, mono=True)
-        # detected_language = detect_language_from_array(audio_array, sample_rate)
-        
-        # Select the appropriate model based on detected language
-        if detected_language == 'eu':
-            asr_model = _asr_model_eu
-        elif detected_language == 'es':
-            asr_model = _asr_model_es
-        else:
-            raise ValueError(f"Unsupported language detected: {detected_language}")
-        
-        # Transcribe using the selected NeMo ASR model
-        # Model expects a list of file paths
-        transcriptions = asr_model.transcribe(
-            audio=[str(tmp_path)],
-            batch_size=1
-        )
-        
-        # Extract transcription text (returns list, get first element)
-        transcription_text = transcriptions[0] if transcriptions else ""
-        
-        # Cleanup temporary file
-        if tmp_path and tmp_path.exists():
-            tmp_path.unlink(missing_ok=True)
-        
+        chunk_texts = []
+        for wav_bytes in wavs_bytes:
+            # Save converted audio to a temporary WAV file
+            with tempfile.NamedTemporaryFile(suffix='.wav') as tmp:
+                tmp.write(wav_bytes)
+                tmp_path = Path(tmp.name)
+            
+                # Language detection - Option 1: Using temporary file path
+                detected_language = detect_language_from_file(str(tmp_path))
+                
+                # Language detection - Option 2: Using numpy array with librosa (commented)
+                # audio_array, sample_rate = librosa.load(str(tmp_path), sr=16000, mono=True)
+                # detected_language = detect_language_from_array(audio_array, sample_rate)
+                
+                # Select the appropriate model based on detected language
+                if detected_language == 'eu':
+                    asr_model = _asr_model_eu
+                elif detected_language == 'es':
+                    asr_model = _asr_model_es
+                else:
+                    raise ValueError(f"Unsupported language detected: {detected_language}")
+                
+                # Transcribe using the selected NeMo ASR model
+                # Model expects a list of file paths
+                transcription = asr_model.transcribe(
+                    audio=[str(tmp_path)],
+                    batch_size=1
+                )
+                if type(transcription) == list:
+                    transcription = transcription[0]
+                if type(transcription) != str:
+                    transcription = transcription.text
+                chunk_texts.append(transcription)
+                    
         return {
             'success': True,
-            'text': transcription_text,
+            'text': ' '.join(chunk_texts),
             'filename': filename,
             'file_type': file_type,
             'language': detected_language,
