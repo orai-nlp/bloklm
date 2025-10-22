@@ -15,7 +15,7 @@ from sanic_ext import Extend, validate
 from langchain_openai import OpenAIEmbeddings
 from langchain_openai.chat_models import ChatOpenAI
 
-from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, BACKEND_PORT, MODEL_ID
+from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, BACKEND_PORT, MODEL_ID, AUDIO_PATH
 import backend.blok_app.tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
@@ -447,7 +447,7 @@ async def create_podcast(request, body: PodcastModel):
 @app.get("/api/podcast")
 async def get_podcast(request):
     note_id = request.args.get("id")
-    fpath =  f"podcasts/{note_id}.wav"
+    fpath =  os.path.join(AUDIO_PATH, f"{note_id}.wav")
     if not os.path.exists(fpath):
         return response.json({"error": "File not found"}, status=404)
     with open(fpath, 'rb') as f:
