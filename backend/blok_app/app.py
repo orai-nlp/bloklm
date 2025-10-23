@@ -13,9 +13,10 @@ from sanic.exceptions import BadRequest
 from sanic.worker.manager import WorkerManager
 from sanic_ext import Extend, validate
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_openai.chat_models import ChatOpenAI
 
-from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, BACKEND_PORT, MODEL_ID, AUDIO_PATH, VECTORIZER_DEVICE, VECTORIZER_MODEL_ID
+from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, BACKEND_PORT, MODEL_ID, AUDIO_PATH, VECTORIZER_DEVICE, VECTORIZER_MODEL_ID, RERANKER_MODEL_ID
 import backend.blok_app.tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
@@ -105,6 +106,10 @@ async def load_chatgpt_llm(app, _):
     rag.embedding_model = HuggingFaceEmbeddings(
         model_name=VECTORIZER_MODEL_ID,
         model_kwargs={"device": VECTORIZER_DEVICE},
+    )
+    rag.reranker_model = HuggingFaceCrossEncoder(
+        model_name=RERANKER_MODEL_ID,
+        model_kwargs={'device': VECTORIZER_DEVICE},
     )
     # Add LLM to audio processing module
     audio_process._llm = llm

@@ -5,11 +5,12 @@ import logging
 from langchain.chat_models import init_chat_model
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from langchain_openai import OpenAIEmbeddings
 import numpy as np
 import faiss
 from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain_community.vectorstores import FAISS
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langgraph.graph import MessagesState, StateGraph
 from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage
@@ -18,12 +19,14 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import BaseMessage
 
-RETRIEVE_FAISS_K = 5
+FAISS_FETCH_K = 25
+FAISS_RETRIEVE_K = 5
 THREAD_ID = "default"
 MAX_CONTEXT_MSGS = 10  # Number of previous messages (human+ai) to include in context
 MAX_CONTEXT_MSGS_QR = 6  # Number of previous messages (human+system) to include in context for query rewriting
 
 embedding_model = None
+reranker_model = None
 llm = None
 
 collection_graphs = {}
@@ -70,13 +73,21 @@ def _load_vector_store(data: List[dict]):
         text_embeddings=zip(texts, embeddings),
         ids=ids,
     )
+    retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": FAISS_FETCH_K})
 
-    return vector_store
+    # Add reranker
+    reranker = CrossEncoderReranker(model=reranker_model, top_n=FAISS_RETRIEVE_K)
+    compressed_retriever = ContextualCompressionRetriever(
+        base_retriever=retriever,
+        base_compressor=reranker,
+    )
+
+    return compressed_retriever
 
 # RAG graph
     
 def init_collection_graph(collection_id, data):
-    collection_vector_store = _load_vector_store(data)
+    collection_retriever = _load_vector_store(data)
     graph_builder = StateGraph(MessagesState)
     
     def rewrite_query(state: MessagesState):
@@ -108,7 +119,7 @@ def init_collection_graph(collection_id, data):
         query_text = last_user_message.content if last_user_message else ""
 
         # Run retrieval
-        retrieved_docs = collection_vector_store.similarity_search(query_text, k=RETRIEVE_FAISS_K)
+        retrieved_docs = collection_retriever.get_relevant_documents(query_text)
         retrieved_text = "\n\n".join(
             (f"Source ID: {doc.id}\nContent: {doc.page_content}")
             for doc in retrieved_docs
@@ -135,7 +146,7 @@ def init_collection_graph(collection_id, data):
             "Always respond in the same language as the question. "
             "Keep the answer concise.\n"
             "Always cite the relevant sources in the answer, including the Source IDs. "
-            "Insert inline citations like [SID:Source_ID_1][SID:Source_ID_2][...].\n"
+            "Insert inline citations like [SID: {ID1}][SID: {ID2}][...].\n"
             "\n"
             f"{context}\n"
         )
