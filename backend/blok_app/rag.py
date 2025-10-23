@@ -146,7 +146,7 @@ def init_collection_graph(collection_id, data):
             "Always respond in the same language as the question. "
             "Keep the answer concise.\n"
             "Always cite the relevant sources in the answer, including the Source IDs. "
-            "Insert inline citations like [SID: {ID1}][SID: {ID2}][...].\n"
+            "Insert inline citations like [SID:{ID1}][SID:{ID2}][...].\n"
             "\n"
             f"{context}\n"
         )
