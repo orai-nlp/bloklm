@@ -1,6 +1,7 @@
 from backend.config import ASR_EU_PATH, ASR_ES_PATH, ASR_DEVICE
 
 from speechbrain.inference.classifiers import EncoderClassifier
+from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
 from pydub import AudioSegment
 import numpy as np
 
@@ -15,6 +16,7 @@ SAMPLE_RATE = 16000
 _asr_model_eu = None
 _asr_model_es = None
 _language_id_model = None
+_llm = None
 
 def initialize_asr_models():
     """
@@ -113,6 +115,23 @@ def _extract_text_from_audio_chunk(wav_bytes, lang):
         if type(transcription) != str:
             transcription = transcription.text
         return transcription
+    
+def add_punctuation_to_text(plain_text, lang):
+    if _llm is None:
+        raise RuntimeError("LLM model is not initialized for punctuation.")
+    
+    system_prompt = SystemMessagePromptTemplate.from_template(
+        "You are an expert linguistic model specialized in adding punctuation, proper capitalization and line breaks to texts in {language}.\n"
+    )
+    user_prompt = HumanMessagePromptTemplate.from_template(
+        "Add appropriate punctuation, capitalization and line breaks to the following {language} text:\n\n"
+        "{text}\n\n"
+        "Return only the corrected text without any additional commentary."
+    )
+    chat_prompt = ChatPromptTemplate.from_messages([system_prompt, user_prompt])
+    prompt = chat_prompt.format_messages(text=plain_text, language=lang)
+    response = _llm.invoke(prompt)
+    return response.content
 
 def extract_text_from_audio(file_obj):
     """
@@ -157,9 +176,12 @@ def extract_text_from_audio(file_obj):
             chunk_text = _extract_text_from_audio_chunk(wav_bytes, lang)
             chunk_texts.append(chunk_text)
 
+        plain_text = ' '.join(chunk_texts)
+        formatted_text = add_punctuation_to_text(plain_text, lang=lang)
+
         return {
             'success': True,
-            'text': ' '.join(chunk_texts),
+            'text': formatted_text,
             'filename': filename,
             'file_type': file_type,
             'language': lang,

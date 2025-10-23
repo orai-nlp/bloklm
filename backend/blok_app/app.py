@@ -24,6 +24,7 @@ from backend.blok_app.resource_generation import generate_headings
 
 #from backend.blok_app.llm_factory import build_hf_llm
 import backend.blok_app.rag as rag
+import backend.blok_app.audio_process as audio_process
 
 # TODO: elkartu bi requirements.txt fitxategiak
 
@@ -99,11 +100,14 @@ async def load_chatgpt_llm(app, _):
         max_tokens=8192,
         **api_key_arg
     )
+    # Add LLM to RAG engine
     rag.llm = llm
     rag.embedding_model = OpenAIEmbeddings(
         openai_api_base="https://api.openai.com/v1",
         model="text-embedding-3-small",
     )
+    # Add LLM to audio processing module
+    audio_process._llm = llm
 
 # ------------------------------------------------------------------
 # PostgreSQL Connection
