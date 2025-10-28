@@ -453,7 +453,7 @@ $note-colors: (
   transition: all 0.2s;
   color: #202124;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: #f8f9fa;
     border-color: #1a73e8;
   }
@@ -462,6 +462,18 @@ $note-colors: (
     background: #1a73e8;
     color: white;
     border-color: #1a73e8;
+
+      &:hover:not(:disabled) {
+        background: #47adc7;
+        border-color: white;
+      }
+  }
+
+  &:disabled {
+    background: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 }
 

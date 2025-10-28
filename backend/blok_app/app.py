@@ -369,6 +369,7 @@ class PodcastModel(BasicResourceModel):
     detail: custom.Detail
     language_complexity: custom.LanguageComplexity
     podcast_type: custom.PodcastType
+    perspective: custom.Perspective
 
 @app.get("/api/notes")
 async def get_notes(request):

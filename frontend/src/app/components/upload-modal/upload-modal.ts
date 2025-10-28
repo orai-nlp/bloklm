@@ -43,6 +43,8 @@ export class UploadModalComponent {
 
   // Allowed file extensions
   private allowedExtensions = ['.pdf', '.txt', '.srt', '.doc', '.docx', '.wav', '.mp3']
+  private audioExtensions = ['.wav', '.mp3']
+  private maxAudioDurationMinutes = 10
 
   closeModal() {
     // Prevent closing if upload is in progress
@@ -110,15 +112,32 @@ export class UploadModalComponent {
     input.value = ''
   }
 
-  private processFiles(files: FileList) {
+  private async processFiles(files: FileList) {
     const validFiles: UploadFile[] = []
     const invalidFiles: string[] = []
+    const tooLongAudioFiles: string[] = []
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       if (this.isValidFile(file)) {
         // Check if file already exists
         if (!this.uploadedFiles.some(f => f.name === file.name)) {
+          // Check audio duration if it's an audio file
+          if (this.isAudioFile(file)) {
+            try {
+              const duration = await this.getAudioDuration(file)
+              const durationMinutes = duration / 60
+              
+              if (durationMinutes > this.maxAudioDurationMinutes) {
+                tooLongAudioFiles.push(`${file.name} (${Math.round(durationMinutes)} min)`)
+                continue
+              }
+            } catch (error) {
+              console.error(`Failed to check duration for ${file.name}:`, error)
+              // If we can't check duration, allow the file (fail open)
+            }
+          }
+
           validFiles.push({
             name: file.name,
             type: this.getFileExtension(file.name),
@@ -135,6 +154,10 @@ export class UploadModalComponent {
       alert(`${this.i18n.translate('modal_alertFormat')}\n${invalidFiles.join('\n')}`)
     }
 
+    if (tooLongAudioFiles.length > 0) {
+      alert(`${this.i18n.translate('modal_alertAudioTooLong')}\n${tooLongAudioFiles.join('\n')}`)
+    }
+
     // Add valid files to the list (max 50 files)
     const remainingSlots = 50 - this.uploadedFiles.length
     const filesToAdd = validFiles.slice(0, remainingSlots)
@@ -148,6 +171,30 @@ export class UploadModalComponent {
   private isValidFile(file: File): boolean {
     const extension = '.' + file.name.split('.').pop()?.toLowerCase()
     return this.allowedExtensions.includes(extension)
+  }
+
+  private isAudioFile(file: File): boolean {
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase()
+    return this.audioExtensions.includes(extension)
+  }
+
+  private getAudioDuration(file: File): Promise<number> {
+    return new Promise((resolve, reject) => {
+      const audio = new Audio()
+      const objectUrl = URL.createObjectURL(file)
+      
+      audio.addEventListener('loadedmetadata', () => {
+        URL.revokeObjectURL(objectUrl)
+        resolve(audio.duration)
+      })
+      
+      audio.addEventListener('error', () => {
+        URL.revokeObjectURL(objectUrl)
+        reject(new Error('Failed to load audio file'))
+      })
+      
+      audio.src = objectUrl
+    })
   }
 
   private getFileExtension(filename: string): string {
@@ -222,6 +269,9 @@ export class UploadModalComponent {
         return 'description'
       case 'srt':
         return 'code'
+      case 'wav':
+      case 'mp3':
+        return 'audio_file'
       default:
         return 'text_snippet'
     }

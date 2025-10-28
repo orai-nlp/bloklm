@@ -23,4 +23,6 @@ export interface NoteParameters {
   detail?: number;
   language_complexity?: number;
   podcast_type?: string;
+  language?: string;
+  perspective?: string;
 }

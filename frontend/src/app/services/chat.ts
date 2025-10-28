@@ -414,7 +414,7 @@ export class ChatService {
   }
 
   private processCitations(text: string): { processed: string; citations: Map<string, number> } {
-    const citationRegex = /\[SID: (\d+)\]/g;
+    const citationRegex = /\[SID: ?(\d+)\]/g;
     let citationCounter = 1;
     const localCitationMap = new Map<string, number>();
     

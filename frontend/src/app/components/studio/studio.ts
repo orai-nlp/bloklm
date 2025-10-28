@@ -64,7 +64,7 @@ export class StudioComponent implements OnDestroy {
     { 
       icon: 'mic', 
       labelKey: 'podcast',
-      parameters: ['formality', 'style', 'detail', 'language_complexity', 'podcast_type', 'language'],
+      parameters: ['formality', 'style', 'detail', 'language_complexity', 'podcast_type', 'language', 'perspective'],
       color: '#ADF3E6' // mint aqua
     }
   ];
@@ -106,6 +106,11 @@ export class StudioComponent implements OnDestroy {
   langOptions = [
     { value: 'eu', label: 'studio_conf_opt_eu' },
     { value: 'es', label: 'studio_conf_opt_es' }
+  ];
+
+  perspectiveOptions = [
+    { value: 'subjective', label: 'studio_conf_opt_subjective' },
+    { value: 'neutral', label: 'studio_conf_opt_neutral' }
   ];
 
   // Logistics
@@ -199,6 +204,20 @@ export class StudioComponent implements OnDestroy {
 
   iconFor(type: string): string {
     return this.noteTemplates.find(t => t.labelKey === type)?.icon ?? 'note';
+  }
+
+  isOptionDisabled(paramName: string, value: any): boolean {
+    // Disable 'conversational' podcast type when Spanish is selected
+    if (paramName === 'podcast_type' && value === 'conversational') {
+      return this.selectedParameters['language'] === 'es';
+    }
+    
+    // Disable Spanish language when 'conversational' podcast type is selected
+    if (paramName === 'language' && value === 'es') {
+      return this.selectedParameters['podcast_type'] === 'conversational';
+    }
+    
+    return false;
   }
 
   createNote() {

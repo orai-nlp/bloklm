@@ -24,6 +24,10 @@ class PodcastType(Enum):
     CONVERSATIONAL = "conversational"
     NARRATIVE = "narrative"
 
+class Perspective(Enum):
+    SUBJECTIVE = "subjective"
+    NEUTRAL = "neutral"
+
 PARAMETERS = [
     ("formality", "formality level", Formality),
     ("detail", "detail level", Detail),

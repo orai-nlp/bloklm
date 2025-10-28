@@ -134,6 +134,7 @@
                                     <button 
                                         class="option-btn"
                                         [class.selected]="isParameterSelected('podcast_type', option.value)"
+                                        [disabled]="isOptionDisabled('podcast_type', option.value)"
                                         (click)="selectParameter('podcast_type', option.value)">
                                         {{ i18n.translate(option.label) }}
                                     </button>
@@ -150,7 +151,24 @@
                                     <button 
                                         class="option-btn"
                                         [class.selected]="isParameterSelected('language', option.value)"
+                                        [disabled]="isOptionDisabled('language', option.value)"
                                         (click)="selectParameter('language', option.value)">
+                                        {{ i18n.translate(option.label) }}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                    <!-- Perspective -->
+                    @if (needsParameter('perspective')) {
+                        <div class="parameter-group">
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_perspective") }}</label>
+                            <div class="parameter-options">
+                                @for (option of perspectiveOptions; track option.value) {
+                                    <button 
+                                        class="option-btn"
+                                        [class.selected]="isParameterSelected('perspective', option.value)"
+                                        (click)="selectParameter('perspective', option.value)">
                                         {{ i18n.translate(option.label) }}
                                     </button>
                                 }

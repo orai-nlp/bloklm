@@ -14,7 +14,7 @@ interface Translations {
 })
 export class I18nService {
   private currentLanguage = signal<Language>("eu")
-
+  // TODO: Errepasatu itzulpenak
   private translations: Translations = {
     welcome: {
       eu: "Ongi etorri BlokLM-ra",
@@ -304,6 +304,10 @@ export class I18nService {
       eu:"Huts egin du fitxategiak igotzean. Mesedez, saiatu berriro.",
       es:"Error al subir los archivos. Por favor, inténtenlo de nuevo."
     },
+    modal_alertAudioTooLong: {
+      eu:"Hurrengo audio fitxategiak luzeegiak dira (gehienez 10 minutu bakoitzeko):",
+      es:"Los siguientes archivos de audio son demasiado largos (máximo 10 minutos cada uno):"
+    },
     chat_placerholder: {
       eu:"Hasi idazten...",
       es:"Empieza a escribir..."
@@ -363,6 +367,10 @@ export class I18nService {
     studio_conf_lang: {
       eu:"Hizkuntza",
       es:"Idioma"
+    },
+    studio_conf_perspective: {
+      eu:"Ikuspuntua",
+      es:"Perspectiva"
     },
     studio_conf_create_btn: {
       eu:"Sortu Oharra",
@@ -431,6 +439,14 @@ export class I18nService {
     studio_conf_opt_es: {
       eu:"Gaztelera",
       es:"Castellano"
+    },
+    studio_conf_opt_subjective: {
+      eu:"Subjektiboa",
+      es:"Subjetivo"
+    },
+    studio_conf_opt_neutral: {
+      eu:"Neutroa",
+      es:"Neutro"
     },
     studio_info_notes: {
       eu:"Gordetako oharrak hemen agertuko dira",
