@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject } from "@angular/core"
+import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, Output, inject } from "@angular/core"
 import { CommonModule } from "@angular/common"
 import { FormsModule } from "@angular/forms"
 import { I18nService } from "../../services/i18n"
@@ -29,6 +29,8 @@ export class UploadModalComponent {
   i18n = inject(I18nService)
   notebookService = inject(NotebookService)
   chatService = inject(ChatService)
+  private cdr = inject(ChangeDetectorRef)
+  private zone = inject(NgZone)
   
   isDragOver = false
   uploadedFiles: UploadFile[] = []
@@ -94,19 +96,28 @@ export class UploadModalComponent {
 
     const files = event.dataTransfer?.files
     if (files && files.length > 0) {
-      this.processFiles(files)
+      this.zone.run(() => {
+        this.processFiles(files)
+      })
     }
   }
 
   onFileSelected(event: Event) {
-    // Prevent file selection if uploading
     if (this.isUploading) {
       return
     }
 
     const input = event.target as HTMLInputElement
     if (input.files && input.files.length > 0) {
-      this.processFiles(input.files)
+      // Store the FileList in a variable since it gets cleared
+      const files = Array.from(input.files)
+      
+      this.zone.run(() => {
+        // Convert back to FileList-like structure
+        const dataTransfer = new DataTransfer()
+        files.forEach(file => dataTransfer.items.add(file))
+        this.processFiles(dataTransfer.files)
+      })
     }
     // Reset input value to allow selecting the same file again
     input.value = ''
@@ -150,22 +161,28 @@ export class UploadModalComponent {
       }
     }
 
-    if (invalidFiles.length > 0) {
-      alert(`${this.i18n.translate('modal_alertFormat')}\n${invalidFiles.join('\n')}`)
-    }
+    // Wrap the UI updates in zone.run to ensure change detection
+    this.zone.run(() => {
+      if (invalidFiles.length > 0) {
+        alert(`${this.i18n.translate('modal_alertFormat')}\n${invalidFiles.join('\n')}`)
+      }
 
-    if (tooLongAudioFiles.length > 0) {
-      alert(`${this.i18n.translate('modal_alertAudioTooLong')}\n${tooLongAudioFiles.join('\n')}`)
-    }
+      if (tooLongAudioFiles.length > 0) {
+        alert(`${this.i18n.translate('modal_alertAudioTooLong')}\n${tooLongAudioFiles.join('\n')}`)
+      }
 
-    // Add valid files to the list (max 50 files)
-    const remainingSlots = 50 - this.uploadedFiles.length
-    const filesToAdd = validFiles.slice(0, remainingSlots)
-    this.uploadedFiles = [...this.uploadedFiles, ...filesToAdd]
+      // Add valid files to the list (max 50 files)
+      const remainingSlots = 50 - this.uploadedFiles.length
+      const filesToAdd = validFiles.slice(0, remainingSlots)
+      this.uploadedFiles = [...this.uploadedFiles, ...filesToAdd]
 
-    if (validFiles.length > remainingSlots) {
-      alert(`${remainingSlots} ${this.i18n.translate('modal_alertFileNum')}`)
-    }
+      if (validFiles.length > remainingSlots) {
+        alert(`${remainingSlots} ${this.i18n.translate('modal_alertFileNum')}`)
+      }
+
+      // Manually trigger change detection
+      this.cdr.detectChanges()
+    })
   }
 
   private isValidFile(file: File): boolean {

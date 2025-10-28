@@ -517,7 +517,7 @@
 }
 
 .upload-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
@@ -532,9 +532,10 @@
   min-width: 140px;
   justify-content: center;
 
-  .upload-icon,
-  .loading-icon {
+  .material-icons {
     font-size: 18px;
+    vertical-align: middle;
+    line-height: 1;
   }
 
   &:hover:not(:disabled) {

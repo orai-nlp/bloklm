@@ -36,6 +36,9 @@ Extend(app, config={
     "cors": True,
     "cors_origins": "*",
 })
+
+
+app.config.REQUEST_MAX_SIZE = 1.5 * 1000 * 1024 * 1024  # 1 GB
 app.config.RESPONSE_TIMEOUT = 300  # 5 min
 log = logging.getLogger(__name__)   # <-- use this logger
 #ASR_MODEL_PATH_EU = "/mnt/nfs/proiektuak/bloklm/ereduak/stt_eu_conformer_transducer_large/stt_eu_conformer_transducer_large.nemo"

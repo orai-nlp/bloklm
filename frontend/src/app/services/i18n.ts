@@ -305,8 +305,8 @@ export class I18nService {
       es:"Error al subir los archivos. Por favor, inténtenlo de nuevo."
     },
     modal_alertAudioTooLong: {
-      eu:"Hurrengo audio fitxategiak luzeegiak dira (gehienez 10 minutu bakoitzeko):",
-      es:"Los siguientes archivos de audio son demasiado largos (máximo 10 minutos cada uno):"
+      eu:"Hurrengo audio fitxategiak luzeegiak dira (<10 minutu):",
+      es:"Los siguientes archivos de audio son demasiado largos (<10 minutos):"
     },
     chat_placerholder: {
       eu:"Hasi idazten...",
