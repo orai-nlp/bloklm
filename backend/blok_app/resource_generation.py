@@ -300,10 +300,12 @@ def generate_mind_map(llm, db, collection_id, file_ids, lang, custom_conf):
 # TODO: validate created podcast's JSON structure
 def generate_podcast_script(llm, db, collection_id, file_ids, lang, custom_conf):
     podcast_type = custom_conf.to_name_value_dict()['podcast_type']
+    perspective = custom_conf.to_name_value_dict()['perspective']
+    perspective_prompt = "should add" if perspective == "subjective" else "must avoid adding"
     if podcast_type == "conversational":
-        speaker_prompt = "Have two speakers (1 and 2) engage in a conversation. They must interact with each other, asking questions and responding to each other. They can include subjective opinions and points of view."
+        speaker_prompt = f"Have two speakers (1 and 2) engage in a conversation. They must interact with each other, asking questions and responding to each other. They {perspective_prompt} subjective opinions and points of view."
     else:
-        speaker_prompt = "Use a single speaker (1) narrating the content. The speaker should add subjective opinions and points of view, and should engage the listener directly."
+        speaker_prompt = f"Use a single speaker (1) narrating the content. The speaker {perspective_prompt} subjective opinions and points of view, and should engage the listener directly."
     main_prompt = (
         f"Generate a short {podcast_type} podcast script from the contents of the following passage.\n"
         f"{speaker_prompt}\n"

@@ -34,6 +34,7 @@ PARAMETERS = [
     ("language_complexity", "language complexity", LanguageComplexity),
     ("style", "style", Style),
     ("podcast_type", "podcast type", PodcastType),
+    ("perspective", "perspective", Perspective),
 ]
 
 class CustomizationConfig:
