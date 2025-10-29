@@ -1,4 +1,4 @@
-from backend.config import TTS_PATH, AUDIO_PATH
+from backend.config import TTS
 
 from pydub import AudioSegment
 
@@ -42,11 +42,11 @@ def create_turn_audio(text, lang, speaker, output_wav):
         voice_fname = "laura_es"
         dic_fname = "es_dicc"
     cmd = [
-        os.path.join(TTS_PATH, "tts"),
+        os.path.join(TTS["PATH"], "tts"),
         f"-Lang={lang}",
         "-Method=Vits",
-        f"-voice_path={os.path.join(TTS_PATH, voice_fname)}",
-        f"-HDic={os.path.join(TTS_PATH, dic_fname)}",
+        f"-voice_path={os.path.join(TTS['PATH'], voice_fname)}",
+        f"-HDic={os.path.join(TTS['PATH'], dic_fname)}",
         output_wav
     ]
     subprocess.run(cmd, input=text.encode("iso-8859-1", errors="ignore"), check=True)
@@ -67,7 +67,7 @@ def generate_podcast_audio(script, lang, note_id):
             create_turn_audio(turn, lang, i % 2, output_wav)
             audio_files.append(output_wav)
 
-        os.makedirs(AUDIO_PATH, exist_ok=True)
-        podcast_fpath = os.path.join(AUDIO_PATH, f"{note_id}.wav")
+        os.makedirs(TTS["AUDIO_PATH"], exist_ok=True)
+        podcast_fpath = os.path.join(TTS["AUDIO_PATH"], f"{note_id}.wav")
         join_audio_files(audio_files, podcast_fpath)
     

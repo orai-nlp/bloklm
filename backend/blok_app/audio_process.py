@@ -1,4 +1,4 @@
-from backend.config import ASR_EU_PATH, ASR_ES_PATH, ASR_DEVICE
+from backend.config import ASR
 
 from speechbrain.inference.classifiers import EncoderClassifier
 from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
@@ -9,7 +9,6 @@ import tempfile
 from pathlib import Path
 import io
 
-LANGUAGE_ID_MODEL = "speechbrain/lang-id-voxlingua107-ecapa"
 SAMPLE_RATE = 16000
 
 # Global model instances (load once at application startup)
@@ -30,12 +29,12 @@ def initialize_asr_models():
     # Nemo is imported here to avoid the error "Start method 'spawn' was requested, but 'fork' was already set"
     import nemo.collections.asr as nemo_asr
     if _asr_model_eu is None:
-        _asr_model_eu = nemo_asr.models.EncDecRNNTBPEModel.restore_from(ASR_EU_PATH, map_location=ASR_DEVICE)
+        _asr_model_eu = nemo_asr.models.EncDecRNNTBPEModel.restore_from(ASR["EU"], map_location=ASR["DEVICE"])
     if _asr_model_es is None:
-        _asr_model_es = nemo_asr.models.EncDecRNNTBPEModel.restore_from(ASR_ES_PATH, map_location=ASR_DEVICE)
+        _asr_model_es = nemo_asr.models.EncDecRNNTBPEModel.restore_from(ASR["ES"], map_location=ASR["DEVICE"])
     if _language_id_model is None:
         _language_id_model = EncoderClassifier.from_hparams(
-            source=LANGUAGE_ID_MODEL,
+            source=ASR["LANG_ID"],
             savedir="tmp",
             run_opts={"device": "cpu"}
         )
