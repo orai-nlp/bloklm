@@ -1,6 +1,5 @@
-
 .app-container {
-  height: 100vh;
+  min-height: 100vh; // Changed from height: 100vh
   display: flex;
   flex-direction: column;
   background-color: #f8f9fa;
@@ -8,5 +7,5 @@
 
 .main-content {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto; // Allow scrolling
 }
