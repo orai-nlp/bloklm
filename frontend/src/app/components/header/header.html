@@ -11,26 +11,19 @@
     </div>
     
     <div class="header-right">
-    <div class="language-selector">
-        <button 
-        class="lang-btn" 
-        [class.active]="i18n.language === 'eu'"
-        (click)="i18n.setLanguage('eu')">
-        EU
-        </button>
-        <button 
-        class="lang-btn" 
-        [class.active]="i18n.language === 'es'"
-        (click)="i18n.setLanguage('es')">
-        ES
-        </button>
-    </div>
-    <button class="header-btn">
-        <span class="material-icons">settings</span>
-        {{ i18n.translate('settings') }}
-    </button>
-    <button class="header-btn">
-        <span class="material-icons">apps</span>
-    </button>
+        <div class="language-selector">
+            <button 
+            class="lang-btn" 
+            [class.active]="i18n.language === 'eu'"
+            (click)="i18n.setLanguage('eu')">
+            EU
+            </button>
+            <button 
+            class="lang-btn" 
+            [class.active]="i18n.language === 'es'"
+            (click)="i18n.setLanguage('es')">
+            ES
+            </button>
+        </div>
     </div>
 </header>
