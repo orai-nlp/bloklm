@@ -16,18 +16,19 @@ from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_openai.chat_models import ChatOpenAI
 
-from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, BACKEND_PORT, MODEL_ID, AUDIO_PATH, VECTORIZER_DEVICE, VECTORIZER_MODEL_ID, RERANKER_MODEL_ID
+from backend.config import PORT, RAG, TTS
 import backend.blok_app.tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
 from backend.blok_app.resource_generation import generate_headings
-#from  backend.blok_app.audio_process import initialize_asr_models
 
-#from backend.blok_app.llm_factory import build_hf_llm
+from backend.blok_app.llm_factory import load_llm
 import backend.blok_app.rag as rag
 import backend.blok_app.audio_process as audio_process
 
-# TODO: elkartu bi requirements.txt fitxategiak
+logging.basicConfig(
+    level=logging.INFO,
+)
 
 WorkerManager.THRESHOLD = 3000  # 5 min
 
@@ -72,11 +73,6 @@ def ensure_collection_rag_loaded(collection_id):
 async def start_worker(app, _):
     asyncio.create_task(worker())
 
-@app.listener("before_server_start")
-async def setup_asr(app, loop):
-    pass
-    #initialize_asr_models(ASR_MODEL_PATH_EU, ASR_MODEL_PATH_ES)
-
 # Load local LLM
 
 # LLM_DEVICE="cuda:2"
@@ -95,40 +91,30 @@ async def setup_asr(app, loop):
 #     llm = CustomHuggingFacePipeline(pipeline=hf_llm)
 
 @app.listener("before_server_start")
-async def load_chatgpt_llm(app, _):
+async def setup_llm(app, _):
     global llm
-    api_key_arg = {"openai_api_key": os.getenv("HF_TOKEN")} if os.getenv("HF_TOKEN") else {}
-    llm = ChatOpenAI(
-        model_name=MODEL_ID,
-        temperature=0.7,
-        max_tokens=8192,
-        **api_key_arg
-    )
+
+    # Load LLM via factory
+    llm = load_llm()
+
     # Add LLM to RAG engine
     rag.llm = llm
     rag.embedding_model = HuggingFaceEmbeddings(
-        model_name=VECTORIZER_MODEL_ID,
-        model_kwargs={"device": VECTORIZER_DEVICE},
+        model_name=RAG["VECTORIZER_ID"],
+        model_kwargs={"device": RAG["DEVICE"]},
     )
     rag.reranker_model = HuggingFaceCrossEncoder(
-        model_name=RERANKER_MODEL_ID,
-        model_kwargs={'device': VECTORIZER_DEVICE},
+        model_name=RAG["RERANKER_ID"],
+        model_kwargs={'device': RAG["DEVICE"]},
     )
+
     # Add LLM to audio processing module
     audio_process._llm = llm
-
-# ------------------------------------------------------------------
-# PostgreSQL Connection
-# ------------------------------------------------------------------
-
-# load DB settings into Sanic config
-app.config.update({
-    'DBHOST': DB_HOST,
-    'DBPORT': DB_PORT,
-    'DBUSER': DB_USER,
-    'DBPASS': DB_PASSWORD,
-    'DBNAME': DB_NAME
-})
+    
+@app.listener("before_server_start")
+async def setup_tts_listener(app, loop):
+    # Add TTS path to LD_LIBRARY_PATH (required by ahotts)
+    os.environ["LD_LIBRARY_PATH"] = TTS["PATH"] + ":" + os.environ.get("LD_LIBRARY_PATH", "")
 
 # ------------------------------------------------------------------
 # BILDUMAK
@@ -460,7 +446,7 @@ async def create_podcast(request, body: PodcastModel):
 @app.get("/api/podcast")
 async def get_podcast(request):
     note_id = request.args.get("id")
-    fpath =  os.path.join(AUDIO_PATH, f"{note_id}.wav")
+    fpath =  os.path.join(TTS["AUDIO_PATH"], f"{note_id}.wav")
     if not os.path.exists(fpath):
         return response.json({"error": "File not found"}, status=404)
     with open(fpath, 'rb') as f:
@@ -478,4 +464,4 @@ async def get_podcast(request):
 # MAIN
 # ------------------------------------------------------------------
 if __name__ == "__main__" and not os.environ.get("PYCHARM_HOSTED") and "DEBUGPY" not in os.environ:
-    app.run(host="0.0.0.0", port=int(BACKEND_PORT), debug=True, workers=1)
+    app.run(host="0.0.0.0", port=int(PORT), debug=True, workers=1)

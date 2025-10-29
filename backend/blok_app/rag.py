@@ -13,7 +13,7 @@ from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langgraph.graph import MessagesState, StateGraph
 from langchain_core.tools import tool
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import SystemMessage, AIMessage
 from langgraph.graph import END
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
@@ -104,9 +104,11 @@ def init_collection_graph(collection_id, data):
         ]
         prompt = [ SystemMessage(system_message_content) ] + conversation_messages[-MAX_CONTEXT_MSGS_QR:]
         response = llm.invoke(prompt)
+        if type(response) != str:
+            response = response.content
         message = BaseMessage(
             type="query_rewriting",
-            content=response.content
+            content=response,
         )
         return {"messages": [message]}
 
@@ -157,6 +159,8 @@ def init_collection_graph(collection_id, data):
         prompt = [ SystemMessage(system_message_content) ] + conversation_messages[-MAX_CONTEXT_MSGS:]
 
         response = llm.invoke(prompt)
+        if type(response) == str:
+            response = AIMessage(content=response)
         return {"messages": [response]}
     
     graph_builder.add_node(rewrite_query)

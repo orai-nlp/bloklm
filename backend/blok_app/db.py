@@ -3,11 +3,9 @@ from collections import namedtuple
 import datetime
 import sys
 sys.path.insert(0, "../..")
-from backend.config import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT
-import os
 from pdb import set_trace as d
 from backend.blok_app.document_parser_backend_ocr import extract_from_documents
-
+from backend.config import DATABASE
 
 ###################################################################################
     #########################      LAGUNTZAILEAK       ############################
@@ -43,11 +41,11 @@ def get_db():
     Caller must close it: conn.close()
     """
     return psycopg2.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        dbname= DB_NAME
+        host=DATABASE["host"],
+        port=DATABASE["port"],
+        user=DATABASE["user"],
+        password=DATABASE["password"],
+        dbname=DATABASE["name"],
     )
 
 def query_db(query, args = ()):
