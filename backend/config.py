@@ -19,7 +19,10 @@ DATABASE = {
 }
 
 # LLM model used for RAG and note generation (summaries, outlines, podcast scripts...)
-LLM_ID = os.getenv("LLM_ID", "")
+LLM = {
+    "MODEL_ID": os.getenv("LLM_ID"),
+    "DEVICE": os.getenv("LLM_DEVICE", "auto"),
+}
 
 # RAG parameters
 RAG = {

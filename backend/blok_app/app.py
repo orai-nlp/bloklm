@@ -16,15 +16,19 @@ from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_openai.chat_models import ChatOpenAI
 
-from backend.config import PORT, DATABASE, LLM_ID, RAG, TTS
+from backend.config import PORT, RAG, TTS
 import backend.blok_app.tasks as tasks
 import backend.blok_app.customization_config as custom
 from backend.blok_app.customization_config import CustomizationConfig
 from backend.blok_app.resource_generation import generate_headings
 
-#from backend.blok_app.llm_factory import build_hf_llm
+from backend.blok_app.llm_factory import load_llm
 import backend.blok_app.rag as rag
 import backend.blok_app.audio_process as audio_process
+
+logging.basicConfig(
+    level=logging.INFO,
+)
 
 WorkerManager.THRESHOLD = 3000  # 5 min
 
@@ -87,16 +91,11 @@ async def start_worker(app, _):
 #     llm = CustomHuggingFacePipeline(pipeline=hf_llm)
 
 @app.listener("before_server_start")
-async def load_llm(app, _):
+async def setup_llm(app, _):
     global llm
-    # HF token required if using Huggingface Inference API
-    api_key_arg = {"openai_api_key": os.getenv("HF_TOKEN")} if os.getenv("HF_TOKEN") else {}
-    llm = ChatOpenAI(
-        model_name=LLM_ID,
-        temperature=0.7,
-        max_tokens=8192,
-        **api_key_arg
-    )
+
+    # Load LLM via factory
+    llm = load_llm()
 
     # Add LLM to RAG engine
     rag.llm = llm
@@ -113,7 +112,7 @@ async def load_llm(app, _):
     audio_process._llm = llm
     
 @app.listener("before_server_start")
-async def setup_tts(app, loop):
+async def setup_tts_listener(app, loop):
     # Add TTS path to LD_LIBRARY_PATH (required by ahotts)
     os.environ["LD_LIBRARY_PATH"] = TTS["PATH"] + ":" + os.environ.get("LD_LIBRARY_PATH", "")
 
