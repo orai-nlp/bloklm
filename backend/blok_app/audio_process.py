@@ -191,12 +191,4 @@ def extract_text_from_audio(file_obj):
         # Cleanup temporary file in case of error
         if tmp_path and tmp_path.exists():
             tmp_path.unlink(missing_ok=True)
-        
-        return {
-            'success': False,
-            'text': '',
-            'filename': getattr(file_obj, 'name', ''),
-            'file_type': getattr(Path(getattr(file_obj, 'name', '')), 'suffix', '').lower() if hasattr(file_obj, 'name') else '',
-            'language': '',
-            'error': str(e)
-        }
+        raise Exception(f"Error occurred during audio processing: {str(e)}")

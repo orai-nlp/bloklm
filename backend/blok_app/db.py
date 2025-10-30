@@ -216,7 +216,7 @@ def upload_fitxategiak(id: str, files):
     try:
         parsed_files = extract_from_documents(files)
     except Exception as e:
-        raise f'Error: Extracting content from files; {str(e)}'
+        raise Exception(f'Error: Extracting content from files; {str(e)}')
     try:
         for parsed in parsed_files:
             
@@ -230,7 +230,7 @@ def upload_fitxategiak(id: str, files):
             commit_query_db(q, params)
     
     except Exception as e:
-        raise f'Error: Saving the files in database; {str(e)}'
+        raise Exception(f'Error: Saving the files in database; {str(e)}')
 
     return parsed_files
 
