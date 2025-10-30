@@ -1,3 +1,4 @@
+/.keys
 /backend/back_venv
 /backend/db_utils/db_venv
 /backend/.env
