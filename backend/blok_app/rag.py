@@ -146,7 +146,6 @@ def init_collection_graph(collection_id, data):
             "Use only the following pieces of retrieved context to answer the question. "
             "If you don't know the answer, or the answer is not found in the context, say that you don't know. "
             "Always respond in the same language as the question. "
-            "Keep the answer concise.\n"
             "Always cite the relevant sources in the answer, including the Source IDs. "
             "Insert inline citations like [SID:{ID1}][SID:{ID2}][...].\n"
             "\n"
