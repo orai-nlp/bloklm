@@ -143,8 +143,8 @@ def init_collection_graph(collection_id, data):
         context = context.content if context else ""
         system_message_content = (
             "You are an assistant for question-answering tasks. "
-            "Use the following pieces of retrieved context to answer the question. "
-            "If you don't know the answer, say that you don't know. "
+            "Use only the following pieces of retrieved context to answer the question. "
+            "If you don't know the answer, or the answer is not found in the context, say that you don't know. "
             "Always respond in the same language as the question. "
             "Keep the answer concise.\n"
             "Always cite the relevant sources in the answer, including the Source IDs. "

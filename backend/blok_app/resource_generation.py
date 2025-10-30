@@ -117,6 +117,7 @@ def create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, out
     reduce_documents_chain = ReduceDocumentsChain(
         combine_documents_chain=combine_documents_chain,
         collapse_documents_chain=collapse_documents_chain,
+        token_max=8192,
         verbose=True,
     )
     return MapReduceDocumentsChain(

@@ -21,14 +21,14 @@ DATABASE = {
 # LLM model used for RAG and note generation (summaries, outlines, podcast scripts...)
 LLM = {
     "MODEL_ID": os.getenv("LLM_ID"),
-    "DEVICE": os.getenv("LLM_DEVICE", "auto"),
+    "DEVICE": int(os.getenv("LLM_DEVICE", "-1")),
 }
 
 # RAG parameters
 RAG = {
     "VECTORIZER_ID": os.getenv("VECTORIZER_ID", "beademiguelperez/sentence-transformers-multilingual-e5-small"),
     "RERANKER_ID": os.getenv("RERANKER_ID", "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"),
-    "DEVICE": os.getenv("RAG_DEVICE", "cpu"),
+    "DEVICE": int(os.getenv("RAG_DEVICE", "-1")),
 }
 
 # ASR parameters
@@ -36,7 +36,7 @@ ASR = {
     "EU": os.getenv("ASR_EU"),
     "ES": os.getenv("ASR_ES"),
     "LANG_ID": os.getenv("ASR_LANG_ID", "speechbrain/lang-id-voxlingua107-ecapa"),
-    "DEVICE": os.getenv("ASR_DEVICE", "cpu"),
+    "DEVICE": int(os.getenv("ASR_DEVICE", "-1")),
 }
 
 # TTS parameters

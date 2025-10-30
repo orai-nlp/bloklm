@@ -1,7 +1,7 @@
 from backend.config import LLM
 
 from langchain_openai.chat_models import ChatOpenAI
-from langchain_huggingface import ChatHuggingFace
+from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import torch
 
@@ -51,40 +51,20 @@ def load_hf_inference_endpoint_llm():
     )
 
 def load_hf_local_llm():
-    tokenizer = AutoTokenizer.from_pretrained(LLM["MODEL_ID"])
-    model = AutoModelForCausalLM.from_pretrained(
-        LLM["MODEL_ID"],
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-    )
-    pipe = pipeline(
-        "text-generation",
-        model=model,
-        tokenizer=tokenizer,
-        max_new_tokens=MAX_OUTPUT_TOKENS,
-        temperature=TEMPERATURE,
-        return_full_text=False,
+    llm = HuggingFacePipeline.from_model_id(
+        model_id=LLM["MODEL_ID"],
+        task="text-generation",
         device=LLM["DEVICE"],
+        model_kwargs=dict(
+            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+        ),
+        pipeline_kwargs=dict(
+            max_length=128000,
+            max_new_tokens=MAX_OUTPUT_TOKENS,
+            do_sample=False,
+            temperature=TEMPERATURE,
+            repeat_penalty=1.1,
+            return_full_text=False,
+        ),
     )
-    return ChatHuggingFace(pipe)
-
-
-class HuggingFaceChat:
-    def __init__(self, hf_pipeline, system_prompt=""):
-        self.hf_pipeline = hf_pipeline
-        self.system_prompt = system_prompt
-
-    def format_messages(self, messages):
-        formatted = []
-        if self.system_prompt:
-            formatted.append(f"System: {self.system_prompt}")
-        for m in messages:
-            formatted.append(f"{m.type.capitalize()}: {m.content}")
-        formatted.append("Assistant:")
-        return "\n".join(formatted)
-
-    def invoke(self, messages):
-        prompt = self.format_messages(messages)
-        output = self.hf_pipeline(prompt)
-        if isinstance(output, list):
-            return output[0]["generated_text"].strip()
-        return output.strip()
+    return ChatHuggingFace(llm=llm)
