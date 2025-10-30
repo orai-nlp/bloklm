@@ -22,6 +22,7 @@ DATABASE = {
 LLM = {
     "MODEL_ID": os.getenv("LLM_ID"),
     "DEVICE": int(os.getenv("LLM_DEVICE", "-1")),
+    "MAX_TOKENS": int(os.getenv("LLM_MAX_TOKENS", "65536")),
 }
 
 # RAG parameters

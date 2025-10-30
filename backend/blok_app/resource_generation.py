@@ -1,6 +1,7 @@
+from backend.config import LLM
+
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import TokenTextSplitter
-
 from langchain.chains.llm import LLMChain
 from langchain.chains import SequentialChain
 from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChain, ReduceDocumentsChain
@@ -117,7 +118,7 @@ def create_map_reduce_chain(llm, map_prompt, reduce_prompt, collapse_prompt, out
     reduce_documents_chain = ReduceDocumentsChain(
         combine_documents_chain=combine_documents_chain,
         collapse_documents_chain=collapse_documents_chain,
-        token_max=8192,
+        token_max=LLM["MAX_TOKENS"],
         verbose=True,
     )
     return MapReduceDocumentsChain(
