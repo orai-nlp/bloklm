@@ -33,18 +33,22 @@ $note-colors: (
 
 .panel-header {
   display: flex;
-  justify-content: space-between;
+  position: relative;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e8eaed;
+  padding: 25px 30px;
+  border-bottom: 2px solid #dddee0;
 }
 
 .panel-title {
-  font-size: 16px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--font-size-xl);
   font-weight: 500;
   color: #202124;
   margin: 0;
 }
+
 
 .panel-toggle {
   padding: 4px;
@@ -255,7 +259,7 @@ $note-colors: (
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px 16px;
+  padding: 12px 12px;
   // background: white;
   border: 1px solid #dadce0;
   border-radius: 4px;
@@ -555,35 +559,19 @@ $note-colors: (
   background: white;
   transition: all 0.2s;
 
-  &[data-note-type="outline"] {
-    @include note-background('outline', true)
-  }
-
-  &[data-note-type="summary"] {
-    @include note-background('summary', true)
-  }
-
-  &[data-note-type="faq"],&[data-note-type="FAQ"] {
-    @include note-background('faq', true)
-  }
-
-  &[data-note-type="timeline"] {
-    @include note-background('timeline', true)
-  }
-
-  &[data-note-type="glossary"] {
-    @include note-background('glossary', true)
-  }
-
-  &[data-note-type="mindmap"] {
-    @include note-background('mindmap', true)
-  }
-
+  // Remove the background colors from the container
+  &[data-note-type="outline"],
+  &[data-note-type="summary"],
+  &[data-note-type="faq"],
+  &[data-note-type="FAQ"],
+  &[data-note-type="timeline"],
+  &[data-note-type="glossary"],
+  &[data-note-type="mindmap"],
   &[data-note-type="podcast"] {
-    @include note-background('podcast', true)
+    background: white;
+    border-color: #e8eaed;
   }
 
-  // Keep hover styles but adjust for colored backgrounds
   &:hover:not(.loading) {
     filter: brightness(0.95);
     border-width: 2px;
@@ -622,11 +610,44 @@ $note-colors: (
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
 
     .material-icons {
       font-size: 24px;
       color: #5f6368;
     }
+  }
+
+  // Apply colors to the icon area only
+  &[data-note-type="outline"] .icon {
+    @include note-background('outline', true);
+  }
+
+  &[data-note-type="summary"] .icon {
+    @include note-background('summary', true);
+  }
+
+  &[data-note-type="faq"] .icon,
+  &[data-note-type="FAQ"] .icon {
+    @include note-background('faq', true);
+  }
+
+  &[data-note-type="timeline"] .icon {
+    @include note-background('timeline', true);
+  }
+
+  &[data-note-type="glossary"] .icon {
+    @include note-background('glossary', true);
+  }
+
+  &[data-note-type="mindmap"] .icon {
+    @include note-background('mindmap', true);
+  }
+
+  &[data-note-type="podcast"] .icon {
+    @include note-background('podcast', true);
   }
 
   .content {
@@ -653,7 +674,6 @@ $note-colors: (
       white-space: nowrap;
     }
   }
-
 
   .delete-note-btn {
     padding: 6px;

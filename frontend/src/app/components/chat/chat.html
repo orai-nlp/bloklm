@@ -33,6 +33,7 @@
                     [class.ai-message]="message.role === 'assistant'">
                 
                     <div class="avatar"
+                        *ngIf="!(message.role === 'assistant' && message.content === 'summary')"
                         [class.user-avatar]="message.role === 'user'"
                         [class.ai-avatar]="message.role === 'assistant'">
                         <!-- User icon -->
@@ -48,7 +49,6 @@
                             <path d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m0-12.728l1.414 1.414M18.364 18.364l-1.414-1.414"/>
                             <path d="M12 8a4 4 0 100 8 4 4 0 000-8z"/>
                         </svg>
-
                     </div>
                     
                     <!-- Regular message content -->
@@ -57,7 +57,6 @@
                     
                     <!-- Notebook summary content -->
                     <div *ngIf="message.isVirtual && message.content === 'summary'" class="message-content notebook-summary-content">
-                        <div class="summary-icon">⚡</div>
                         <h2 class="summary-title">{{ notebookService.getCurrentNotebook()?.description }}</h2>
                         <p class="summary-meta">{{ notebookService.getSources()?.length }}  {{i18n.translate('source')}}{{ notebookService.getSources()?.length !== 1 && i18n.language == 'es' ? 's':''}}</p>
                         <div class="summary-text">
@@ -79,7 +78,7 @@
                 <button
                     class="clear-storage-btn"
                     (click)="showConfirmModal()"
-                    title="Clear Chat">
+                    (title)="this.i18n.translate('chat_alt_clear_chat')">
                     <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="16" width="16" xmlns="http://www.w3.org/2000/svg">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2h4a2 2 0 0 1 2 2v2"></path>

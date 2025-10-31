@@ -28,17 +28,20 @@
         
           
           <div class="sources-list" *ngIf="sources.length > 0">
-            <div class="source-item" *ngFor="let source of sources">
+            <div class="source-item" 
+                *ngFor="let source of sources"
+                [class.selected]="source.selected">
               <label class="source-label">
                 <input type="checkbox"
                       [(ngModel)]="source.selected"
                       [id]="source.id"
                       class="source-check">
-                <span class="material-icons source-icon">description</span>
-
-                <span class="source-name"
+                <span class="material-icons source-icon">{{ getSourceIcon(source.type) }}</span>
+                  <span class="source-name"
+                      (mouseenter)="onMouseEnter(source, $event)"
+                      (mouseleave)="onMouseLeave(source, $event)"
                       (click)="onClickShowContent(source); $event.preventDefault()">
-                  {{ source.name }}
+                  <span>{{ source.name }}</span>
                 </span>
               </label>
             </div>
@@ -79,6 +82,7 @@
         </div>
       </div>
     </div>
+    <div class="notebook-footer"></div>
     
     <app-upload-modal 
       [isOpen]="showUploadModal" 

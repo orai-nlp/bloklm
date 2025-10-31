@@ -4,22 +4,47 @@
   flex-direction: row;
   height: 100vh; /* full viewport height */
   overflow: hidden; /* prevent page scroll */
+  position: relative;
+  background: transparent; /* Let the animated background show through */
 }
 
 .home-content {
-  flex: 1 1 auto;       /* allow growing/shrinking */
+  flex: 1 1 auto;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 60px 24px;
-  overflow-y: auto;     /* vertical scroll if needed */
+  padding: var(--space-16) var(--space-6);
+  overflow-y: auto;
   scroll-behavior: smooth;
+  position: relative;
+  z-index: 1; /* Ensure content is above the background */
+  backdrop-filter: blur(1px); /* Subtle blur effect for better readability */
 }
 
 .welcome-title {
-  font-size: 48px;
-  font-weight: 400;
-  color: #202124;
-  margin-bottom: 40px;
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-bold);
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: var(--space-10);
+  background: linear-gradient(135deg, #40e0ff 0%, #00bfff 50%, #64b5f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: var(--line-height-tight);
+  position: relative;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  filter: drop-shadow(0 0 10px rgba(64, 224, 255, 0.3));
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #40e0ff, #00bfff);
+    border-radius: var(--radius-full);
+    box-shadow: 0 0 10px rgba(64, 224, 255, 0.5);
+  }
 }
 
 .section-header {
@@ -29,22 +54,46 @@
   margin-bottom: 24px;
 }
 
-.create-new-btn {
+.create-new-btn,.create-notebook-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: #1a73e8;
-  color: white;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  color: var(--text-inverse);
   border: none;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: var(--transition-normal);
+  }
 
   &:hover {
-    background: #1557b0;
+    background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   .plus-icon {
@@ -100,17 +149,39 @@
 .notebook-card {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: white;
-  border: 1px solid #e8eaed;
-  border-radius: 8px;
-  transition: all 0.2s;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-xl);
+  transition: var(--transition-normal);
   position: relative;
+  z-index: 1; // Base z-index for normal state
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+    opacity: 0;
+    transition: var(--transition-normal);
+  }
 
   &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-color: #dadce0;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 20px rgba(64, 224, 255, 0.3);
+    border-color: rgba(64, 224, 255, 0.5);
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.2);
+    z-index: 10; // Higher z-index on hover to bring it to front
+    
+    &::before {
+      opacity: 1;
+    }
   }
 }
 
@@ -124,13 +195,31 @@
 
 .notebook-icon {
   font-size: 32px;
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-accent-50) 100%);
+  border-radius: var(--radius-xl);
+  color: var(--color-primary);
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+    border-radius: inherit;
+    opacity: 0;
+    transition: var(--transition-normal);
+  }
+  
+  .notebook-card:hover & {
+    &::before {
+      opacity: 0.1;
+    }
+  }
 }
 
 .notebook-info {
@@ -138,10 +227,12 @@
 }
 
 .notebook-title {
-  font-size: 16px;
-  font-weight: 500;
-  color: #202124;
-  margin: 0 0 4px 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 var(--space-1) 0;
+  line-height: var(--line-height-snug);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .notebook-title-input {
@@ -163,9 +254,11 @@
 }
 
 .notebook-meta {
-  font-size: 14px;
-  color: #5f6368;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.7);
   margin: 0;
+  line-height: var(--line-height-normal);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .notebook-menu-container {
@@ -179,14 +272,21 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
-
-  &:hover, &.active {
-    background: #f8f9fa;
+  & {
+    transition: transform 0.3s ease; // smooth rotation
+    &:hover,
+    &.active {
+      transform: rotate(90deg);
+      .material-icons{
+        color: #f8f9fa;
+      }
+    }
   }
 
   .material-icons {
-    font-size: 20px;
+    font-size: var(--font-size-2xl);
     color: #5f6368;
+    transition: color 0.3s ease; // smooth color transition
   }
 }
 
@@ -194,13 +294,18 @@
   position: absolute;
   top: 100%;
   right: 0;
-  background: white;
+  background: transparent;
+  background-color: rgba(255, 255, 255, 0.74);
   border: 1px solid #dadce0;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   z-index: 1000;
   min-width: 140px;
   animation: dropdownFadeIn 0.2s ease-out;
+
+  &:hover{
+    background-color: rgba(255, 255, 255, 0.856);
+  }
 }
 
 @keyframes dropdownFadeIn {
@@ -242,6 +347,10 @@
 
   &:hover {
     background: #f8f9fa;
+    font-weight: var(--font-weight-bold);
+    .material-icons {
+      font-weight: var(--font-weight-bold);
+    }
   }
 
   &.delete {
@@ -266,20 +375,27 @@
   text-align: center;
   max-width: 800px;
   margin: 0 auto;
+  background: rgba(255, 255, 255, 0.05);
+  padding: var(--space-12);
+  border-radius: var(--radius-2xl);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .empty-title {
   font-size: 32px;
   font-weight: 400;
-  color: #202124;
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 16px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .empty-description {
   font-size: 16px;
-  color: #5f6368;
+  color: rgba(255, 255, 255, 0.7);
   margin-bottom: 48px;
   line-height: 1.5;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .features-grid {
@@ -291,6 +407,11 @@
 
 .feature-card {
   text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
 }
 
 .feature-icon {
@@ -309,14 +430,16 @@
 .feature-title {
   font-size: 18px;
   font-weight: 500;
-  color: #202124;
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 8px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .feature-description {
   font-size: 14px;
-  color: #5f6368;
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .cta-section {
@@ -333,29 +456,5 @@
 
   &:hover {
     text-decoration: underline;
-  }
-}
-
-.create-notebook-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: #202124;
-  color: white;
-  border: none;
-  border-radius: 24px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background: #303134;
-  }
-
-  .plus-icon {
-    font-size: 18px;
-    font-weight: bold;
   }
 }

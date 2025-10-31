@@ -57,16 +57,52 @@
                 </div>
 
                 <div class="parameter-list">
-                    <!-- Formality -->
-                    @if (needsParameter('formality')) {
+                    <!-- Lang -->
+                    @if (needsParameter('language')) {
                         <div class="parameter-group">
-                            <label class="parameter-label">{{ i18n.translate("studio_conf_formality") }}</label>
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_lang") }}</label>
                             <div class="parameter-options">
-                                @for (option of formalityOptions; track option.value) {
+                                @for (option of langOptions; track option.value) {
                                     <button 
                                         class="option-btn"
-                                        [class.selected]="isParameterSelected('formality', option.value)"
-                                        (click)="selectParameter('formality', option.value)">
+                                        [class.selected]="isParameterSelected('language', option.value)"
+                                        [disabled]="isOptionDisabled('language', option.value)"
+                                        (click)="selectParameter('language', option.value)">
+                                        {{ i18n.translate(option.label) }}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Type -->
+                    @if (needsParameter('podcast_type')) {
+                        <div class="parameter-group">
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_type") }}</label>
+                            <div class="parameter-options">
+                                @for (option of typeOptions; track option.value) {
+                                    <button 
+                                        class="option-btn"
+                                        [class.selected]="isParameterSelected('podcast_type', option.value)"
+                                        [disabled]="isOptionDisabled('podcast_type', option.value)"
+                                        (click)="selectParameter('podcast_type', option.value)">
+                                        {{ i18n.translate(option.label) }}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Perspective -->
+                    @if (needsParameter('perspective')) {
+                        <div class="parameter-group">
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_perspective") }}</label>
+                            <div class="parameter-options">
+                                @for (option of perspectiveOptions; track option.value) {
+                                    <button 
+                                        class="option-btn"
+                                        [class.selected]="isParameterSelected('perspective', option.value)"
+                                        (click)="selectParameter('perspective', option.value)">
                                         {{ i18n.translate(option.label) }}
                                     </button>
                                 }
@@ -84,6 +120,23 @@
                                         class="option-btn"
                                         [class.selected]="isParameterSelected('style', option.value)"
                                         (click)="selectParameter('style', option.value)">
+                                        {{ i18n.translate(option.label) }}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Formality -->
+                    @if (needsParameter('formality')) {
+                        <div class="parameter-group">
+                            <label class="parameter-label">{{ i18n.translate("studio_conf_formality") }}</label>
+                            <div class="parameter-options">
+                                @for (option of formalityOptions; track option.value) {
+                                    <button 
+                                        class="option-btn"
+                                        [class.selected]="isParameterSelected('formality', option.value)"
+                                        (click)="selectParameter('formality', option.value)">
                                         {{ i18n.translate(option.label) }}
                                     </button>
                                 }
@@ -118,57 +171,6 @@
                                         class="option-btn"
                                         [class.selected]="isParameterSelected('language_complexity', option.value)"
                                         (click)="selectParameter('language_complexity', option.value)">
-                                        {{ i18n.translate(option.label) }}
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                    }
-
-                    <!-- Type -->
-                    @if (needsParameter('podcast_type')) {
-                        <div class="parameter-group">
-                            <label class="parameter-label">{{ i18n.translate("studio_conf_type") }}</label>
-                            <div class="parameter-options">
-                                @for (option of typeOptions; track option.value) {
-                                    <button 
-                                        class="option-btn"
-                                        [class.selected]="isParameterSelected('podcast_type', option.value)"
-                                        [disabled]="isOptionDisabled('podcast_type', option.value)"
-                                        (click)="selectParameter('podcast_type', option.value)">
-                                        {{ i18n.translate(option.label) }}
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                    }
-                    <!-- Lang -->
-                    @if (needsParameter('language')) {
-                        <div class="parameter-group">
-                            <label class="parameter-label">{{ i18n.translate("studio_conf_lang") }}</label>
-                            <div class="parameter-options">
-                                @for (option of langOptions; track option.value) {
-                                    <button 
-                                        class="option-btn"
-                                        [class.selected]="isParameterSelected('language', option.value)"
-                                        [disabled]="isOptionDisabled('language', option.value)"
-                                        (click)="selectParameter('language', option.value)">
-                                        {{ i18n.translate(option.label) }}
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                    }
-                    <!-- Perspective -->
-                    @if (needsParameter('perspective')) {
-                        <div class="parameter-group">
-                            <label class="parameter-label">{{ i18n.translate("studio_conf_perspective") }}</label>
-                            <div class="parameter-options">
-                                @for (option of perspectiveOptions; track option.value) {
-                                    <button 
-                                        class="option-btn"
-                                        [class.selected]="isParameterSelected('perspective', option.value)"
-                                        (click)="selectParameter('perspective', option.value)">
                                         {{ i18n.translate(option.label) }}
                                     </button>
                                 }

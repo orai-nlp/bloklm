@@ -102,7 +102,7 @@ export class NotebookService {
   createNotebook(): Observable<Notebook> {
     const newNotebook: Notebook = {
       id: Date.now().toString(),
-      title: this.i18n.language == 'eu'? "Izenbururik gabeko bildima" : "Documento sin título",
+      title: this.i18n.language == 'eu'? "Izenbururik gabeko bilduma" : "Documento sin título",
       createdAt: new Date(),
       updatedAt: new Date(),
       sourceCount: 0,

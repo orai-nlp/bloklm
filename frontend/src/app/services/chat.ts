@@ -424,10 +424,11 @@ export class ChatService {
         citationCounter++;
       }
       const citationNumber = localCitationMap.get(chunkId)!;
-      return `<span class="citation" data-chunk-id="${chunkId}" data-citation-number="${citationNumber}">${citationNumber}</span>`;
+      
+      // Use button element for proper interactive semantics
+      return `<button type="button" class="citation" data-chunk-id="${chunkId}" data-citation-number="${citationNumber}">${citationNumber}</button>`;
     });
 
-    
     return { processed, citations: localCitationMap };
   }
 

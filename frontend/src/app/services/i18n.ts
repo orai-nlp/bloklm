@@ -25,24 +25,24 @@ export class I18nService {
       es: "Crea tu primer cuaderno",
     },
     notebookDescription: {
-      eu: "BlokLM IA bidezko ikerketa eta idazketa laguntzailea da, zuk kargatutako fitxategietan oinarrituta funtzionatzen duena",
-      es: "BlokLM es un asistente de investigación y escritura impulsado por IA que funciona mejor con las fuentes que subes",
+      eu: "BlokLM-k adimen artifizalaren bidez sintesia, ikasketa eta idazketa errazten du, zuk kargatutako fitxategietan oinarrituta erantzuten duena",
+      es: "BlokLM facilita la síntesis, el aprendizaje y la escritura a través de la inteligencia artifical, que responde basándose en los archivos cargados por usted",
     },
     gainNewUnderstandings: {
-      eu: "Lortu ulermen berriak edozein dokumenturi buruz",
-      es: "Obtén nuevas comprensiones sobre cualquier documento",
+      eu: "Erraztasunez ulertu edozein dokumentu",
+      es: "Comprende con facilidad cualquier documento",
     },
     gainNewUnderstandingsDesc: {
-      eu: "Bihurtu material konplexua ulertzeko erraza den formatuetara, hala nola Audio Ikuspegi Orokorrak, FAQ-ak edo Briefing Dokumentuak",
-      es: "Convierte material complejo en formatos fáciles de entender como Resúmenes de Audio, FAQs o Documentos de Briefing",
+      eu: "Material konplexua bihurtu, ulertzeko erraza den formatuetara, hala nola Podcast-ak, FAQ-ak edo Kontzeptu-mapak",
+      es: "Convierte material complejo a formatos más fáciles de entender, como Podcasts, FAQs o Mapas conceptuales",
     },
     chatbotGrounded: {
-      eu: "Zure fitxategietan oinarritutako chatbot bat",
-      es: "Un chatbot basado en tus fuentes",
+      eu: "Zure fitxategietan oinarritutako txatbota eta askoz gehiago",
+      es: "Chatbot y mucho más, basado en tus archivos",
     },
     chatbotGroundedDesc: {
-      eu: "Kargatu zure dokumentuak eta BlokLM-k galdera zehatzak erantzungo ditu edo gako-ikuspegiak azalduko ditu",
-      es: "Sube tus documentos y BlokLM responderá preguntas detalladas o destacará ideas clave",
+      eu: "Kargatu zure fitxategiak, BlokLM-k galdera zehatzak erantzungo ditu eta kontzeptu garrantzitsuenak azalduko ditu",
+      es: "Sube tus documentos, BlokLM responderá preguntas detalladas y destacará ideas clave",
     },
     shareInsights: {
       eu: "Partekatu zure ikuspegiak",
@@ -343,6 +343,10 @@ export class I18nService {
     chat_api_error: {
       eu:"Errorea gertatu da APIarekin komunikatzean.",
       es:"Lo siento, hubo un error comunicándose con la API."
+    },
+    chat_alt_clear_chat: {
+      eu:"Garbitu txat-a",
+      es:"Limpiar el chat"
     },
     studio_conf_formality: {
       eu:"Formaltasun Maila",

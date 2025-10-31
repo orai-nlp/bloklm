@@ -5,6 +5,7 @@ import { Router } from "@angular/router"
 import { I18nService } from "../../services/i18n"
 import { NotebookService} from "../../services/notebook"
 import{Notebook} from '../../interfaces/notebook.type';
+import { AnimatedBackgroundComponent } from './animated-background';
 
 interface NotebookWithUI extends Notebook {
   isRenaming?: boolean;
@@ -33,7 +34,7 @@ export class SortByPipe implements PipeTransform {
 @Component({
   selector: "app-home",
   standalone: true,
-  imports: [CommonModule, FormsModule, SortByPipe],
+  imports: [CommonModule, FormsModule, SortByPipe, AnimatedBackgroundComponent],
   templateUrl:"./home.html",
   styleUrls: ["./home.scss"],
 })

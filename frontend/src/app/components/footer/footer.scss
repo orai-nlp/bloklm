@@ -1,16 +1,53 @@
 .footer {
-  background-color: #ffffff;
-  box-shadow: 0 -2px 2px rgba(0, 0, 0, 0.1);
-  padding: 10px 0;
-  margin-top: auto; // This pushes footer to bottom
-  position: relative; // Ensure normal document flow
+  background: white;
+  backdrop-filter: blur(12px);
+  box-shadow: none;
+  padding: var(--space-3) 0;
+  margin-top: auto;
+  position: relative;
+
+  &.no-border {
+    border-top-color: transparent;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+    background: inherit;
+
+    .orai-logo {
+      &:hover {
+        filter: brightness(1.4);
+      }
+    }
+
+    .footer-logo{
+      &:hover{
+        filter: brightness(1.2);
+        background-color: rgba(255, 255, 255, 0.788);
+      }
+    }
+    
+    &::before {
+      opacity: 0;
+    }
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: inherit;
+    opacity: 0.6;
+    transition: var(--transition-normal);
+  }
   
   .footer-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 1.2vw 5vw 0px 5vw;
-    padding: 20px 5px;
+    margin: 0 5vw;
+    padding: var(--space-5);
+    transition: var(--transition-normal);
   }
   
   .footer-left {
@@ -22,6 +59,26 @@
     max-height: 6.5vw;
     width: auto;
     object-fit: contain;
+    transition: var(--transition-normal);
+    filter: brightness(1);
+    
+    &:hover {
+      filter: brightness(1.05);
+      transform: scale(1.02);
+    }
+  }
+  
+  .ilenia-logo {
+    max-height: 5.5vw;
+    width: auto;
+    object-fit: contain;
+    transition: var(--transition-normal);
+    filter: brightness(1);
+    
+    &:hover {
+      filter: brightness(1.05);
+      transform: scale(1.02);
+    }
   }
   
   .footer-right {
@@ -31,14 +88,26 @@
   }
   
   .powered-text {
-    font-size: 14px;
-    color: #6c757d;
-    font-weight: 400;
+    font-size: var(--font-size-sm);
+    color: var(--text-tertiary);
+    font-weight: var(--font-weight-medium);
+    transition: var(--transition-normal);
+    
+    &:hover {
+      color: var(--text-secondary);
+    }
   }
   
   .orai-logo {
     max-height: 70px;
     width: auto;
     object-fit: contain;
+    transition: var(--transition-normal);
+    filter: brightness(1);
+    
+    &:hover {
+      filter: brightness(1.1);
+      transform: scale(1.02);
+    }
   }
 }

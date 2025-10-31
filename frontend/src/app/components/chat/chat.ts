@@ -122,7 +122,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       // Use setTimeout to ensure DOM is fully updated
       setTimeout(() => {
         this.scrollToBottom();
-        this.attachCitationListeners();
+        // this.attachCitationListeners();
       }, 0);
       this.shouldScrollToBottom = false;
     }
@@ -172,24 +172,24 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     }
   }
 
-    private attachCitationListeners(): void {
-    const citations = this.chatContainer?.nativeElement.querySelectorAll('.citation');
-    if (citations) {
-      citations.forEach((citation: HTMLElement) => {
-        citation.removeEventListener('click', this.citationClickHandler);
-        citation.addEventListener('click', this.citationClickHandler.bind(this));
-      });
-    }
-  }
+  // private attachCitationListeners(): void {
+  //   const citations = this.chatContainer?.nativeElement.querySelectorAll('.citation');
+  //   if (citations) {
+  //     citations.forEach((citation: HTMLElement) => {
+  //       citation.removeEventListener('click', this.citationClickHandler);
+  //       citation.addEventListener('click', this.citationClickHandler.bind(this));
+  //     });
+  //   }
+  // }
 
-  private citationClickHandler(event: Event): void {
-    const target = event.target as HTMLElement;
-    const chunkId = target.getAttribute('data-chunk-id');
+  // private citationClickHandler(event: Event): void {
+  //   const target = event.target as HTMLElement;
+  //   const chunkId = target.getAttribute('data-chunk-id');
     
-    if (chunkId) {
-      this.chatService.onCitationClicked(chunkId);
-    }
-  }
+  //   if (chunkId) {
+  //     this.chatService.onCitationClicked(chunkId);
+  //   }
+  // }
 
   formatMarkdownWithSafeHtml(content: string): SafeHtml {
     const formatted = this.chatService.formatMarkdown(content);
@@ -308,10 +308,16 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   autoResizeTextarea() {
-    if (this.userInput?.nativeElement) {
-      const textarea = this.userInput.nativeElement;
+    const textarea = document.querySelector('.input-container textarea') as HTMLTextAreaElement;
+    if (textarea) {
       textarea.style.height = 'auto';
-      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+      textarea.style.overflowY = 'hidden'; // reset overflow
+      textarea.style.height = textarea.scrollHeight + 'px';
+
+      // If content exceeds max height, show scrollbar
+      if (textarea.scrollHeight > 250) {
+        textarea.style.overflowY = 'auto';
+      }
     }
   }
 
