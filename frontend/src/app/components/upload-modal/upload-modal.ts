@@ -46,7 +46,7 @@ export class UploadModalComponent {
   // Allowed file extensions
   private allowedExtensions = ['.pdf', '.txt', '.srt', '.doc', '.docx', '.wav', '.mp3']
   private audioExtensions = ['.wav', '.mp3']
-  private maxAudioDurationMinutes = 10
+  private maxAudioDurationMinutes = 30
 
   closeModal() {
     // Prevent closing if upload is in progress
