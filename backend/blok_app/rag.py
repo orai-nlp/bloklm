@@ -144,10 +144,10 @@ def init_collection_graph(collection_id, data):
         system_message_content = (
             "You are an assistant for question-answering tasks. "
             "Use only the following pieces of retrieved context to answer the question. "
-            "If you don't know the answer, or the answer is not found in the context, say that you don't know. "
+            "If the answer is not found in the provided context, say that you don't know. "
             "Always respond in the same language as the question. "
             "Always cite the relevant sources in the answer, including the Source IDs. "
-            "Insert inline citations like [SID:{ID1}][SID:{ID2}][...].\n"
+            "Insert inline citations (Source IDs) in the following format: [SID:{ID1}][SID:{ID2}][...].\n"
             "\n"
             f"{context}\n"
         )

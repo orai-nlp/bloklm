@@ -174,15 +174,15 @@ def generate_note(llm, db, collection_id, file_ids, prompter, custom_conf):
 def generate_headings(llm, db, collection_id, file_ids):
     docs = retrieve_docs(db, collection_id, file_ids)
     prompter = PromptBuilder(
-        map_main_prompt="Summarize the following passage.",
-        reduce_main_prompt="Combine and refine the following summaries into a short cohesive global summary of a single paragraph.",
+        map_main_prompt="Summarize the following passage. Generate the summary in the same language as the content (Basque or Spanish).",
+        reduce_main_prompt="Combine and refine the following summaries into a short cohesive global summary of a single paragraph. Generate the summary in the same language as the provided summaries.",
         name_singular="summary",
         name_plural="summaries",
     )
     title_prompt = PromptTemplate(
         input_variables=["summary"],
         template=(
-            "Based on the following summary, generate a concise and descriptive title:\n\n"
+            "Based on the following summary, generate a concise and descriptive title. Use the same language as the summary:\n\n"
             "{summary}\n\n"
             "Return only the requested title. Do not add any explanations, comments, or extra text.\n\n"
             "Title:"
@@ -191,7 +191,7 @@ def generate_headings(llm, db, collection_id, file_ids):
     name_prompt = PromptTemplate(
         input_variables=["summary"],
         template=(
-            "You are provided a summary of a collection of files. Based on the summary, generate a concise and descriptive name for the collection. It should be only a few words long.\n\n"
+            "You are provided a summary of a collection of files. Based on the summary, generate a concise and descriptive name for the collection. Use the same language as the summary. It should be only a few words long.\n\n"
             "Summary:\n"
             "{summary}\n\n"
             "Return only the requested name. Do not add any explanations, comments, or extra text.\n\n"
@@ -252,7 +252,7 @@ def generate_outline(llm, db, collection_id, file_ids, lang, custom_conf):
 def generate_chronogram(llm, db, collection_id, file_ids, lang, custom_conf):
     prompter = PromptBuilder(
         map_main_prompt=(
-            "Build a timeline from the following passage. List the most important events in chronological order, with their actual dates. "
+            "Build a timeline from the following passage. List the most important events in chronological order, with their actual dates and the events' descriptions. "
             "Only include events for which at least the year is known (e.g., 'March 2020' or 'Q1 2020'). "
             "Use the same date format for all events, preferably ISO 8601 (e.g., '2020-03-01'). Never invent dates.\n"
             "Don't include citations or references in the timeline.\n"

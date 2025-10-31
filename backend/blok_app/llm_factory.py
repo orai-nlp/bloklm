@@ -63,7 +63,7 @@ def load_hf_local_llm():
             max_new_tokens=MAX_OUTPUT_TOKENS,
             do_sample=False,
             temperature=TEMPERATURE,
-            repeat_penalty=1.1,
+            repetition_penalty=1.15,
             return_full_text=False,
         ),
     )
