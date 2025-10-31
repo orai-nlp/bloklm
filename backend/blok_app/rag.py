@@ -13,11 +13,13 @@ from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langgraph.graph import MessagesState, StateGraph
 from langchain_core.tools import tool
-from langchain_core.messages import SystemMessage, AIMessage
+from langchain_core.messages import SystemMessage, AIMessage, HumanMessage
 from langgraph.graph import END
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import BaseMessage
+
+logger = logging.getLogger(__name__)
 
 FAISS_FETCH_K = 25
 FAISS_RETRIEVE_K = 5
@@ -95,14 +97,21 @@ def init_collection_graph(collection_id, data):
         system_message_content = (
             "You are a query rewriter for a retrieval-augmented generation (RAG) system. "
             "Your task is to rewrite the user's latest query into a self-contained, "
-            "contextually complete question that captures all relevant details from the conversation history. "
-            "The rewritten query should be clear, concise, and optimized for document retrieval — not for answering directly."
+            "contextually complete question that captures relevant details from the conversation history. "
+            "Don't use implicit knowledge you may have; rely only on the provided conversation context. "
+            "**Do not answer the question!** Your task is to re-write it for better document retrieval. "
+            "The rewritten query should be clear, concise, and optimized for document retrieval — not for answering directly. "
         )
         conversation_messages = [
             message for message in state["messages"]
-            if message.type in ("human", "ai")
+            if message.type in ("human") #("human", "ai")
         ]
-        prompt = [ SystemMessage(system_message_content) ] + conversation_messages[-MAX_CONTEXT_MSGS_QR:]
+        user_message = HumanMessage(
+            "Rewrite the following user query based on the conversation history:\n\n"
+            f"{conversation_messages[-1].content}\n"
+        )
+        prompt = [ SystemMessage(system_message_content) ] + conversation_messages[-MAX_CONTEXT_MSGS_QR:-1] + [ user_message ]
+        logging.info(f"Query rewriting prompt: {prompt}")
         response = llm.invoke(prompt)
         if type(response) != str:
             response = response.content
@@ -110,6 +119,7 @@ def init_collection_graph(collection_id, data):
             type="query_rewriting",
             content=response,
         )
+        logger.info(f"Rewritten query: {response}")
         return {"messages": [message]}
 
     def retrieve(state: MessagesState):
