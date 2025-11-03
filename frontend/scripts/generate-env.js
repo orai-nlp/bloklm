@@ -9,7 +9,7 @@ const targetPath = path.resolve(__dirname, '../src/environments/environment.ts')
 const envFileContent = `
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://10.0.6.19:${envConfig.BACKEND_PORT}/api'
+  apiBaseUrl: 'http://10.0.6.19:${envConfig.PORT}/api'
 };
 `;
 
