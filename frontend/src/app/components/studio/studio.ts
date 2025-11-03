@@ -131,14 +131,6 @@ export class StudioComponent implements OnDestroy {
         this.cdr.markForCheck();
         this.cdr.detectChanges();
       });
-
-    // // Subscribe to generating state
-    // this.noteService.isGenerating$
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe(isGenerating => {
-    //     this.isGenerating = isGenerating;
-    //     this.cdr.detectChanges();
-    //   });
   }
 
   onClickShowContent(note: Note): void {
@@ -236,13 +228,10 @@ export class StudioComponent implements OnDestroy {
     this.noteService.createNote(noteType, parameters).subscribe({
       next: (id) => {
         console.log('Note created successfully in component:', id);
-        // The note list is automatically updated via the notes$ subscription
-        // Scroll to the newly created note after a short delay to ensure DOM is updated
         setTimeout(() => this.scrollToNote(id.id), 100);
       },
       error: (error) => {
         console.error('Error creating note in component:', error);
-        // Handle error (you might want to show a user notification here)
       }
     });
 

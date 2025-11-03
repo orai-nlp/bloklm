@@ -6,7 +6,7 @@
         </div>
         <span class="notebook-title" *ngIf="currentNotebook">
                 <span class="separator">›</span>
-                {{ currentNotebook.title }}
+                <span class="animated-title" [class.show-cursor]="showCursor">{{ displayedTitle }}</span>
         </span> 
     </div>
     

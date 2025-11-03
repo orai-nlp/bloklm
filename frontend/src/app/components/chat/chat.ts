@@ -16,8 +16,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   imports: [CommonModule, FormsModule],
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
-  // Remove OnPush if you're using it, or handle change detection properly
-  // changeDetection: ChangeDetectionStrategy.OnPush
+
 })
 export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('chatContainer') chatContainer!: ElementRef;
@@ -82,7 +81,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       // First try to load existing chat
       await new Promise<void>((resolve, reject) => {
         this.chatService.loadChat(notebookId);
-        
+
         // Wait for the chat to be loaded
         const subscription = this.chatService.currentChat$
           .pipe(
@@ -119,10 +118,8 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   ngAfterViewChecked() {
     if (this.shouldScrollToBottom) {
-      // Use setTimeout to ensure DOM is fully updated
       setTimeout(() => {
         this.scrollToBottom();
-        // this.attachCitationListeners();
       }, 0);
       this.shouldScrollToBottom = false;
     }
@@ -171,25 +168,6 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       }
     }
   }
-
-  // private attachCitationListeners(): void {
-  //   const citations = this.chatContainer?.nativeElement.querySelectorAll('.citation');
-  //   if (citations) {
-  //     citations.forEach((citation: HTMLElement) => {
-  //       citation.removeEventListener('click', this.citationClickHandler);
-  //       citation.addEventListener('click', this.citationClickHandler.bind(this));
-  //     });
-  //   }
-  // }
-
-  // private citationClickHandler(event: Event): void {
-  //   const target = event.target as HTMLElement;
-  //   const chunkId = target.getAttribute('data-chunk-id');
-    
-  //   if (chunkId) {
-  //     this.chatService.onCitationClicked(chunkId);
-  //   }
-  // }
 
   formatMarkdownWithSafeHtml(content: string): SafeHtml {
     const formatted = this.chatService.formatMarkdown(content);
@@ -349,7 +327,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       // Show success message
       if (this.currentChat) {
         this.snackBar.open(this.i18n.translate('chat_clear_noti'), '', {
-          duration: 2000, // disappears after 3 seconds
+          duration: 2000, // disappears after 2 seconds
           horizontalPosition: 'center',
           verticalPosition: 'top',
         });

@@ -96,7 +96,7 @@ export class AnimatedBackgroundComponent implements AfterViewInit, OnDestroy {
       console.log('AnimatedBackground: Canvas element found', canvas);
       console.log('AnimatedBackground: Canvas dimensions BEFORE:', canvas.width, canvas.height);
       
-      // CRITICAL: Set canvas dimensions BEFORE getting context
+      // Set canvas dimensions BEFORE getting context
       this.canvasWidth = window.innerWidth;
       this.canvasHeight = window.innerHeight;
       canvas.width = this.canvasWidth;

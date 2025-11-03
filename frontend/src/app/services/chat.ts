@@ -35,9 +35,6 @@ export class ChatService {
   constructor(private notebookService: NotebookService, private http: HttpClient) {
 
     this.currentNtId = this.route.snapshot.paramMap.get('id') || null
-    // if (!this.currentNtId) { return; }
-
-    // this.loadChat();
   }
 
 
@@ -74,29 +71,15 @@ export class ChatService {
 
   async createNewChat(notebookId: string): Promise<void> {
     try {
-      // const raw$ = this.call_backend('create_chat', 'GET', {nt_id: notebookId}, undefined);
-      // const response = await firstValueFrom(raw$);
-      
-      // Success case
+
       const newChat: Chat = {
         title: 'New Chat',
         messages: []
       };
       console.log('Chat created!');
-      // if (response?.ok) {
-      //   // Success case
-      //   const newChat: Chat = {
-      //     title: 'New Chat',
-      //     messages: []
-      //   };
-      //   console.log('Chat created!');
-
 
       this.currentChatSubject.next(newChat);
-      // } else {
-      //   // Handle case where response is successful but no chat_id
-      //   throw new Error('No chat ID received from backend');
-      // }
+
     } catch (error) {
       // Handle both network errors and backend exceptions
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -134,15 +117,6 @@ export class ChatService {
     };
 
     this.currentChatSubject.next(updatedChat);
-
-    // // Update in history
-    // const currentHistory = this.chatHistorySubject.value;
-    // const chatIndex = currentHistory.findIndex(c => c.id === currentChat.id);
-    // if (chatIndex !== -1) {
-    //   currentHistory[chatIndex] = updatedChat;
-    //   this.chatHistorySubject.next([...currentHistory]);
-    //   this.saveChatHistory();
-    // }
   }
 
   updateChatTitle(title: string): void {
@@ -336,8 +310,6 @@ export class ChatService {
       this.resetCitationMap()
       this.currentChatSubject.next({title: this.currentChatSubject.value?.title || '', messages: []});
       this.isGeneratingSubject.next(false);
-
-      //backend
 
       this.call_backend('delete_chat', 'GET', {nt_id: this.notebookService.getCurrentId() || ''}, undefined).subscribe(()=>{
         console.log('Chat deleted in backend!');

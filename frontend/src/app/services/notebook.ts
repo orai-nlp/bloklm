@@ -49,7 +49,6 @@ export class NotebookService {
     return this.sources()
   }
 
-  // Add method to clear current notebook
   clearCurrentNotebook(): void {
     this.currentNotebook.set(null)
     this.sources.set([])
@@ -158,7 +157,6 @@ export class NotebookService {
   }
 
   private async loadSourcesForNotebook(notebookId: string) {
-    // backend-ean bilatu
 
     const raw$ = this.call_backend('fitxategiak', 'GET', {id: notebookId}, undefined);
     const raw_fitxaegiak = await firstValueFrom(raw$);
@@ -181,7 +179,6 @@ export class NotebookService {
     const raw$ = this.call_backend('bildumak', 'GET', {}, undefined);
     const raw_notebooks = await firstValueFrom(raw$);
 
-    // print(raw$)
     const converted_notebooks: Notebook[] = (raw_notebooks as BackendNotebook[]).map(this.convertBackendNotebook);
 
     this.notebooks.set(converted_notebooks);

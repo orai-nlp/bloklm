@@ -14,7 +14,7 @@ interface Translations {
 })
 export class I18nService {
   private currentLanguage = signal<Language>("eu")
-  // TODO: Errepasatu itzulpenak
+
   private translations: Translations = {
     welcome: {
       eu: "Ongi etorri BlokLM-ra",

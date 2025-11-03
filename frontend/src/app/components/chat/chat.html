@@ -19,8 +19,16 @@
     <div class="main">
         <!-- Messages Container - Scrollable -->
         <div class="chat-container" #chatContainer>
-            <div class="loading-spinner" *ngIf="isLoading">
-                <span>{{ this.i18n.translate('chat_loading_message') }}...</span>
+            <div class="loading-spinner-container" *ngIf="isLoading">
+                <div class="loading-spinner">
+                    <div class="spinner-ring">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
+                    <span class="loading-text">{{ this.i18n.translate('chat_loading_message') }}...</span>
+                </div>
             </div>
             
             <!-- Messages -->

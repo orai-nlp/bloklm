@@ -236,7 +236,6 @@ export class NoteModalComponent implements OnInit, OnDestroy {
         }
       }, 100);
 
-      // Optional: Add interactivity
       this.cy.on('tap', 'node', (event: any) => {
         const node = event.target;
         console.log('Node clicked:', node.data('label'));

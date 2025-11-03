@@ -96,7 +96,7 @@ export class FileModalComponent implements OnInit, OnDestroy  {
         'blockquote',
         'table', 'thead', 'tbody', 'tr', 'th', 'td',
         'hr',
-        'mark'  // Add this
+        'mark'
       ]
     });
 

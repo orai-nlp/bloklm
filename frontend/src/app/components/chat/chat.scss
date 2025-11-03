@@ -325,7 +325,7 @@ body {
   padding: 12px 16px;
   margin: 4px 0;
   border-radius: 8px;
-  align-items: center; // Changed from flex-start to center
+  align-items: center;
   gap: 10px;
 
   &.user-message {
@@ -348,7 +348,7 @@ body {
     justify-content: center;
     margin-right: 15px;
     flex-shrink: 0;
-    align-self: center; // Add this to ensure avatar stays centered
+    align-self: center; 
 
     &.user-avatar {
       background-color: $user-svg-bg;
@@ -407,7 +407,7 @@ code {
       min-height: 40px;
       max-height: 250px;
       resize: none;
-      overflow-y: hidden; // ✅ hide scrollbar by default
+      overflow-y: hidden;
       line-height: 1.4;
       transition: height 0.15s ease;
       border: 1px solid $border-color;
@@ -548,7 +548,6 @@ code {
   padding: 0;
   margin: 0;
   
-  // Your existing styles
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -592,6 +591,108 @@ code {
   40% { transform: scale(1); }
 }
 
+/* Loading Spinner Styles */
+.loading-spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 200px;
+  width: 100%;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.spinner-ring {
+  display: inline-block;
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.spinner-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  margin: 4px;
+  border: 3px solid $primary;
+  border-radius: 50%;
+  animation: spinner-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: $primary transparent transparent transparent;
+}
+
+.spinner-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+
+.spinner-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.spinner-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+
+.loading-text {
+  color: $text-color;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.8;
+  animation: loading-pulse 2s ease-in-out infinite;
+}
+
+@keyframes spinner-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loading-pulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Dark theme adjustments for loading spinner */
+[data-theme="dark"] .spinner-ring div {
+  border-color: $primary transparent transparent transparent;
+}
+
+[data-theme="dark"] .loading-text {
+  color: #e0e0e0;
+}
+
+/* Night Blue theme adjustments */
+[data-theme="night-blue"] .spinner-ring div {
+  border-color: #61afef transparent transparent transparent;
+}
+
+[data-theme="night-blue"] .loading-text {
+  color: #a9b1d6;
+}
+
+/* Sepia theme adjustments */
+[data-theme="sepia"] .spinner-ring div {
+  border-color: #8c6c4e transparent transparent transparent;
+}
+
+[data-theme="sepia"] .loading-text {
+  color: #5c4b3c;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .app-container {
@@ -607,4 +708,26 @@ code {
   .main {
     height: calc(100vh - 60px);
   }
+
+  .loading-spinner-container {
+    min-height: 150px;
+    padding: 30px 20px;
+  }
+
+  .spinner-ring {
+    width: 32px;
+    height: 32px;
+  }
+
+  .spinner-ring div {
+    width: 26px;
+    height: 26px;
+    margin: 3px;
+    border-width: 2px;
+  }
+
+  .loading-text {
+    font-size: 13px;
+  }
 }
+
