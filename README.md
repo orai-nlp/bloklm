@@ -1,3 +1,9 @@
+# Introduction
+
+BlokLM is a smart Basque and Spanish tool that helps users organize, understand, and summarize documents. Acting as a virtual assistant, it generates Q&As, summaries, FAQs, concept maps, and podcasts, making it ideal for students, researchers, and communication or education professionals.
+
+This is a demo application designed to showcase the underlying technology — including LLMs, ASR, and TTS models — built as part of the [ILENIA](https://proyectoilenia.es) project.
+
 # Setup
 
 - Clone the project:
