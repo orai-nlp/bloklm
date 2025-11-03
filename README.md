@@ -1,39 +1,89 @@
-## BACKEND
+# Setup
 
-### SETUP
-Backend-a lehen aldiz erabiltzen hasteko sortu dut `backend/db_utils/setup.sh`, bertan instalatu eta sortzen dira behar diren programa/pakete/environment-ak:
-* Instalatu PostgreSQL
-* Sortu virtual enviroment-a eta dependentziak instalatu
-* Sortu databasea eta erabiltzailea
-* Sortu taula hutsak databasearen barruan
+- Clone the project:
+  ```bash
+  $ git clone git@github.com:zbeloki/bloklm.git
+  $ cd bloklm
+  ```
 
-## APARTEKOAK
-### DOC fitxategiak
-DOC fitxategi motak parseatzeko 'libreoffice' programa erabiltzen dugu (`setup.sh`-ean gehitua). Instalatzeko egin: `sudo apt install libreoffice` 
+- Download the required models:
+  - [projecte-aina/stt_ca-es_conformer_transducer_large](https://huggingface.co/projecte-aina/stt_ca-es_conformer_transducer_large/resolve/main/stt_ca-es_conformer_transducer_large.nemo?download=true)
+  - [HiTZ/stt_eu_conformer_transducer_large](https://huggingface.co/HiTZ/stt_eu_conformer_transducer_large/resolve/main/stt_eu_conformer_transducer_large.nemo?download=true)
+  - AhoTTS: ?
+- Create the configuration file:
+```bash
+# Path: {PROJECT_ROOT}/.env
+# Note: replace values like ${DB_NAME} with your actual values
 
-### Audioa prozesatzeko
-#### Aplikazioak eta paketeak
-pip install nemo_toolkit['all']
-pip install pydub
-pip install torchaudio
-pip install speechbrain
-ffmpeg for pydub: sudo apt-get install ffmpeg → GPU4n badago
-#### ASR modeloa
-git clone https://username:token@huggingface.co/HiTZ/stt_eu_conformer_transducer_large
+# Service's host and port
+HOST=localhost
+PORT=8000
 
-## FRONTEND
-### SETUP
-Frontend-a lehen aldiz erabiltzen hasteko sortu dut `setup-angular.sh`, bertan instalatu eta sortzen dira behar diren programa/pakete/proiektu-ak:
+# Postgres parameters
+DB_NAME={DB_NAME}
+DB_USER={DB_USER}
+DB_PASSWORD={DB_PWD}
+DB_HOST=localhost
+DB_PORT=5432
 
-| Funtzioa                   | Azalpena                                                                                                                                                                                 |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **check\_nodejs**          | Node.js instalatuta dagoen egiaztatzen du; bertsioa 16 baino txikiagoa bada, eguneratzeko aukera eskaintzen du.                                                                          |
-| **check\_npm**             | npm (Node Package Manager) instalatuta dagoen egiaztatzen du; beharrezkoa bada, berez instalatzen saiatzen da.                                                                           |
-| **install\_angular\_cli**  | Angular CLI tresna globalki instalatzen du (`ng` komandoa eskuragarri egoteko).                                                                                                          |
-| **get\_project\_name**     | Erabiltzaileari proiektu-izena eskatzen dio, eta alfabetikoa den baliozkotzea egiten du.                                                                                                     |
-| **get\_user\_preferences** | Erabiltzaileari routing-a gehitu nahi duen galdetzen dio eta estilo-formatua aukeratzeko eskaintzen dio (CSS, SCSS, Sass edo Less).                                                      |
-| **create\_project**        | `ng new` komandoa exekutatzen du aurreko aukerekin eta proiektua sortzen du.                                                                                                             |
-| **offer\_to\_source\_nvm** | Erabiltzaileari galdetzen dio NVM script-a automatikoki kargatu nahi duen edozein terminal berrian; baietz esanez gero, `.bashrc`, `.zshrc` edo `.profile` fitxategian gehitu egiten du. |
-| **install\_dependencies**  | Behar diren NPM paketeak instalatzeko funtzioa. |
-| **show\_next\_steps**      | Proiektua sortu ondoren, hurrengo urratsak erakusten ditu (`cd`, `ng serve`, ohiko komandoak) eta zerbitzaria abiarazteko aukera ematen du.                                              |
+# LLM-related parameters
+LLM_ID=HiTZ/Latxa-Llama-3.1-70B-Instruct
+LLM_MAX_TOKENS=65536
+LLM_DEVICE=0
 
+# RAG-related parameters
+VECTORIZER_ID=beademiguelperez/sentence-transformers-multilingual-e5-small
+RERANKING_ID=cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
+RAG_DEVICE=0
+
+# ASR-related parameters (paths of the .nemo files downloaded in the previous step)
+ASR_EU={ASR_EU_PATH}
+ASR_ES={ASR_ES_PATH}
+ASR_DEVICE=0
+
+# TTS-related parameters (audio files will be created into "/full/path/to/audios")
+TTS_PATH={AHOTTS_PATH}
+AUDIO_PATH=/full/path/to/audios
+```
+
+- Add the project's root dir to PYTHONPATH \
+  ```bash
+  $ export PYTHONPATH=.
+  ```
+
+- Create virtual environment
+  ```bash
+  $ virtualenv -p python3 venv
+  ```
+
+- Install requirements
+  ```bash
+  $ pip install backend/requirements.txt
+  ```
+
+- Install PostgreSQL
+
+- Create a new database (suggested name: bloklm)
+  ```bash
+  $ psql (set your -U and -d arguments)
+  > CREATE DATABASE bloklm;  
+  ```
+
+- Create database structure
+  ```bash
+  $ python3 backend/db_utils/create_tables.py
+  ```
+
+- Setup and run frontend
+  ```bash
+  $ cd frontend/
+  $ npm install
+  $ npm start
+  ```
+
+- Run backend service
+  ```bash
+  $ python3 backend/blok_app/app.py
+  ```
+
+**NOTE**: This platform has been only tested by running Latxa-70B on HuggingFace's Inference Endpoints platform. Environment variables HF_TOKEN and OPENAI_API_BASE must be set before running the backend service in order to access the LLM through that platform.
