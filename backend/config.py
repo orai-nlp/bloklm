@@ -6,7 +6,8 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 
 load_dotenv(BASE_DIR / ".env")
 
-# Backend port (Sanic server)
+# Backend host and port (Sanic server)
+API_HOST = os.getenv("API_HOST", "localhost")
 PORT = os.getenv("PORT", "8000")
 
 # Database (PostgreSQL) parameters
