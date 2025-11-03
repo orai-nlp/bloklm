@@ -12,7 +12,7 @@ from pydantic import Field
 
 logger = logging.getLogger(__name__)
 
-TEMPERATURE = 0.7
+TEMPERATURE = 0.0
 MAX_OUTPUT_TOKENS = 8192
 
 def load_llm():
