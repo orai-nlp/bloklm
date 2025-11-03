@@ -16,7 +16,7 @@
 # Note: replace values like ${DB_NAME} with your actual values
 
 # Service's host and port
-HOST=localhost
+API_HOST=localhost
 PORT=8000
 
 # Postgres parameters
