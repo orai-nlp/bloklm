@@ -16,7 +16,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   imports: [CommonModule, FormsModule],
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
-
+  // Remove OnPush if you're using it, or handle change detection properly
+  // changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('chatContainer') chatContainer!: ElementRef;
@@ -81,7 +82,7 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
       // First try to load existing chat
       await new Promise<void>((resolve, reject) => {
         this.chatService.loadChat(notebookId);
-
+        
         // Wait for the chat to be loaded
         const subscription = this.chatService.currentChat$
           .pipe(
@@ -212,9 +213,9 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
     const userMessage = this.userInputValue.trim();
     if (userMessage === '' || this.isGenerating) return;
 
-    // Clear input
+    // Clear input and reset textarea immediately
     this.userInputValue = '';
-    this.autoResizeTextarea();
+    this.resetTextareaHeight();
     this.shouldScrollToBottom = true;
 
     try {
@@ -288,14 +289,30 @@ export class ChatComponent implements OnInit, AfterViewChecked, OnDestroy {
   autoResizeTextarea() {
     const textarea = document.querySelector('.input-container textarea') as HTMLTextAreaElement;
     if (textarea) {
-      textarea.style.height = 'auto';
+      // Reset to auto to get the natural height
+      textarea.style.minHeight = 'auto';
       textarea.style.overflowY = 'hidden'; // reset overflow
-      textarea.style.height = textarea.scrollHeight + 'px';
+      
+      // If textarea is empty or only whitespace, reset to minimum height
+      if (!textarea.value.trim()) {
+        textarea.style.minHeight = '40px'; // Reset to min-height from CSS
+      } else {
+        // Set height based on scroll height
+        textarea.style.minHeight = textarea.scrollHeight + 'px';
+      }
 
       // If content exceeds max height, show scrollbar
       if (textarea.scrollHeight > 250) {
         textarea.style.overflowY = 'auto';
       }
+    }
+  }
+
+  resetTextareaHeight() {
+    const textarea = document.querySelector('.input-container textarea') as HTMLTextAreaElement;
+    if (textarea) {
+      textarea.style.minHeight = '40px'; // Reset to original min-height
+      textarea.style.overflowY = 'hidden';
     }
   }
 

@@ -325,17 +325,21 @@ body {
   padding: 12px 16px;
   margin: 4px 0;
   border-radius: 8px;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 
   &.user-message {
     background: $user-msg-bg !important;
     flex-direction: row-reverse;
     margin-right: 1%;
+    margin-left: auto;
   }
 
   &.ai-message {
     background: $ai-msg-bg !important;
+    margin-right: auto;
   }
 }
 
@@ -348,12 +352,13 @@ body {
     justify-content: center;
     margin-right: 15px;
     flex-shrink: 0;
-    align-self: center; 
+    align-self: flex-start;
 
     &.user-avatar {
       background-color: $user-svg-bg;
       color: $user-svg-color;
       margin-right: 0px;
+      margin-left: 15px;
       width: 1.5em;
     }
 
@@ -367,6 +372,10 @@ body {
     flex-grow: 1;
     max-width: 800px;
     line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    min-width: 0; /* Allows flex item to shrink below content size */
 }
 
 pre {
@@ -407,7 +416,7 @@ code {
       min-height: 40px;
       max-height: 250px;
       resize: none;
-      overflow-y: hidden;
+      overflow-y: hidden; 
       line-height: 1.4;
       transition: height 0.15s ease;
       border: 1px solid $border-color;
@@ -730,4 +739,3 @@ code {
     font-size: 13px;
   }
 }
-
