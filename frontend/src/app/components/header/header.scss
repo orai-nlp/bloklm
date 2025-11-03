@@ -34,12 +34,20 @@
   color: var(--text-primary);
   cursor: pointer;
   transition: var(--transition-normal);
+  
+  &:hover {
+    color: var(--color-primary);
+    transform: translateY(-1px);
+  }
+}
+
+.logo-text {
   position: relative;
   
   &::after {
     content: '';
     position: absolute;
-    bottom: -4px;
+    bottom: -2px;
     left: 0;
     width: 0;
     height: 3px;
@@ -48,10 +56,7 @@
     transition: var(--transition-normal);
   }
   
-  &:hover {
-    color: var(--color-primary);
-    transform: translateY(-1px);
-    
+  .logo:hover & {
     &::after {
       width: 100%;
     }
@@ -60,9 +65,13 @@
 
 .logo-icon {
   font-size: 24px;
-  img{
+  img {
     width: auto;
-    width: 2vw;
+    height: clamp(24px, 3vw, 48px);
+    min-width: 24px;
+    max-width: 48px;
+    object-fit: contain;
+    transition: var(--transition-normal);
   }
 }
 
@@ -174,5 +183,81 @@
     font-size: 20px;
     position: relative;
     z-index: 1;
+  }
+}
+
+// Responsive breakpoints
+@media (max-width: 768px) {
+  .header {
+    padding: var(--space-2) var(--space-4);
+    height: 60px;
+  }
+  
+  .logo {
+    font-size: var(--font-size-2xl);
+    gap: var(--space-1);
+  }
+  
+  .logo-icon img {
+    height: clamp(20px, 5vw, 32px);
+    min-width: 20px;
+    max-width: 32px;
+  }
+  
+  .notebook-title {
+    font-size: var(--font-size-base);
+    
+    .separator {
+      margin: 0 var(--space-2);
+      font-size: var(--font-size-base);
+    }
+  }
+  
+  .language-selector {
+    gap: 2px;
+    margin-right: 4px;
+  }
+  
+  .lang-btn {
+    padding: var(--space-1) var(--space-1);
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: var(--space-2) var(--space-3);
+    height: 56px;
+  }
+  
+  .logo {
+    font-size: var(--font-size-xl);
+  }
+  
+  .logo-icon img {
+    height: clamp(18px, 5vw, 28px);
+    min-width: 18px;
+    max-width: 28px;
+  }
+  
+  .notebook-title {
+    font-size: var(--font-size-sm);
+    
+    .separator {
+      margin: 0 var(--space-1);
+      font-size: var(--font-size-sm);
+    }
+  }
+}
+
+@media (min-width: 1200px) {
+  .header {
+    padding: var(--space-4) var(--space-8);
+  }
+  
+  .logo-icon img {
+    height: clamp(32px, 2.5vw, 56px);
+    min-width: 32px;
+    max-width: 56px;
   }
 }

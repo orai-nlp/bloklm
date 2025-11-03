@@ -1,6 +1,8 @@
 @if (isVisible && note) {
   <div class="modal-backdrop" (click)="onBackdropClick($event)">
-    <div class="modal-container">
+    <div class="modal-container" 
+         [style.max-width.vw]="modalWidthPercent"
+         [style.max-height.vh]="modalHeightPercent">
       <div class="modal-header">
         <h2 class="modal-title">{{ note.name }}</h2>
         <button class="modal-close-btn" (click)="close()">
@@ -8,10 +10,10 @@
         </button>
       </div>
       
-      <div class="modal-content">
+      <div class="modal-content" [class.mindmap-mode]="isMindmap">
         
         @if (isMindmap) {
-          <div id="mindmap-container" class="mindmap-container"></div>
+          <div id="mindmap-container" class="mindmap-container" [style.min-height.vh]="modalHeightPercent"></div>
         } @else {
           <div class="markdown-content" [innerHTML]="renderedContent"></div>
         }

@@ -25,6 +25,9 @@ export class NoteModalComponent implements OnInit, OnDestroy {
   isMindmap = false;
   isPodcast = false;
 
+  // Modal size configuration (percentage of viewport)
+  modalWidthPercent = 55;
+  modalHeightPercent = 80; // 90% of viewport height
   
   private destroy$ = new Subject<void>();
   private cy: any = null; // Cytoscape instance
@@ -70,8 +73,12 @@ export class NoteModalComponent implements OnInit, OnDestroy {
     
     if (this.isMindmap) {
       // Parse and render mindmap with Cytoscape
+      this.modalWidthPercent = 80;
+      this.modalHeightPercent = 80;
       setTimeout(() => this.renderMindmap(note.content), 0);
     } else {
+      this.modalWidthPercent = 55;
+      this.modalHeightPercent = 80;
       let contentToRender = note.content || '';
       
       // If it's a podcast, try to parse JSON format first
@@ -220,6 +227,14 @@ export class NoteModalComponent implements OnInit, OnDestroy {
         userPanningEnabled: true,
         boxSelectionEnabled: false
       });
+
+      // Resize Cytoscape to fit container after render
+      setTimeout(() => {
+        if (this.cy) {
+          this.cy.resize();
+          this.cy.fit();
+        }
+      }, 100);
 
       // Optional: Add interactivity
       this.cy.on('tap', 'node', (event: any) => {

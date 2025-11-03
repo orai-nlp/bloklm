@@ -414,18 +414,19 @@ export class ChatService {
   }
 
   private processCitations(text: string): { processed: string; citations: Map<string, number> } {
-    const citationRegex = /\[SID: ?(\d+)\]/g;
+    // Match both patterns: [SID: 123] or Source ID: 123
+    const citationRegex = /\[SID: ?(\d+)\]|Source ?ID: ?(\d+)/g;
     let citationCounter = 1;
     const localCitationMap = new Map<string, number>();
-    
-    const processed = text.replace(citationRegex, (match, chunkId) => {
+
+    const processed = text.replace(citationRegex, (match, sid1, sid2) => {
+      const chunkId = sid1 || sid2; // whichever matched
       if (!localCitationMap.has(chunkId)) {
         localCitationMap.set(chunkId, citationCounter);
         citationCounter++;
       }
       const citationNumber = localCitationMap.get(chunkId)!;
-      
-      // Use button element for proper interactive semantics
+
       return `<button type="button" class="citation" data-chunk-id="${chunkId}" data-citation-number="${citationNumber}">${citationNumber}</button>`;
     });
 

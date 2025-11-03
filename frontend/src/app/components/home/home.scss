@@ -1,9 +1,8 @@
-
 .home-container {
   display: flex;
   flex-direction: row;
-  height: 100vh; /* full viewport height */
-  overflow: hidden; /* prevent page scroll */
+  min-height: 70vh; // calc(100vh - var(--header-height, 64px) - var(--footer-height, 60px)); // Use min-height instead of height
+  overflow: visible; // Allow content to flow naturally
   position: relative;
   background: transparent; /* Let the animated background show through */
 }
@@ -11,9 +10,9 @@
 .home-content {
   flex: 1 1 auto;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 6vh 15vw;
   padding: var(--space-16) var(--space-6);
-  overflow-y: auto;
+  overflow-y: visible; // Allow natural overflow
   scroll-behavior: smooth;
   position: relative;
   z-index: 1; /* Ensure content is above the background */
