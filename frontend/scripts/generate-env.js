@@ -8,8 +8,8 @@ const targetPath = path.resolve(__dirname, '../src/environments/environment.ts')
 
 const envFileContent = `
 export const environment = {
-  production: false,
-  apiBaseUrl: 'http://${envConfig.API_HOST}:${envConfig.PORT}/api'
+  production: true,
+  apiBaseUrl: 'http://bloklm.orai.eus/api'
 };
 `;
 
